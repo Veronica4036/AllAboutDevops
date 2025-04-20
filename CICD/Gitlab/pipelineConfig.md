@@ -1,4 +1,4 @@
-
+```
 stages:          # List of stages for jobs, and their order of execution
   - install_tools
   - test
@@ -122,3 +122,4 @@ k8s-deploy:
     - self-hosted
   only:
     - main
+```
