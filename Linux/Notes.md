@@ -1,4 +1,6 @@
-## Linux 
+# Linux 
+
+## Linux File System
 
 Understanding the Linux directory structure is like learning the floor plan of a house. Unlike Windows, which uses drive letters (C:, D:), Linux uses a Unified Hierarchical Tree. Everything starts from the Root, represented by a single forward slash (/). 
 
@@ -65,6 +67,20 @@ Notice your disk drives are listed here. Depending on the cloud provider or hard
 >/opt — Optional software. When you install third-party tools manually (not via package manager), they often go here.
 <img width="413" height="36" alt="image" src="https://github.com/user-attachments/assets/0afb6453-f011-41c1-8872-2ff93094dcca" />
 
+1. The Role of /usr/local/bin
+In the Linux hierarchy, /usr/local is the "neighborhood" for software installed by the local administrator (you) that didn't come from the official OS repositories (like yum).
+
+    /usr/bin: System-managed programs (installed via yum).
+    /usr/local/bin: User-managed programs (installed via scripts or manual moves).
+    Why here? Most Linux systems include /usr/local/bin in your $PATH by default. This means you can just type helm from anywhere, and it works immediately without you having to tell the system where it is.
+
+2. Why not /opt?
+If you look at your ls /opt output, you see aws. AWS usually puts its CLI or agent there because /opt is reserved for "Add-on" software packages that:
+
+    Contain their own entire subdirectory structure (bin, lib, share, etc.).
+    Are "self-contained" (like a giant folder for Google Chrome or an Oracle DB).
+    Helm is just a single file (a binary). It doesn't need its own private folder and sub-folders, so it's cleaner to just drop that one file into /usr/local/bin.
+   
 --
 
 >/usr — User-related programs and data. Think of it as a secondary hierarchy. /usr/bin, /usr/lib, /usr/share all live here.
@@ -75,9 +91,26 @@ Notice your disk drives are listed here. Depending on the cloud provider or hard
 >/lib and /usr/lib — Shared libraries (.so files) that programs depend on. Like DLLs in Windows.
 <img width="1184" height="51" alt="image" src="https://github.com/user-attachments/assets/e6732f12-ca11-46ff-9fdf-30c32c23a6aa" />
 
+1. The Binary (/bin, /sbin, /usr/bin)
+A binary is an executable file. It is a complete program that you can run directly from the terminal.
+
+    Role: It performs a specific task from start to finish.
+    Analogy: A Power Drill. You pick it up, pull the trigger (run it), and it does the job.
+    Examples: ls, cd, java, helm, python.
+    Where they live: Look in your $PATH folders (e.g., /usr/bin/ls).
+
+2. The Library (/lib, /lib64, /usr/lib)
+A library is a collection of pre-written code that binaries use to do their work. You cannot "run" a library by itself.
+
+    Role: It provides shared functions (like "how to draw a window" or "how to connect to the internet") so that every single binary doesn't have to reinvent the wheel.
+    Analogy: A Instruction Manual or a Battery. A battery is useless sitting on a shelf, but the Power Drill (Binary) needs it to function.
+    Examples: libc.so (the standard C library), libssl.so (for encryption).
+    Where they live: Usually in /lib or /usr/lib.
+   
 --
 
 >/mnt and /media — Mount points. When you attach an external disk or NFS share, you mount it here.
 
 >/boot — Bootloader files and the Linux kernel itself. Don’t touch this unless you know what you’re doing.
 <img width="1278" height="69" alt="image" src="https://github.com/user-attachments/assets/d6737c68-09df-4060-bad3-b52c6adc5e7e" />
+
