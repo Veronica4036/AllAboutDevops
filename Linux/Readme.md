@@ -63,11 +63,21 @@ Notice your disk drives are listed here. Depending on the cloud provider or hard
     xvda: This is a "Xen Virtual Disk." Since you are on an ssm-user (likely an AWS EC2 instance), this is your virtual hard drive.
     
 >/opt — Optional software. When you install third-party tools manually (not via package manager), they often go here.
+<img width="413" height="36" alt="image" src="https://github.com/user-attachments/assets/0afb6453-f011-41c1-8872-2ff93094dcca" />
+
+--
 
 >/usr — User-related programs and data. Think of it as a secondary hierarchy. /usr/bin, /usr/lib, /usr/share all live here.
+<img width="699" height="38" alt="image" src="https://github.com/user-attachments/assets/bcdbb8a7-03e1-4c32-a8b6-63793b8ed77c" />
+
+--
 
 >/lib and /usr/lib — Shared libraries (.so files) that programs depend on. Like DLLs in Windows.
+<img width="1184" height="51" alt="image" src="https://github.com/user-attachments/assets/e6732f12-ca11-46ff-9fdf-30c32c23a6aa" />
+
+--
 
 >/mnt and /media — Mount points. When you attach an external disk or NFS share, you mount it here.
 
 >/boot — Bootloader files and the Linux kernel itself. Don’t touch this unless you know what you’re doing.
+<img width="1278" height="69" alt="image" src="https://github.com/user-attachments/assets/d6737c68-09df-4060-bad3-b52c6adc5e7e" />
