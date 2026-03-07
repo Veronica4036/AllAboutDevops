@@ -1,0 +1,121 @@
+You are an expert DevOps engineer and educator with 10+ years of experience in the field. I need you to create a comprehensive DevOps learning curriculum for a complete beginner who has no prior knowledge of DevOps concepts.
+
+**REQUIREMENTS:**
+
+1. **Create an Index Page (index.md)** that serves as the main navigation hub containing:
+   - Complete overview of what DevOps is and why it matters
+   - Learning path structure with clear progression
+   - Prerequisites and recommended background knowledge
+   - Links to all daily learning modules
+   - Estimated time commitment for each section
+   - Resources and tools needed throughout the journey
+
+2. **Day-wise Learning Plan** with the following structure:
+   - **30-day intensive program** (can be extended based on complexity)
+   - Each day should have **specific learning objectives**
+   - **Hands-on practical exercises** for every concept
+   - **Real-world scenarios** and use cases
+   - **Assessment questions** to test understanding
+   - **Interview questions** related to that day's topics
+
+3. **Individual Files for Each Day** (day01.md, day02.md, etc.) containing:
+   - **Learning Objectives** - What you'll achieve by end of day
+   - **Theory Section** - Concepts explained in simple terms with analogies
+   - **Practical Exercises** - Step-by-step hands-on activities
+   - **Tools Introduction** - Any new tools covered that day
+   - **Common Interview Questions** - 5-10 questions with detailed answers
+   - **Next Day Preview** - Brief overview of what's coming next
+   - **Additional Resources** - Links, documentation, tutorials
+
+4. **Content Structure Guidelines:**
+   - **Assume ZERO prior DevOps knowledge**
+   - Use **simple analogies** and **real-world examples**
+   - Include **visual descriptions** of concepts (describe diagrams/flowcharts)
+   - Provide **command examples** with explanations
+   - Include **troubleshooting sections** for common issues
+   - Add **best practices** and **industry standards**
+
+5. **Content Quality and Engagement Requirements (CRITICAL):**
+   - **Make notes EXTREMELY ELABORATE** - cover every aspect in comprehensive detail
+   - **Self-contained content** - readers should NEVER need to research elsewhere
+   - **Engaging and interesting writing style** - use storytelling, real-world scenarios, and relatable examples
+   - **Prevent reader boredom** with varied content formats: stories, analogies, practical examples, case studies
+   - **Include fascinating industry anecdotes** and real company examples (Netflix, Amazon, Google DevOps practices)
+   - **Use conversational tone** with humor where appropriate to maintain engagement
+   - **Break complex topics** into digestible chunks with clear transitions
+   - **Add "Did You Know?" sections** with interesting DevOps facts and industry insights
+   - **Include real-world failure stories** and lessons learned to make content memorable
+   - **Use progressive disclosure** - start simple, then dive deeper with advanced details
+   - **Add practical tips and tricks** that professionals actually use in their daily work
+   - **Include code examples with detailed line-by-line explanations**
+   - **Provide multiple perspectives** on solving the same problem
+   - **Add visual thinking aids** - describe mental models and thinking frameworks
+
+6. **Curriculum Coverage Areas:**
+   - **Week 1:** DevOps Fundamentals, Linux Basics, Version Control (Git)
+   - **Week 2:** CI/CD Concepts, Jenkins, Build Tools
+   - **Week 3:** Containerization (Docker), Container Orchestration (Kubernetes)
+   - **Week 4:** AWS Cloud Platform, Infrastructure as Code (Terraform/CloudFormation), Monitoring
+   - **Week 5:** Advanced Topics, Security, Interview Preparation
+
+7. **Interview Preparation Focus (CRITICAL FOR SUCCESS):**
+   - Include **extensive scenario-based questions** for each topic with real-world situations
+   - Provide **in-depth explanations** with step-by-step problem-solving approaches
+   - Add **troubleshooting scenarios** with detailed resolution strategies
+   - Include **architecture design questions** with complete solution walkthroughs
+   - Create **mock interview sessions** with sample answers that demonstrate expertise
+   - Add **follow-up questions** that interviewers typically ask to test deeper knowledge
+   - Include **hands-on coding/scripting challenges** with complete solutions
+   - Provide **behavioral questions** with STAR method examples specific to DevOps situations
+   - Add **system design questions** for senior positions with detailed architectural explanations
+   - Create a **comprehensive final interview prep checklist** with confidence-building exercises
+
+8. **Practical Project Integration:**
+   - Build a **complete CI/CD pipeline** throughout the course
+   - Deploy a **real application** using learned concepts
+   - Create **portfolio projects** for job applications
+   - Include **resume building tips** for DevOps roles
+
+9. **Additional Requirements:**
+   - Make content **beginner-friendly** but **industry-relevant**
+   - Include **salary expectations** and **career progression paths**
+   - Add **AWS certification roadmap** (Cloud Practitioner → Solutions Architect → DevOps Engineer)
+   - Include **Kubernetes and Docker certification paths**
+   - Provide **job search strategies** specific to DevOps roles
+   - Include **networking tips** and **community resources**
+
+**OUTPUT FORMAT:**
+- Start with the index.md file
+- Then create day01.md through day30.md (or however many days you plan)
+- Each file should be comprehensive but digestible in one day
+- Use proper markdown formatting with headers, code blocks, and lists
+- Include estimated time for each section within daily files
+
+**TONE AND STYLE (MAKE IT IRRESISTIBLE TO READ):**
+- **Conversational and encouraging** - like learning from a mentor, not a textbook
+- **Technical but accessible** - explain complex concepts in simple, relatable terms
+- **Include motivational elements** and success stories to keep learners inspired
+- **Acknowledge challenges** but frame them as exciting puzzles to solve
+- **Emphasize practical application** over pure theory with real-world context
+- **Use storytelling techniques** - every concept should have a story or scenario
+- **Add personality and humor** where appropriate to maintain engagement
+- **Include "aha moments"** - structure content to create understanding breakthroughs
+- **Use varied sentence structures** and paragraph lengths to maintain reading rhythm
+- **Add emotional hooks** - help readers understand WHY each concept matters personally
+
+**SPECIAL EMPHASIS ON INTERVIEW SUCCESS:**
+- For each day's content, include at least 10-15 scenario-based interview questions
+- Provide detailed explanations that show not just WHAT to answer, but HOW to think through problems
+- Include common follow-up questions and how to handle them confidently
+- Add real-world troubleshooting scenarios that demonstrate practical expertise
+- Create "Interview Confidence Builders" - practice scenarios that build competence
+- Include salary negotiation tips and how to showcase your DevOps value proposition
+
+**AWS-FOCUSED CLOUD LEARNING:**
+- Deep dive into AWS core services (EC2, S3, VPC, IAM, CloudWatch, etc.)
+- Hands-on AWS projects that can be discussed in interviews
+- AWS cost optimization strategies and best practices
+- AWS security and compliance scenarios
+- Real-world AWS architecture patterns and when to use them
+
+Begin with creating the index.md file that outlines the entire learning journey, then proceed with day01.md and continue sequentially. Make sure each day builds upon previous knowledge while introducing new concepts at a manageable pace. PRIORITIZE interview readiness throughout every single day of content.
