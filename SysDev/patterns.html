@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SDE AFT Support Prep — Pattern Recognition Deep Dive</title>
+</head>
+<body bgcolor="#0d1117" text="#e6edf3" link="#58a6ff" vlink="#bc8cff" alink="#ffa657">
+
+<table width="100%" bgcolor="#161b22" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+  <font face="Helvetica, Arial, sans-serif" size="4" color="#e6edf3"><b>SDE AFT Support Prep</b></font>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <font face="Helvetica, Arial, sans-serif" size="3">
+    <a href="index.html"><font color="#8b949e">Home</font></a> &nbsp;&middot;&nbsp;
+    <a href="patterns.html"><font color="#58a6ff"><b>Patterns</b></font></a> &nbsp;&middot;&nbsp;
+    <a href="coding.html"><font color="#8b949e">Coding &amp; Algorithms</font></a> &nbsp;&middot;&nbsp;
+    <a href="scripting-linux.html"><font color="#8b949e">Scripting &amp; Linux</font></a> &nbsp;&middot;&nbsp;
+    <a href="networking-security.html"><font color="#8b949e">Networking &amp; Security</font></a> &nbsp;&middot;&nbsp;
+    <a href="troubleshooting-ops.html"><font color="#8b949e">Troubleshooting &amp; Ops</font></a> &nbsp;&middot;&nbsp;
+    <a href="systems-cloud.html"><font color="#8b949e">Systems &amp; Cloud</font></a>
+  </font>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="1000" align="center" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<font face="Helvetica, Arial, sans-serif">
+
+<h1><font color="#e6edf3" size="6">&#129504; Pattern Recognition &mdash; Deep Dive</font></h1>
+<p><font size="3" color="#8b949e">14 patterns with the <b>why</b>, <b>mental model</b>, <b>trap</b>, <b>escalation</b>, <b>interview question</b>, and <b>bridge to other patterns</b>. Optimized for night-before review.</font></p>
+
+<br>
+
+<table width="100%" bgcolor="#1c2430" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787">Contents</font></h3>
+<font size="3">
+<p><b><font color="#3fb950">&#9889; Quick reference</font></b><br>
+&bull; <a href="#summary"><font color="#58a6ff">5-minute summary table</font></a> &mdash; the whole page in one table<br>
+&bull; <a href="#notcovered"><font color="#58a6ff">What's intentionally not here</font></a> &mdash; DP, backtracking, Union-Find, SQL, etc.
+</p>
+<p><b><font color="#58a6ff">14 Patterns</font></b></p>
+<ol>
+  <li><a href="#p1"><font color="#58a6ff">Two Pointers</font></a></li>
+  <li><a href="#p2"><font color="#58a6ff">Sliding Window</font></a></li>
+  <li><a href="#p3"><font color="#58a6ff">Prefix Sum + Hashmap</font></a></li>
+  <li><a href="#p4"><font color="#58a6ff">Hash Map / Counter</font></a></li>
+  <li><a href="#p5"><font color="#58a6ff">Stack (incl. Monotonic)</font></a></li>
+  <li><a href="#p6"><font color="#58a6ff">BFS (unweighted shortest path)</font></a></li>
+  <li><a href="#p7"><font color="#58a6ff">DFS (flood fill, all paths)</font></a></li>
+  <li><a href="#p8"><font color="#58a6ff">Binary Search</font></a></li>
+  <li><a href="#p9"><font color="#58a6ff">Heap (Top-K)</font></a></li>
+  <li><a href="#p10"><font color="#58a6ff">Hash Map + Linked List (LRU)</font></a></li>
+  <li><a href="#p11"><font color="#58a6ff">Exponential Backoff + Jitter</font></a></li>
+  <li><a href="#p12"><font color="#58a6ff">Token Bucket / Sliding Window Rate Limit</font></a></li>
+  <li><a href="#p13"><font color="#58a6ff">Regex + Counter / awk</font></a></li>
+  <li><a href="#p14"><font color="#58a6ff">Enums + Abstractions (OOP Design)</font></a></li>
+</ol>
+<hr color="#30363d" size="1" noshade>
+<ol start="15">
+  <li><a href="#matrix"><font color="#7ee787"><b>Pattern Combination Matrix</b></font></a></li>
+  <li><a href="#framework"><font color="#7ee787"><b>30-Second Decision Framework</b></font></a></li>
+  <li><a href="#drill"><font color="#7ee787"><b>Rapid-Fire Drill (10 problems)</b></font></a></li>
+</ol>
+</font>
+</td></tr>
+</table>
+
+<br><br>
+<!-- PATTERNS_START -->
+
+<!-- ================================================================ -->
+<!-- ONE-SCREEN SUMMARY TABLE                                          -->
+<!-- ================================================================ -->
+<a name="summary"></a>
+<table width="100%" bgcolor="#11261c" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="5" color="#3fb950"><b>&#9889; If You Only Have 5 Minutes &mdash; The Whole Page in One Table</b></font>
+<br><br>
+<font size="3" color="#c9d1d9">This is the reflex. The 14 cards below go deeper; this is what you should be able to recite cold.</font>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0d1117" cellpadding="10" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#21262d">
+  <td width="5%"><font size="2" color="#f0883e"><b>#</b></font></td>
+  <td width="30%"><font size="2" color="#f0883e"><b>Signal you hear</b></font></td>
+  <td width="25%"><font size="2" color="#f0883e"><b>Pattern</b></font></td>
+  <td width="15%"><font size="2" color="#f0883e"><b>Complexity</b></font></td>
+  <td width="25%"><font size="2" color="#f0883e"><b>One-line reason</b></font></td>
+</tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>1</b></font></td>
+<td><font size="2" color="#c9d1d9">Sorted + pair target</font></td>
+<td><font size="2" color="#58a6ff"><b>Two pointers</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n) / O(1)</font></td>
+<td><font size="2" color="#8b949e">Squeeze; each step kills a row</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>2</b></font></td>
+<td><font size="2" color="#c9d1d9">Longest/shortest <i>contiguous</i> substring/subarray</font></td>
+<td><font size="2" color="#58a6ff"><b>Sliding window</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n) / O(k)</font></td>
+<td><font size="2" color="#8b949e">Each index enters + leaves once</font></td></tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>3</b></font></td>
+<td><font size="2" color="#c9d1d9">Subarray sum = K (incl. negatives)</font></td>
+<td><font size="2" color="#58a6ff"><b>Prefix sum + hash map</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n) / O(n)</font></td>
+<td><font size="2" color="#8b949e">Range sum = P[r] &minus; P[l]</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>4</b></font></td>
+<td><font size="2" color="#c9d1d9">First unique, two-sum, frequency</font></td>
+<td><font size="2" color="#58a6ff"><b>Hash map / Counter</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n) / O(n)</font></td>
+<td><font size="2" color="#8b949e">O(1) lookup beats O(n) scan</font></td></tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>5</b></font></td>
+<td><font size="2" color="#c9d1d9">Matching brackets / next greater</font></td>
+<td><font size="2" color="#58a6ff"><b>Stack (monotonic)</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n) / O(n)</font></td>
+<td><font size="2" color="#8b949e">LIFO matches nesting; monotonic kills obsolete candidates</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>6</b></font></td>
+<td><font size="2" color="#c9d1d9">Shortest path <i>unweighted</i>, min hops</font></td>
+<td><font size="2" color="#58a6ff"><b>BFS + visited</b></font></td>
+<td><font size="2" color="#c9d1d9">O(V+E) / O(V)</font></td>
+<td><font size="2" color="#8b949e">Level-order = shortest</font></td></tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>7</b></font></td>
+<td><font size="2" color="#c9d1d9">All paths, flood fill, components</font></td>
+<td><font size="2" color="#58a6ff"><b>DFS + visited</b></font></td>
+<td><font size="2" color="#c9d1d9">O(V+E) / O(V)</font></td>
+<td><font size="2" color="#8b949e">Goes deep; natural recursion</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>8</b></font></td>
+<td><font size="2" color="#c9d1d9">Sorted, find/bound value</font></td>
+<td><font size="2" color="#58a6ff"><b>Binary search</b></font></td>
+<td><font size="2" color="#c9d1d9">O(log n) / O(1)</font></td>
+<td><font size="2" color="#8b949e">Halve each step</font></td></tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>9</b></font></td>
+<td><font size="2" color="#c9d1d9">Top K / K most frequent / K closest</font></td>
+<td><font size="2" color="#58a6ff"><b>Heap of size K</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n log K) / O(K)</font></td>
+<td><font size="2" color="#8b949e">Keep only leaders; don't full-sort</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>10</b></font></td>
+<td><font size="2" color="#c9d1d9">O(1) get + evict oldest (LRU)</font></td>
+<td><font size="2" color="#58a6ff"><b>Hash map + linked list</b></font></td>
+<td><font size="2" color="#c9d1d9">O(1) / O(capacity)</font></td>
+<td><font size="2" color="#8b949e">Map = lookup; list = order</font></td></tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>11</b></font></td>
+<td><font size="2" color="#c9d1d9">Retry flaky / eventually consistent</font></td>
+<td><font size="2" color="#58a6ff"><b>Exp. backoff + jitter</b></font></td>
+<td><font size="2" color="#c9d1d9">bounded retries</font></td>
+<td><font size="2" color="#8b949e">Exponential spacing; jitter breaks herds</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>12</b></font></td>
+<td><font size="2" color="#c9d1d9">Throttle, N/min per user</font></td>
+<td><font size="2" color="#58a6ff"><b>Token bucket / sliding window</b></font></td>
+<td><font size="2" color="#c9d1d9">O(1) per check</font></td>
+<td><font size="2" color="#8b949e">Fixed budget refills over time</font></td></tr>
+
+<tr valign="top"><td><font size="2" color="#c9d1d9"><b>13</b></font></td>
+<td><font size="2" color="#c9d1d9">Parse logs, extract IP/email</font></td>
+<td><font size="2" color="#58a6ff"><b>Regex + Counter / awk</b></font></td>
+<td><font size="2" color="#c9d1d9">O(n)</font></td>
+<td><font size="2" color="#8b949e">Structure + count in one pass</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="2" color="#c9d1d9"><b>14</b></font></td>
+<td><font size="2" color="#c9d1d9">"Design a system with several kinds of X"</font></td>
+<td><font size="2" color="#58a6ff"><b>Enums + abstractions</b></font></td>
+<td><font size="2" color="#c9d1d9">&mdash;</font></td>
+<td><font size="2" color="#8b949e">Open/closed; compose over inherit</font></td></tr>
+
+</table>
+
+<br><br>
+
+<!-- ================================================================ -->
+<!-- WHAT'S NOT COVERED (AND WHY)                                      -->
+<!-- ================================================================ -->
+<a name="notcovered"></a>
+<table width="100%" bgcolor="#1c2430" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="5" color="#58a6ff"><b>&#128269; What's Intentionally Not Here (AFT L4 scope)</b></font>
+<br><br>
+<font size="3" color="#c9d1d9">Some "canonical" interview patterns are <b>deliberately excluded</b>. For an L4 AFT Support SDE role, the interview weight is on production instincts, Linux/ops fluency, and clean OOP, not competitive-programming depth. If you see these in other prep lists, don't panic &mdash; here's how to think about each.</font>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0d1117" cellpadding="12" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#21262d">
+  <td width="22%"><font size="3" color="#f0883e"><b>Pattern</b></font></td>
+  <td width="25%"><font size="3" color="#f0883e"><b>Why skip for AFT L4</b></font></td>
+  <td width="53%"><font size="3" color="#f0883e"><b>If it does come up&hellip;</b></font></td>
+</tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Dynamic Programming</b><br><font size="2" color="#8b949e">(knapsack, LIS, edit distance)</font></font></td>
+<td><font size="3" color="#c9d1d9">L4 SysDev interviews favor <b>pragmatic code</b> over tricky recurrences. AFT scenarios are operational.</font></td>
+<td><font size="3" color="#c9d1d9">Recognize the signal (<i>"overlapping subproblems"</i> or <i>"count the number of ways"</i>), state the recurrence, and <b>say out loud</b>: "I'd memoize with <code>@functools.lru_cache</code> or build a bottom-up table." Knowing <b>climbing stairs</b> / <b>coin change</b> is enough to survive.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Backtracking</b><br><font size="2" color="#8b949e">(N-queens, permutations)</font></font></td>
+<td><font size="3" color="#c9d1d9">Rare for L4. Most "all permutations" questions resolve into DFS, which is covered (P7).</font></td>
+<td><font size="3" color="#c9d1d9">It's just DFS with <b>"try, recurse, undo"</b>. Template: <code>choose &rarr; recurse &rarr; unchoose</code>. Pruning (reject early) is the only real trick.</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Union-Find (DSU)</b></font></td>
+<td><font size="3" color="#c9d1d9">High-signal for graph specialists; low-signal for AFT. BFS/DFS handle most connectivity questions.</font></td>
+<td><font size="3" color="#c9d1d9">Two ops: <code>find(x)</code> with path compression, <code>union(a,b)</code> by rank. Use case: <b>"are these two things connected?"</b> on streaming edges. If asked, explain the concept and fall back to BFS.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Dijkstra / Weighted graphs</b></font></td>
+<td><font size="3" color="#c9d1d9">More relevant for routing or infra engineers. AFT graph questions usually have unit weights &rarr; BFS suffices.</font></td>
+<td><font size="3" color="#c9d1d9">"BFS but with a min-heap instead of a queue, relaxing edges." Python: <code>heapq</code> + dist dict. Say out loud: <b>"I'd use Dijkstra; it's priority-queue BFS for weighted edges."</b></font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Segment Tree / BIT (Fenwick)</b></font></td>
+<td><font size="3" color="#c9d1d9">Competitive-programming territory. You will almost certainly never see this at L4 AFT.</font></td>
+<td><font size="3" color="#c9d1d9">Safe to punt. If pressed on "range sum with updates", mention <b>segment tree (O(log n))</b> as the name and explain you'd look up the exact implementation.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Trie</b></font></td>
+<td><font size="3" color="#c9d1d9">Niche for AFT. But cheap to learn and shows up in autocomplete / log-filter questions.</font></td>
+<td><font size="3" color="#c9d1d9">A tree of character-keyed dicts. Insert/search in O(word length). Worth 10 minutes of review if you have time &mdash; otherwise deprioritize.</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Bit manipulation</b></font></td>
+<td><font size="3" color="#c9d1d9">Python hides bits behind integers. Rare signal for systems/ops roles.</font></td>
+<td><font size="3" color="#c9d1d9">Know <code>x &amp; (x-1)</code> clears the lowest set bit, XOR finds the unpaired number, <code>bin(x).count('1')</code> counts set bits. That covers 90% of the questions you'd see.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>SQL / Database queries</b></font></td>
+<td><font size="3" color="#c9d1d9"><b>Explicitly skipped per your constraint.</b> AFT interviews rarely live-code SQL; if they do, express the logic in Python/pandas.</font></td>
+<td><font size="3" color="#c9d1d9">If asked, redirect: <i>"I'd approach this with Python &mdash; group-by and count using <code>collections.Counter</code> or a pandas groupby."</i> That demonstrates the <b>thinking</b>; syntax is tool-specific.</font></td></tr>
+
+</table>
+
+<br>
+<table width="100%" bgcolor="#2a1f14" cellpadding="15" cellspacing="0" border="0">
+<tr><td><font size="3" color="#ffa657"><b>&#9888; Rule of thumb:</b> <font color="#c9d1d9">If it's not in the 14 above, and an interviewer asks it, you're allowed to say <b>"I'm less practiced on that &mdash; can I sketch the idea and fall back to a simpler approach that also solves it?"</b> That's a senior move, not a weakness.</font></font></td></tr>
+</table>
+
+<br><br>
+
+
+<!-- ==================== P1: TWO POINTERS ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p1"><font color="#58a6ff" size="5">1. Two Pointers</font> &nbsp; <font color="#8b949e" size="2">O(n)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "sorted array", "pair with target", "two numbers sum to"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">A sorted array carries an <b>ordering invariant</b>: if <code>a[l] + a[r]</code> is too small, no pair involving <code>a[l]</code> with anything smaller can reach the target &mdash; so <code>l</code> can advance. Each move <b>eliminates an entire row or column</b> of the implicit n&times;n pair grid, collapsing the O(n&sup2;) search to O(n). It's a directed squeeze, not a search.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Sorted + pair = squeeze from both ends; each step kills a row or column."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Duplicate pairs.</b> On a sorted array with duplicates, after finding a pair you must skip past all equal neighbors on <b>both</b> sides (<code>while l &lt; r and a[l] == a[l+1]: l += 1</code>) &mdash; otherwise 3Sum and similar return the same triplet many times. Also: applying two-pointers to an <i>unsorted</i> array silently gives wrong answers.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Two pointers &rarr; <b>fix one pointer, two-pointer the rest</b> (3Sum) &rarr; <b>two pointers + sliding window hybrid</b> (container with most water) &rarr; <b>binary search on one side</b> (closest pair sum across two arrays). When array isn't sortable in-place, reach for a hash map instead.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Given a sorted array and a target, return all unique pairs that sum to the target."</b>
+<ul>
+  <li><code>l = 0, r = n-1</code>; compare <code>a[l]+a[r]</code> to target.</li>
+  <li>If equal, record, then advance <b>both</b> and skip duplicates on each side.</li>
+  <li>If too small, <code>l++</code>; too big, <code>r--</code>.</li>
+  <li>Explicitly call out duplicate skipping &mdash; that's what separates Meets-Bar from Raises-Bar.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Cousin of <b>binary search</b> (both exploit sortedness). Often combined with <b>hash map</b> when the array is unsorted and can't be sorted. The "while" logic inside a sliding window IS two-pointer thinking, just with different invariants.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> plain integer indices; <code>bisect.bisect_left</code> if you need to <i>find</i> the other pointer in O(log n); <code>sorted()</code> to get into two-pointer shape. <br><b>Practice:</b> see <a href="coding.html#data-structures"><font color="#58a6ff">Coding &sect; Data Structures</font></a> for the two-pointer mindset applied to <b>Min Stack</b> (Q15). For 3Sum-style drill, try any LeetCode "2Sum II" or "Container With Most Water".</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Two Sum in Sorted Array</b><br><i>"Given sorted array, find two numbers that sum to target."</i></td><td><font color="#8b949e">Canonical &mdash; squeeze from both ends. Skip duplicates on both sides to avoid repeat pairs.</font></td></tr>
+<tr valign="top"><td><b>2. Container With Most Water</b><br><i>"Heights on x-axis, find two that hold the most water."</i></td><td><font color="#8b949e">The <b>twist</b>: always move the <i>shorter</i> pointer &mdash; any pair with the taller one as the max is already suboptimal.</font></td></tr>
+<tr valign="top"><td><b>3. Remove Duplicates from Sorted Array (in-place)</b><br><i>"Return length of deduped array, modify in place."</i></td><td><font color="#8b949e">Read pointer advances through all; write pointer only advances on new values. Classic "in-place" two-pointer.</font></td></tr>
+<tr valign="top"><td><b>4. 3Sum (find all triplets summing to zero)</b><br><i>"Return all unique triplets that sum to 0."</i></td><td><font color="#8b949e"><b>Escalation</b> &mdash; fix one pointer, two-pointer the other two. Duplicate-skipping is the tricky part.</font></td></tr>
+<tr valign="top"><td><b>5. Merge Two Sorted Arrays</b><br><i>"Merge B into A (A has enough space) in-place."</i></td><td><font color="#8b949e"><b>Twist</b>: fill from the <i>back</i>, not the front, so you never overwrite values you still need.</font></td></tr>
+<tr valign="top"><td><b>6. Valid Palindrome (with alphanum filter)</b><br><i>"Is this string a palindrome, ignoring non-alphanumeric?"</i></td><td><font color="#8b949e">Two pointers from both ends; skip invalid chars, compare case-insensitively. Shows two-pointer on strings, not just numbers.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P2: SLIDING WINDOW ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p2"><font color="#58a6ff" size="5">2. Sliding Window</font> &nbsp; <font color="#8b949e" size="2">O(n)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "longest/shortest substring", "window of size k", "contains at most k distinct"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">A sliding window turns "examine every subarray" (O(n&sup2;)) into "extend the right edge, shrink from the left when the invariant breaks" (O(n)). The key is that <b>each element is added once and removed at most once</b> &mdash; so total work is amortized linear even though the inner while-loop looks nested.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Expand right, shrink left when the window becomes invalid. Each element enters and leaves at most once."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Confusing fixed-size with variable-size</b>. Fixed window (<code>size = k</code>) always shrinks when right advances. Variable window shrinks <b>only when invariant breaks</b>. Mixing the two gives off-by-one bugs. Also: updating the answer at the wrong moment &mdash; do it <em>after</em> the window becomes valid, not during shrinking.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Basic counter in window &rarr; <b>hash map in window</b> (at-most-k distinct chars) &rarr; <b>monotonic deque in window</b> (sliding window max/min) &rarr; <b>two hash maps / frequency diff</b> (minimum window substring). For the <i>k-th</i> largest in a window, upgrade to a heap or a multiset/sorted container.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Longest substring without repeating characters."</b>
+<ul>
+  <li>Expand <code>right</code>; keep a dict <code>last_seen[ch] = index</code>.</li>
+  <li>If <code>s[right]</code> is in dict and <code>last_seen[ch] &ge; left</code>, jump <code>left = last_seen[ch] + 1</code>.</li>
+  <li>Update <code>last_seen[s[right]] = right</code>.</li>
+  <li>Track <code>max_len = max(max_len, right - left + 1)</code> each iteration. O(n).</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Sliding windows almost always use a <b>hash map</b> or <b>Counter</b> internally to track contents. For "sliding window max", you reach for a <b>monotonic deque</b> (cousin of monotonic stack). Fundamentally: sliding window = two-pointer with an invariant on the contents.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>collections.Counter</code> or <code>defaultdict(int)</code> for window contents; <code>collections.deque</code> for O(1) append/popleft and for <b>monotonic deque</b> (window max/min).<br><b>Practice:</b> see <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q10 &middot; Rate Limiter</font></a> (sliding-window limiter is literally this pattern). Drill: "longest substring with at most K distinct" &rarr; shrink-when-invalid template.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Max Sum Subarray of Size K (fixed window)</b><br><i>"Find max sum of any contiguous subarray of exactly K elements."</i></td><td><font color="#8b949e"><b>Fixed-size window</b> &mdash; the simplest variant. Slide the window, update sum by adding new + subtracting old. O(n).</font></td></tr>
+<tr valign="top"><td><b>2. Longest Substring Without Repeating Characters</b><br><i>"Find the longest substring with all unique characters."</i></td><td><font color="#8b949e"><b>Variable-size + hash map</b>. Expand right until duplicate; then shrink left until unique again. Map tracks last-seen index.</font></td></tr>
+<tr valign="top"><td><b>3. Minimum Window Substring</b><br><i>"Smallest window in S containing all chars of T."</i></td><td><font color="#8b949e">The hardest sliding-window interview question. Expand until valid, then shrink while still valid. <b>Two Counters</b>: one for T, one for current window.</font></td></tr>
+<tr valign="top"><td><b>4. Longest Substring with At Most K Distinct Characters</b><br><i>"Find longest window with &le; K different characters."</i></td><td><font color="#8b949e">Shrink-when-invalid template. When <code>len(map) &gt; K</code>, shrink until back to K.</font></td></tr>
+<tr valign="top"><td><b>5. Sliding Window Maximum</b><br><i>"For each window of size K, return the max."</i></td><td><font color="#8b949e"><b>Escalation</b> &mdash; needs a <b>monotonic deque</b>, not just a Counter. The deque holds indices of candidates; pop smaller ones on the right when adding a bigger one. O(n) total.</font></td></tr>
+<tr valign="top"><td><b>6. Sliding-Window Rate Limiter</b><br><i>"Allow N requests per user per minute."</i></td><td><font color="#8b949e"><b>Production pattern</b>: keep a deque of timestamps; on each request, drop timestamps older than 60s, check <code>len(deque) &lt; N</code>. Exact same shape, operational context. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q10</font></a>.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P3: PREFIX SUM ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p3"><font color="#58a6ff" size="5">3. Prefix Sum + Hashmap</font> &nbsp; <font color="#8b949e" size="2">O(n)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "subarray sum equals k", "count subarrays", "range sum queries"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Any subarray sum <code>sum(i..j)</code> equals <code>prefix[j] - prefix[i-1]</code>. So asking "does a subarray sum to <code>k</code>?" becomes "does <code>prefix[j] - k</code> appear earlier in the prefix array?" &mdash; a classic <b>reduce-to-two-sum</b> trick solvable with a hash map in O(n). The insight: pair queries become lookups.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Subarray sums = prefix differences. Count them with a hash map."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Forgetting to seed <code>seen = {0: 1}</code></b>. Without this sentinel, you miss subarrays that start at index 0 &mdash; their prefix equals <code>k</code>, so <code>prefix - k = 0</code>, which must be "seen" once. Second trap: applying prefix-sum with <b>negative numbers</b> but a sliding window (sliding window needs monotonicity of sums as you shrink; negatives break it).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">1D prefix sum &rarr; <b>2D prefix sum</b> for matrix range-sum queries &rarr; <b>difference array</b> for range updates in O(1) &rarr; <b>Fenwick tree / segment tree</b> for mutable prefix sums with log n updates. For "subarray sum divisible by k", swap the key to <code>prefix % k</code>.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Count the number of contiguous subarrays whose sum equals k."</b>
+<ul>
+  <li>Maintain running <code>prefix</code> and <code>seen = {0: 1}</code>.</li>
+  <li>For each element, add to <code>prefix</code>; answer <code>+= seen.get(prefix - k, 0)</code>.</li>
+  <li>Then <code>seen[prefix] += 1</code>.</li>
+  <li>Works with negatives; sliding window would not.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Prefix sum is <b>reduce-to-two-sum</b> &mdash; it depends on hash map. For positive-only arrays with "sum &le; k" shape, a sliding window often works instead. For updates + queries, step up to Fenwick/segment tree (think of it as a "prefix sum with logs").</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>itertools.accumulate</code> builds the prefix array in one line (<code>list(accumulate(nums))</code>); <code>collections.defaultdict(int)</code> for the frequency map of prefix sums.<br><b>Practice:</b> not directly covered in <code>coding.html</code> (we focus on ops-heavy questions) &mdash; drill LeetCode <i>"Subarray Sum Equals K"</i> and <i>"Continuous Subarray Sum"</i>. The pattern generalizes to 2D (image integral / matrix region sums).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Range Sum Query (immutable)</b><br><i>"Given array, answer many queries of form sum(nums[i..j])."</i></td><td><font color="#8b949e">Build prefix array once in O(n). Each query is <code>prefix[j+1] - prefix[i]</code> &mdash; O(1). Canonical use case.</font></td></tr>
+<tr valign="top"><td><b>2. Subarray Sum Equals K</b><br><i>"Count contiguous subarrays summing to K."</i></td><td><font color="#8b949e"><b>Prefix sum + hash map</b>. Count how many times <code>(current_prefix - K)</code> appeared. Works with negatives &mdash; sliding window would fail.</font></td></tr>
+<tr valign="top"><td><b>3. Continuous Subarray Sum (multiple of K)</b><br><i>"Is there a subarray whose sum is a multiple of K?"</i></td><td><font color="#8b949e"><b>Twist</b>: store <code>prefix % K</code> in the map, not the prefix itself. Two prefixes with the same mod = subarray sum divisible by K.</font></td></tr>
+<tr valign="top"><td><b>4. Product of Array Except Self</b><br><i>"For each index, return product of all other elements (no division)."</i></td><td><font color="#8b949e"><b>Prefix + suffix</b> variant: two passes, one accumulating products left-to-right, one right-to-left. Same mental model as prefix sum.</font></td></tr>
+<tr valign="top"><td><b>5. 2D Range Sum / Image Integral</b><br><i>"Given matrix, answer many sum queries for sub-rectangles."</i></td><td><font color="#8b949e"><b>Escalation to 2D</b>: build integral image with inclusion-exclusion: <code>I[r][c] = m[r][c] + I[r-1][c] + I[r][c-1] - I[r-1][c-1]</code>. Rectangle sum is O(1) after.</font></td></tr>
+<tr valign="top"><td><b>6. Find Pivot Index</b><br><i>"Index where sum of left == sum of right."</i></td><td><font color="#8b949e">Single-pass with running prefix: at each i, check <code>prefix[i] == total - prefix[i] - nums[i]</code>. Good warm-up.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P4: HASH MAP / COUNTER ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p4"><font color="#58a6ff" size="5">4. Hash Map / Counter</font> &nbsp; <font color="#8b949e" size="2">O(n)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "first unique", "two sum", "count occurrences", "dedupe", "anagram"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Hash maps turn "have I seen this before?" and "how many times?" from O(n) scans into O(1) lookups by trading space for time. They break the O(n&sup2;) barrier for pair-lookup problems by letting each element do a constant-time query for its partner. If brute force is O(n&sup2;), <b>first instinct should be: "what if I hash something?"</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Trade O(n) space for O(n) time. If brute force is O(n&sup2;) with nested loops, you almost always want a hash map."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Hashable keys.</b> Lists aren't hashable in Python &mdash; use <code>tuple</code>. For character frequency keys, forgetting that Counter equality is order-independent saves you. Second trap: <b>ordering</b>. Python's dict preserves insertion order (3.7+) but <b>don't rely on it for correctness</b>; if order matters, say so explicitly.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Plain dict &rarr; <code>Counter</code> (<code>.most_common(k)</code>, subtraction, <code>+</code>) &rarr; <code>defaultdict</code> (auto-init for grouping) &rarr; <b>two hash maps</b> (frequency diff, anagram groups, bidirectional) &rarr; <b>hash map + linked list</b> (LRU, ordered dict). For top-K counts, combine Counter with a heap.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Return indices of two numbers in an array that sum to target."</b>
+<ul>
+  <li>Single pass: for each <code>num</code>, check if <code>target - num</code> is in <code>seen</code>.</li>
+  <li>If yes, return <code>[seen[target-num], i]</code>.</li>
+  <li>Else <code>seen[num] = i</code>.</li>
+  <li>Key detail: store the <b>complement's index</b>, not the complement &mdash; because you need to return both indices.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">The universal "O(n&sup2;) &rarr; O(n)" upgrade. Underlies prefix-sum (lookup complement), sliding window (track contents), LRU (key&rarr;node), top-K (counts feed a heap), and dedup for graph visited sets. If you're asked a problem and don't see the pattern, ask yourself: <b>"What would I want to look up in O(1)?"</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>collections.Counter</code> (frequency in one line); <code>collections.defaultdict</code> (auto-init); <code>dict.setdefault</code> when you can't use defaultdict; <code>set()</code> for O(1) membership.<br><b>Practice:</b> <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q1 &middot; Anagram</font></a> (Counter-based O(n) beats sort-based O(n log n)) and <a href="coding.html#problem-solving"><font color="#58a6ff">Q9 &middot; Most Repeated Phone Number</font></a> (Counter + <code>most_common</code>).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Two Sum (unsorted)</b><br><i>"Return indices of two numbers that sum to target."</i></td><td><font color="#8b949e">Canonical. One pass: for each num, check if <code>target - num</code> is in the map; else add current. O(n) time, O(n) space &mdash; beats sorting.</font></td></tr>
+<tr valign="top"><td><b>2. Valid Anagram</b><br><i>"Are two strings anagrams?"</i></td><td><font color="#8b949e">Build Counter for both, compare. <b>Or</b>: one Counter; increment for string A, decrement for string B; all values must be 0. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q1</font></a>.</font></td></tr>
+<tr valign="top"><td><b>3. Group Anagrams</b><br><i>"Group words that are anagrams of each other."</i></td><td><font color="#8b949e"><b>Key design</b>: sorted chars OR char-count tuple as the dict key. All anagrams map to the same key.</font></td></tr>
+<tr valign="top"><td><b>4. First Unique Character in a String</b><br><i>"Find the first non-repeating character."</i></td><td><font color="#8b949e">Counter first pass; second pass find first char with count 1. Two passes are fine and often clearer than one.</font></td></tr>
+<tr valign="top"><td><b>5. Contains Duplicate / Within K Distance</b><br><i>"Is there a duplicate within K indices?"</i></td><td><font color="#8b949e">Hash map of <code>value &rarr; last_seen_index</code>. On collision, check <code>i - last &lt;= K</code>. Combines hash with a distance constraint.</font></td></tr>
+<tr valign="top"><td><b>6. Happy Number</b><br><i>"Repeatedly square+sum digits; does it reach 1?"</i></td><td><font color="#8b949e"><b>Hash set for cycle detection</b> &mdash; if we see the same intermediate twice, it's a cycle (and not 1). Same set-based cycle idea appears in graph-traversal.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P5: STACK ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p5"><font color="#58a6ff" size="5">5. Stack (incl. Monotonic)</font> &nbsp; <font color="#8b949e" size="2">O(n)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "matching brackets", "next greater/smaller", "largest rectangle", "parse expression"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Stack's <b>LIFO</b> property mirrors nested structure &mdash; the most recent opener must match the next closer. For monotonic stacks, the insight is subtler: once an element is "dominated" by a newer one (e.g., bigger rating appears), it can never be the answer for anything further right &mdash; so pop it. Each element is <b>pushed and popped at most once</b>, giving amortized O(n).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Nesting or 'next bigger/smaller' &rarr; stack. Each element joins and leaves at most once."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Counter instead of stack for bracket matching.</b> "Just count opens and closes" gives wrong answer for <code>([)]</code>. For monotonic stacks, forgetting to <b>process leftover elements at the end</b> (which had no next-greater) is the common bug. Also: indexing vs values &mdash; decide upfront which you store.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Plain stack &rarr; <b>monotonic stack</b> (increasing/decreasing invariant) &rarr; <b>monotonic deque</b> (sliding window max/min needs pop from both ends) &rarr; <b>two stacks</b> (min-stack, queue from stacks). For expression evaluation, upgrade to <b>Shunting-yard</b> or operator-precedence parsing.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"For each temperature, how many days until a warmer temperature?"</b> (Daily Temperatures)
+<ul>
+  <li>Stack holds <b>indices</b> of days awaiting a warmer day, in decreasing-temperature order.</li>
+  <li>For each new day <code>i</code>: while stack top has a cooler temp, pop it and record <code>result[top] = i - top</code>.</li>
+  <li>Push <code>i</code>.</li>
+  <li>Anything still on the stack at the end has no warmer day; leave its result at 0.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Cousin of <b>DFS</b> (DFS IS a stack, usually the call stack). The "monotonic" idea generalizes to <b>monotonic deque</b> for sliding windows. The <b>min-stack</b> pattern is "stack + auxiliary stack" &mdash; same idea as prefix sum: remember the running answer alongside the data.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> a plain <code>list</code> is a stack (<code>.append()</code> / <code>.pop()</code> are O(1)); <code>collections.deque</code> for the monotonic-deque variant when you also need O(1) popleft.<br><b>Practice:</b> <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q15 &middot; Min Stack</font></a>, <a href="coding.html#data-structures"><font color="#58a6ff">Q16 &middot; Balanced Brackets</font></a>, and <a href="coding.html#problem-solving"><font color="#58a6ff">Q7 &middot; Next Higher Rated Movie</font></a> (monotonic stack). Three cards cover stack, monotonic stack, and stack+aux.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Valid Parentheses / Balanced Brackets</b><br><i>"Is '([{}])' valid?"</i></td><td><font color="#8b949e">Canonical stack. Push openers, pop-and-match on closers, reject if mismatch or stack not empty at end. See <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q16</font></a>.</font></td></tr>
+<tr valign="top"><td><b>2. Evaluate Reverse Polish Notation</b><br><i>"Evaluate ['2', '1', '+', '3', '*'] = 9"</i></td><td><font color="#8b949e">Push numbers; on operator, pop two, apply, push result. Stack IS the evaluation state. Watch operand order for non-commutative ops (<code>b op a</code>, not <code>a op b</code>).</font></td></tr>
+<tr valign="top"><td><b>3. Min Stack (push/pop/getMin all O(1))</b><br><i>"Stack with O(1) min in addition to push/pop."</i></td><td><font color="#8b949e"><b>Stack + auxiliary stack</b>: main stack holds values; aux stack holds running min. Both push/pop together. See <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q15</font></a>.</font></td></tr>
+<tr valign="top"><td><b>4. Next Greater Element (monotonic stack)</b><br><i>"For each element, find the next bigger one to its right."</i></td><td><font color="#8b949e"><b>Monotonic decreasing stack</b>. Iterate right-to-left; pop smaller elements (they can't be anyone's "next greater"); top of stack is the answer. O(n) not O(n&sup2;). See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q7</font></a>.</font></td></tr>
+<tr valign="top"><td><b>5. Daily Temperatures</b><br><i>"For each day, how many days until warmer?"</i></td><td><font color="#8b949e">Same monotonic-stack pattern, but stack holds <b>indices</b> (so you can compute the distance when resolving).</font></td></tr>
+<tr valign="top"><td><b>6. Largest Rectangle in Histogram</b><br><i>"Given bar heights, find area of largest rectangle."</i></td><td><font color="#8b949e"><b>Hard escalation</b>. Monotonic increasing stack. When popping a bar, the rectangle it defines extends from the current index back to the bar below it. Also used for "Maximal Rectangle" in a 2D grid.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P6: BFS ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p6"><font color="#58a6ff" size="5">6. BFS + Visited Set</font> &nbsp; <font color="#8b949e" size="2">O(V+E)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "shortest path in unweighted graph", "min hops", "fewest moves", "level order"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">BFS explores the graph in <b>increasing order of distance</b>: level 0, then level 1, then level 2. The first time you dequeue the target, you're guaranteed to be on the shortest path in terms of edge count. DFS gives no such guarantee &mdash; it might reach the target via a long detour first. The FIFO queue is the crucial invariant.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Explore by distance. First visit to a node is its shortest-hop distance."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Marking visited on pop, not on push.</b> If you mark visited when dequeuing, the same node can get enqueued many times by different predecessors &mdash; blowing up time and space. Mark visited <b>at enqueue time</b>. Second trap: using BFS on a <b>weighted</b> graph (edge weights &ne; 1) &mdash; that needs Dijkstra. BFS only gives shortest path when edges are unit cost.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">BFS &rarr; <b>0-1 BFS</b> with a deque (edges cost 0 or 1) &rarr; <b>Dijkstra</b> (arbitrary non-negative weights, heap replaces queue) &rarr; <b>bidirectional BFS</b> (meet in the middle, drastically smaller frontier) &rarr; <b>A*</b> (heuristic-guided).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Given <code>getFriends(person)</code>, find the minimum hops between two people (Kevin Bacon number)."</b>
+<ul>
+  <li><code>queue = [(start, 0)]</code>; <code>visited = {start}</code>.</li>
+  <li>Pop, iterate friends. If friend == target, return distance + 1.</li>
+  <li>Else add unvisited friends to queue and visited.</li>
+  <li>If queue drains, return -1 (unreachable). Mark on enqueue.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Same machinery as <b>DFS</b>, different data structure (queue vs stack) &rarr; different guarantees. Uses a <b>hash set</b> for visited tracking. If you need to <b>reconstruct the path</b>, add a <code>parent</code> dict, then walk backward &mdash; same trick as in linked-list traversals.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>collections.deque</code> is <b>the</b> BFS queue (<code>.append()</code> / <code>.popleft()</code> O(1)); use <code>set()</code> for visited tracking; mark visited <b>when enqueuing</b>, not when dequeuing &mdash; else you'll revisit.<br><b>Practice:</b> <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q4 &middot; Connected Cell in a Grid</font></a> (BFS flood fill), <a href="coding.html#data-structures"><font color="#58a6ff">Q17 &middot; Recommendation Distance</font></a> (shortest path in social graph).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Shortest Path in a Grid (0s and 1s)</b><br><i>"Min steps from top-left to bottom-right, avoiding 1s."</i></td><td><font color="#8b949e">Canonical unweighted shortest-path. Each cell is a node; 4 neighbors are edges. BFS layer count = minimum steps.</font></td></tr>
+<tr valign="top"><td><b>2. Rotting Oranges</b><br><i>"Grid of oranges; rotten ones spread each minute; how many minutes until all rotten?"</i></td><td><font color="#8b949e"><b>Multi-source BFS</b>: enqueue all rotten cells initially, then BFS. The final layer number is the answer. Key unlock for "multiple starts" problems.</font></td></tr>
+<tr valign="top"><td><b>3. Word Ladder</b><br><i>"Transform word A to word B one letter at a time, each intermediate must be a valid word."</i></td><td><font color="#8b949e"><b>Graph is implicit</b>: nodes are words, edges are "differ by one letter". Precompute pattern buckets (e.g. <code>h*t, ho*, *ot</code>) for fast neighbor lookup.</font></td></tr>
+<tr valign="top"><td><b>4. Binary Tree Level Order Traversal</b><br><i>"Return values grouped by level."</i></td><td><font color="#8b949e">BFS on a tree. <b>Trick</b>: process one level at a time by snapshotting <code>len(queue)</code> before the inner loop &mdash; that's the current level's size.</font></td></tr>
+<tr valign="top"><td><b>5. Shortest Path in Unweighted Graph (social network)</b><br><i>"Minimum friend-hops between two users."</i></td><td><font color="#8b949e">Same as grid BFS but graph is adjacency list. <b>Parent dict</b> reconstructs the actual path. See <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q17 &middot; Recommendation Distance</font></a>.</font></td></tr>
+<tr valign="top"><td><b>6. Number of Islands (BFS flood fill)</b><br><i>"Count connected regions of 1s in a grid."</i></td><td><font color="#8b949e">Iterate cells; when you hit an unvisited 1, BFS to mark the whole island, increment count. DFS works equally &mdash; pick whichever feels more natural. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q4</font></a>.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P7: DFS ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p7"><font color="#58a6ff" size="5">7. DFS + Visited Set</font> &nbsp; <font color="#8b949e" size="2">O(V+E)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "all paths", "connected component", "flood fill", "topological sort", "does a path exist"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">DFS commits to one branch, exhausts it, then backtracks. This makes it natural for <b>exhaustive exploration</b> (all paths, all configurations), <b>cycle detection</b>, and <b>tree/graph structural problems</b>. Recursion uses the call stack implicitly, which is elegant but caps depth. Each edge is traversed once, giving O(V+E).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Go deep, backtrack. Use when you need to explore everything, not find the shortest."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Using DFS when BFS is required.</b> DFS finds <i>a</i> path; it does NOT find the shortest one. Also: <b>stack overflow</b> on deep graphs (Python recursion limit ~1000) &mdash; rewrite iteratively with an explicit stack if depth could exceed that. Flood-fill trap: <b>forgetting diagonal neighbors</b> when the problem says "8-directionally connected."</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Recursive DFS &rarr; <b>iterative DFS with explicit stack</b> (avoids stack overflow) &rarr; <b>DFS with memoization</b> for DAGs (dynamic programming on graphs) &rarr; <b>Tarjan's algorithm</b> for SCCs &rarr; <b>backtracking with pruning</b> for constraint satisfaction (N-queens, Sudoku).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Find the largest connected region of 1s in a 2D grid (8-directional connectivity)."</b>
+<ul>
+  <li>For each unvisited cell containing 1, DFS from it, counting cells reached.</li>
+  <li>Mark visited on entry to avoid re-counting.</li>
+  <li>Neighbors: all 8 offsets <code>(dr, dc) in product([-1,0,1], repeat=2)</code> except <code>(0,0)</code>.</li>
+  <li>Track <code>max_region = max(max_region, region_size)</code>.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Sibling of BFS (same traversal machinery, different order). Shares <b>visited set</b> with BFS. Natural fit with <b>recursion</b> and <b>backtracking</b>. For tree problems, DFS is usually easiest because trees have no cycles (no visited set needed) &mdash; post-order DFS powers subtree sums, tree DP, and bottom-up pattern matching.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> recursion (watch <code>sys.setrecursionlimit(10_000)</code> for deep grids); or iterative with a <code>list</code> stack. For trees, <code>@functools.lru_cache</code> turns DFS into memoized DP.<br><b>Practice:</b> <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q5 &middot; Flatten Nested Data Structure</font></a> (recursive DFS through arbitrary nesting), <a href="coding.html#problem-solving"><font color="#58a6ff">Q4 &middot; Connected Cells</font></a> (DFS alternative), <a href="coding.html#data-structures"><font color="#58a6ff">Q18 &middot; Serialize Binary Tree</font></a> (pre/post-order DFS).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Flatten a Nested List / Dict</b><br><i>"Unwrap arbitrary nesting into a flat structure."</i></td><td><font color="#8b949e">Canonical recursive DFS. Base case: non-container. Recursive case: iterate, recurse into each container. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q5</font></a>.</font></td></tr>
+<tr valign="top"><td><b>2. Maximum Depth of Binary Tree</b><br><i>"Deepest leaf's depth."</i></td><td><font color="#8b949e">One-liner: <code>1 + max(depth(left), depth(right))</code>. Base: <code>None &rarr; 0</code>. Shows recursive DFS as natural tree-thinking.</font></td></tr>
+<tr valign="top"><td><b>3. Number of Islands (DFS flood fill)</b><br><i>"Count connected regions of 1s."</i></td><td><font color="#8b949e">DFS alternative to BFS. Visited is in-place (mutate 1 &rarr; 0), or a separate set. <b>Watch recursion limit</b> on big grids &mdash; switch to iterative stack. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q4</font></a>.</font></td></tr>
+<tr valign="top"><td><b>4. All Paths from Source to Target (DAG)</b><br><i>"List every path from node 0 to node N-1."</i></td><td><font color="#8b949e"><b>DFS + backtracking</b>: carry a path list, append current, recurse, pop. Shows the "all of them, not shortest" use of DFS.</font></td></tr>
+<tr valign="top"><td><b>5. Serialize / Deserialize Binary Tree</b><br><i>"Encode tree to string; restore from string."</i></td><td><font color="#8b949e">Pre-order DFS with null markers ("1,2,#,#,3,#,#"). Deserialize recursively consuming tokens. See <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q18</font></a>.</font></td></tr>
+<tr valign="top"><td><b>6. Detect Cycle in Directed Graph</b><br><i>"Is there a cycle in this DAG?"</i></td><td><font color="#8b949e"><b>DFS with 3-state coloring</b>: WHITE (unvisited), GRAY (in current path), BLACK (done). Hitting a GRAY = cycle. Same idea powers topological sort.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P8: BINARY SEARCH ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p8"><font color="#58a6ff" size="5">8. Binary Search</font> &nbsp; <font color="#8b949e" size="2">O(log n)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "sorted array, find element", "first/last position", "find the smallest x such that..."</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Binary search exploits <b>monotonicity</b>: if a predicate is <code>True</code> on one side of a point and <code>False</code> on the other, you can eliminate half the candidates each check. The real trick is recognizing monotonicity even when it's not explicit &mdash; "minimum capacity to ship within D days" is monotonic in capacity even though you're not searching an array.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Monotonic predicate &rarr; halve each step. If I can ask 'is x enough?' in O(?), I can find min/max x in log&times;that."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Off-by-one in bounds.</b> Decide and stick with one template: <code>while left &lt; right</code> with <code>right = mid</code> for lower-bound, OR <code>while left &le; right</code> with <code>right = mid - 1</code> for exact match. Mixing mid-values causes infinite loops. Also: integer overflow in <code>(left+right)//2</code> in Java/C++ &mdash; use <code>left + (right-left)//2</code> (Python doesn't overflow).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Exact match &rarr; <b>lower/upper bound</b> (<code>bisect_left</code>, <code>bisect_right</code>) &rarr; <b>binary search on rotated array</b> (check which half is sorted) &rarr; <b>binary search the answer</b> (find min/max value satisfying a predicate) &rarr; <b>2D search on matrix with row+column sortedness</b>.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Find the minimum eating speed k such that you can finish all banana piles within h hours."</b> (binary search on the answer)
+<ul>
+  <li>k is monotonic: if speed X finishes in time, so does X+1.</li>
+  <li>Search space: <code>[1, max(piles)]</code>.</li>
+  <li>Predicate: <code>sum(ceil(pile / k) for pile in piles) &le; h</code>.</li>
+  <li>Lower-bound binary search &rarr; first k that satisfies. O(n log max).</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Fundamentally the same intuition as <b>two pointers</b> (both exploit orderings). "Binary search the answer" is a powerful trick: combine with a <b>greedy check function</b> to solve optimization problems that look like DP. Python's <code>bisect</code> module is how you apply it inside a larger algorithm (e.g., <b>LIS via patience sorting</b>).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>bisect.bisect_left(a, x)</code> returns insertion index (first &ge; x); <code>bisect.bisect_right</code> returns first &gt; x; <code>bisect.insort</code> inserts in sorted order. Prefer these over hand-rolled binary search to avoid off-by-one bugs.<br><b>Practice:</b> <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q3 &middot; Search in Rotated Sorted Array</font></a> (the canonical "modified binary search" question &mdash; decide which half is sorted at each step).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Classic Binary Search</b><br><i>"Find target in sorted array; return index or -1."</i></td><td><font color="#8b949e">Canonical. Use <code>bisect_left</code> and check if <code>a[idx] == target</code>. Avoids off-by-one errors.</font></td></tr>
+<tr valign="top"><td><b>2. Search in Rotated Sorted Array</b><br><i>"Array was sorted, then rotated; find target."</i></td><td><font color="#8b949e"><b>Modified binary search</b>. At each mid, one half is still sorted; check which and whether target lies in that half. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q3</font></a>.</font></td></tr>
+<tr valign="top"><td><b>3. Find First and Last Position of Element</b><br><i>"For a sorted array with duplicates, find range of target."</i></td><td><font color="#8b949e">Two binary searches: <code>bisect_left</code> for first, <code>bisect_right - 1</code> for last. Clean use of the <code>_left</code> / <code>_right</code> distinction.</font></td></tr>
+<tr valign="top"><td><b>4. Square Root (integer)</b><br><i>"Find floor of sqrt(N)."</i></td><td><font color="#8b949e"><b>Binary search the answer</b>: search for x in [0, N] where x*x &le; N &lt; (x+1)*(x+1). The "search the answer space, not the input" trick.</font></td></tr>
+<tr valign="top"><td><b>5. Koko Eating Bananas (binary search on answer)</b><br><i>"Min eating speed to finish piles in H hours."</i></td><td><font color="#8b949e"><b>Optimization via binary search</b>: search over speeds [1, max(piles)]. At each speed, check if total hours &le; H (greedy). Huge class of "minimize/maximize X such that feasible(X)" problems.</font></td></tr>
+<tr valign="top"><td><b>6. Peak Element</b><br><i>"Find any index i where nums[i] &gt; neighbors (array may not be sorted)."</i></td><td><font color="#8b949e"><b>Surprising use</b> &mdash; binary search works on unsorted arrays when an invariant holds. Compare mid to mid+1; go toward the greater side. Guaranteed to find a peak.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P9: HEAP ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p9"><font color="#58a6ff" size="5">9. Heap (Top-K)</font> &nbsp; <font color="#8b949e" size="2">O(n log K)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "top K", "K most frequent", "K closest points", "running median"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">A size-K min-heap keeps only the <b>K best candidates seen so far</b>. Each new element is compared against the smallest of the current winners in O(log K); if better, swap. Total work: O(n log K), massively better than sort's O(n log n) when K &lt;&lt; n. For <b>streaming</b> problems, this is also constant memory, which <code>sort()</code> can't match.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Keep only the K winners. Heap of size K, replace the worst with each new arrival."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Using the wrong heap direction.</b> For <b>top K largest</b>, use a <b>min-heap</b> (so you can pop the smallest when full). That's counterintuitive. Python's <code>heapq</code> is <b>min-heap only</b>; for max-heap, negate values. For "K closest to origin", store <code>(-distance, point)</code> with a max-heap mental model but a min-heap implementation via negation.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Size-K heap &rarr; <b><code>heapq.nlargest/nsmallest</code></b> (library shortcut) &rarr; <b>two heaps</b> (running median: max-heap for lower half, min-heap for upper half) &rarr; <b>Quickselect</b> O(n) average for static arrays &rarr; <b>Count-Min Sketch</b> for approximate top-K on huge streams.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Return the K most frequent elements in an array."</b>
+<ul>
+  <li>Count with <code>Counter</code>. O(n).</li>
+  <li><code>heapq.nlargest(k, count.keys(), key=count.get)</code>. O(n log k).</li>
+  <li>Or bucket sort by frequency (buckets indexed 0..n) for O(n) if you need to push further.</li>
+  <li>Don't full-sort &mdash; that's O(n log n).</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Often paired with <b>Counter</b> (count first, then heap-sort the counts). <b>Dijkstra</b> is a heap-powered BFS. <b>K-way merge</b> uses a heap of iterators. When K = 1, a heap degenerates into "track the max/min" &mdash; a single variable.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>heapq.heappush / heappop</code> (min-heap; negate for max); <code>heapq.nlargest(k, it)</code> and <code>nsmallest</code> hide all the plumbing; <code>Counter.most_common(k)</code> internally uses heap. Ties broken by tuple order: <code>(priority, tiebreak, value)</code>.<br><b>Practice:</b> <a href="coding.html#regex-text"><font color="#58a6ff">Coding Q19 &middot; Top 10 Largest Files</font></a> (heap-of-K on streaming <code>os.walk</code> output). Drill <i>Top K Frequent</i> and <i>K Closest Points</i> mentally.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Kth Largest Element in an Array</b><br><i>"Find the Kth largest number."</i></td><td><font color="#8b949e">Maintain a <b>min-heap of size K</b>. Iterate; push; if size &gt; K, pop. Top of heap at end is the answer. O(n log K) beats sorting's O(n log n).</font></td></tr>
+<tr valign="top"><td><b>2. Top K Frequent Elements</b><br><i>"Most common K elements in an array."</i></td><td><font color="#8b949e"><b>Counter + heap</b>. Build frequency map, then <code>heapq.nlargest(k, counter, key=counter.get)</code>. Or <code>counter.most_common(k)</code> &mdash; same thing under the hood.</font></td></tr>
+<tr valign="top"><td><b>3. K Closest Points to Origin</b><br><i>"Given 2D points, return K closest to (0,0)."</i></td><td><font color="#8b949e"><b>Max-heap of size K</b> (use negative distances). Iterate; push; pop when over size. Top holds the <i>worst</i> of the K best &mdash; compare new points against it.</font></td></tr>
+<tr valign="top"><td><b>4. Merge K Sorted Lists</b><br><i>"Merge K sorted linked lists into one."</i></td><td><font color="#8b949e"><b>K-way merge via heap</b>. Push first node of each list (with list index). Pop smallest, push its next. Total O(n log K) where n = total nodes.</font></td></tr>
+<tr valign="top"><td><b>5. Find Median from Data Stream</b><br><i>"Add numbers; return median at any time."</i></td><td><font color="#8b949e"><b>Two-heap trick</b>: max-heap of smaller half, min-heap of larger half. Median is top of one or average of tops. Rebalance so sizes differ by &le; 1.</font></td></tr>
+<tr valign="top"><td><b>6. Top 10 Largest Files (streaming)</b><br><i>"Stream filenames with sizes; return top 10 by size."</i></td><td><font color="#8b949e"><b>Production use</b>: <code>heapq.nlargest(10, stream, key=lambda x: x[1])</code> with <code>os.walk</code> feeding the stream. Memory bounded to 10 items, not the whole filesystem. See <a href="coding.html#regex-text"><font color="#58a6ff">Coding Q19</font></a>.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P10: LRU / HASHMAP + LINKED LIST ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p10"><font color="#58a6ff" size="5">10. Hash Map + Linked List (LRU-style)</font> &nbsp; <font color="#8b949e" size="2">O(1) all ops</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "O(1) get + min/max", "LRU cache", "evict oldest", "track order of access"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Hash map gives O(1) lookup but <b>no ordering</b>. Linked list gives O(1) reorder and evict but O(n) lookup. Combining: dict maps keys to <b>nodes in the list</b>. Each operation uses dict for the find and list for the reorder &mdash; both O(1). Same pattern underneath min-stack (main stack + auxiliary stack) and pub/sub (dict of event &rarr; list of subscribers).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"No single data structure does both; use one for lookup, one for ordering."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Forgetting to update recency on <code>get</code>.</b> It's easy to remember on <code>put</code>, but the whole point of LRU is that reading counts as "recently used." Second trap: using a <b>singly linked list</b> &mdash; removing a node needs its predecessor, which is O(n) without back-pointers. Always doubly linked. Python shortcut: <code>OrderedDict.move_to_end()</code>.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">LRU &rarr; <b>LFU</b> (least frequently used) &mdash; add frequency buckets &rarr; <b>TTL cache</b> (time-based eviction, add expiry timestamps) &rarr; <b>distributed cache</b> (Redis with <code>maxmemory-policy allkeys-lru</code>) &rarr; <b>segmented LRU</b> (probationary + protected segments, guards hot items from one-hit wonders).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Design an LRU Cache with capacity c; get and put in O(1)."</b>
+<ul>
+  <li>Doubly linked list with sentinel head and tail.</li>
+  <li>Dict: <code>key &rarr; node</code>.</li>
+  <li>On get: find node, unlink, move to front. On put: same, plus evict tail.prev if over capacity.</li>
+  <li>Or <code>OrderedDict</code> with <code>move_to_end()</code> and <code>popitem(last=False)</code>.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Generalizes the "<b>two structures, one for lookup, one for invariant</b>" pattern &mdash; same idea as min-stack (stack + aux-stack for min) and prefix-sum (array + hash map for sum-k lookups). Pairs with <b>TTL</b> to build production caches.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>collections.OrderedDict</code> with <code>move_to_end</code> + <code>popitem(last=False)</code> is an LRU in ~10 lines. For decorator-style in-process caches, <code>functools.lru_cache(maxsize=N)</code> gives you one for free.<br><b>Practice:</b> <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q12 &middot; LRU Cache</font></a> &mdash; drill both the <code>OrderedDict</code> version (for speed) and the <b>hash map + doubly-linked-list</b> version (to prove you understand O(1)).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. LRU Cache (classic)</b><br><i>"O(1) get/put; evict least-recently-used when full."</i></td><td><font color="#8b949e">Canonical. Map from key to node; doubly-linked list ordered by recency. Promote-on-access, evict from tail. See <a href="coding.html#data-structures"><font color="#58a6ff">Coding Q12</font></a>.</font></td></tr>
+<tr valign="top"><td><b>2. LFU Cache (Least-Frequently-Used)</b><br><i>"Same contract but evict lowest-use-count; tie-break by recency."</i></td><td><font color="#8b949e"><b>Escalation</b>: one DLL <i>per frequency bucket</i>, plus a map <code>freq &rarr; DLL</code>. Promoting moves node across buckets. Harder; LFU is less common in practice.</font></td></tr>
+<tr valign="top"><td><b>3. Design a Web Browser History</b><br><i>"Back/forward buttons; new page clears forward history."</i></td><td><font color="#8b949e"><b>Two stacks</b> (back, forward). Each click moves between them. Different use of "map + list" pair but same O(1) mindset.</font></td></tr>
+<tr valign="top"><td><b>4. First Unique Number (streaming)</b><br><i>"Return first number seen exactly once so far; updates on each new number."</i></td><td><font color="#8b949e"><b>OrderedDict or (map + linked-list)</b>: track count and insertion order. Remove when count &gt; 1. First remaining is the answer. O(1) per operation.</font></td></tr>
+<tr valign="top"><td><b>5. Insert/Delete/GetRandom O(1)</b><br><i>"Set supporting insert, delete, and uniform-random element in O(1)."</i></td><td><font color="#8b949e"><b>Map + list (not linked list)</b>: map <code>value &rarr; list index</code>, list stores values. On delete, swap-with-last-then-pop. Random = <code>list[random.randint(0, len-1)]</code>.</font></td></tr>
+<tr valign="top"><td><b>6. TTL Cache (time-based eviction)</b><br><i>"Each entry expires N seconds after insertion."</i></td><td><font color="#8b949e"><b>Production variant</b>. Ordered structure keyed by expiry; lazily evict on access. Same "map + ordered secondary structure" template. Redis's <code>EXPIRE</code> does this at scale.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P11: RETRY WITH BACKOFF ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p11"><font color="#58a6ff" size="5">11. Exponential Backoff + Jitter</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "retry", "eventually consistent", "unreliable dependency", "transient failures"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">When a dependency has a transient failure, immediate retry hammers it while it recovers (<b>self-inflicted DoS</b>). Exponential backoff <code>delay = base * 2^attempt</code> gives the dependency breathing room. Jitter randomizes the delay so thousands of clients retrying at the "same time" don't converge into a new stampede &mdash; known as the <b>thundering herd</b>. Combined with <b>retryable vs non-retryable</b> classification, you don't waste calls on 4xx errors that will never succeed.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Retry with increasing delay + randomness. Don't retry 4xx. Cap attempts and total time."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Retrying non-idempotent operations.</b> Retrying a POST can double-charge a user or create duplicate orders. Fix: <b>idempotency keys</b> (client-generated UUID that the server dedupes). Second trap: <b>unbounded retries</b> &mdash; amplifies an outage. Third trap: <b>no jitter</b> &mdash; 100k clients retrying at exactly 4 seconds is worse than the original failure.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Exponential backoff + jitter &rarr; <b>decorrelated jitter</b> (AWS's recommended formula for long outages) &rarr; <b>circuit breaker</b> (fail fast after N consecutive failures, short-circuit to save the dependency) &rarr; <b>bulkhead</b> (separate connection pools so one failing dependency doesn't starve others) &rarr; <b>dead-letter queue</b> for messages that never succeed.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Design a Python decorator that retries an HTTP call on 5xx/timeouts with exponential backoff and jitter, capped at 5 attempts and 60s total."</b>
+<ul>
+  <li>Loop <code>for attempt in range(max_attempts)</code>.</li>
+  <li>Try; catch only retryable exceptions (5xx, timeout, connection).</li>
+  <li>Compute <code>delay = min(cap, base * 2**attempt)</code>, sleep <code>random.uniform(0, delay)</code>.</li>
+  <li>Track total elapsed; break if budget exhausted. Re-raise on final attempt.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Pairs with <b>circuit breakers</b> (stop retrying when the dependency is clearly down). Retries only make sense for <b>idempotent</b> operations &mdash; which ties back to API design. For message systems, retries feed <b>dead-letter queues</b>. Jitter is the same thundering-herd mitigation as in rate limiting.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>time.sleep</code>, <code>random.uniform</code> for jitter. Real code: <code>tenacity</code> library or <code>urllib3.Retry</code>. Key flags: <code>backoff_factor</code>, <code>status_forcelist=[429,500,502,503,504]</code>, <code>respect_retry_after_header=True</code>.<br><b>Practice:</b> <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q11 &middot; Retry with Exponential Backoff</font></a> &mdash; this one is an AFT-critical question. Know how to distinguish <b>retryable</b> (5xx, 429, timeouts) vs <b>not</b> (4xx business errors).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Retry a Flaky HTTP Call</b><br><i>"Wrap <code>requests.get</code> so it retries up to 5 times on transient failures."</i></td><td><font color="#8b949e">Canonical. Distinguish <b>retryable</b> (5xx, 429, timeouts) from <b>non-retryable</b> (4xx business errors). Exponential delay + jitter. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q11</font></a>.</font></td></tr>
+<tr valign="top"><td><b>2. Honor <code>Retry-After</code> Header</b><br><i>"Server returns 429 with Retry-After: 30. What do you do?"</i></td><td><font color="#8b949e"><b>Don't use your own backoff</b>; use the server's hint. Parse <code>Retry-After</code> as seconds or HTTP-date; sleep that long; retry. Ignoring this is how you get rate-limit-banned.</font></td></tr>
+<tr valign="top"><td><b>3. Idempotency Key for POST Retries</b><br><i>"How do you safely retry a POST /charge request?"</i></td><td><font color="#8b949e">Generate a client-side UUID; send as <code>Idempotency-Key: &lt;uuid&gt;</code>. Server dedupes on this key. Stripe and AWS APIs use exactly this. Retrying an idempotent request = safe; without the key = double-charge.</font></td></tr>
+<tr valign="top"><td><b>4. Circuit Breaker</b><br><i>"Stop retrying if a dependency is definitely down."</i></td><td><font color="#8b949e"><b>Escalation</b> of retry. Track failure rate over a window; if &gt; threshold, <b>open</b> the breaker (fail-fast without calling). After cooldown, <b>half-open</b> (one test call). If OK, <b>close</b>. Libraries: <code>pybreaker</code>, Resilience4j. Prevents retry storms on known-dead services.</font></td></tr>
+<tr valign="top"><td><b>5. Exponential Backoff + Full Jitter</b><br><i>"Why random(0, 2^n) instead of fixed 2^n seconds?"</i></td><td><font color="#8b949e"><b>Thundering herd prevention</b>. If 1000 clients fail at the same moment and all retry at exactly 2s, they hammer the service again at 2s. With jitter (random 0-2s), they spread over the interval. AWS recommends <b>full jitter</b>: <code>sleep = random.uniform(0, min(cap, base * 2**attempt))</code>.</font></td></tr>
+<tr valign="top"><td><b>6. Dead Letter Queue (DLQ) for Exhausted Retries</b><br><i>"After N failed retries on a message, what do you do?"</i></td><td><font color="#8b949e">Send to DLQ for human review; don't keep retrying forever. Standard pattern in SQS, Kafka, RabbitMQ. Monitoring the DLQ depth is how you notice a persistent downstream issue.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P12: RATE LIMITING ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p12"><font color="#58a6ff" size="5">12. Token Bucket / Sliding Window Rate Limit</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "throttle", "N per minute per user", "free vs premium tier"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Rate limiting protects <b>you</b> from misbehaving callers and protects <b>your downstream dependencies</b> from you. <b>Token bucket</b> allows bursts (up to bucket size) while capping steady rate &mdash; matches how real users behave. <b>Sliding window log</b> is strictly accurate but memory-heavy. <b>Fixed window counter</b> is simplest but has a boundary bug where a burst can double the limit by straddling the window edge.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Token bucket = burst + steady. Sliding window = accurate + heavy. Fixed window = simple + broken at boundaries."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Using wall-clock time (<code>time.time()</code>)</b> for token refill &mdash; NTP adjustments, leap seconds, and clock skew cause wrong rates. Use <code>time.monotonic()</code>. Second trap: implementing rate-limit <b>per server</b> when deployed across a fleet &mdash; 10 servers &times; 100 req/min = 1000 req/min actual. For fleet-wide limits, shared Redis with atomic ops (Lua script).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Per-server in-memory &rarr; <b>Redis with INCR + EXPIRE</b> for fixed-window fleet-wide &rarr; <b>Redis Lua script</b> for atomic sliding-window check-and-increment &rarr; <b>distributed token bucket</b> with Redis hashes &rarr; <b>tiered rate limits</b> (free vs premium, different buckets per tier, looked up by API key).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Design a rate limiter: 100 requests/minute per user, allow bursts of 20."</b>
+<ul>
+  <li>Token bucket: rate = 100/60 tokens/sec, capacity = 20.</li>
+  <li>Per user: <code>{user_id: (tokens, last_refill_time)}</code>.</li>
+  <li>On request: refill tokens based on elapsed time, cap at capacity; if &ge;1 token, consume and allow.</li>
+  <li>For fleet-wide: Redis hash with atomic Lua script.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Shares DNA with <b>sliding window</b> (literally &mdash; sliding-window rate limit tracks timestamps). Often paired with <b>circuit breaker</b> for inbound protection. When clients hit the limit, 429 responses feed back into their <b>retry-with-backoff</b> logic &mdash; honor the <code>Retry-After</code> header.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>time.monotonic()</code> for jitter-free clocks; <code>collections.deque</code> for the sliding-window variant (timestamps queue); a plain dict <code>{user_id: (tokens, last_refill)}</code> for token bucket. Production: Redis with <code>INCR</code> + <code>EXPIRE</code>.<br><b>Practice:</b> <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q10 &middot; Rate Limiter</font></a> &mdash; implement <b>both</b> token bucket <b>and</b> sliding window and explain trade-offs (bucket = forgiving burst; sliding = strict).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Token Bucket Rate Limiter</b><br><i>"Allow up to N requests per second per user; allow bursts up to B."</i></td><td><font color="#8b949e">Canonical. Each user has a bucket; tokens refill at rate N; capacity B. Each request removes a token (rejects if empty). <b>Forgiving of bursts</b>. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q10</font></a>.</font></td></tr>
+<tr valign="top"><td><b>2. Sliding-Window Rate Limiter</b><br><i>"Exact count: max N requests in any 60-second window per user."</i></td><td><font color="#8b949e"><b>Deque of timestamps</b>. On each request, pop timestamps older than window, check length. <b>Strict</b> &mdash; no bursts. Higher memory (one entry per request in window). See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q10</font></a>.</font></td></tr>
+<tr valign="top"><td><b>3. Fixed-Window Counter</b><br><i>"At most N requests per calendar minute."</i></td><td><font color="#8b949e"><b>Simplest but worst</b>: use <code>floor(time / window)</code> as a key; increment a counter in Redis. Downside: edge-burst &mdash; a user can send 2N requests across a window boundary. Mention this flaw if asked.</font></td></tr>
+<tr valign="top"><td><b>4. Distributed Rate Limit (Redis)</b><br><i>"Same limit across 10 web server instances."</i></td><td><font color="#8b949e">Local limits don't work across instances &mdash; user retries until they hit a permissive one. Shared state in Redis: <code>INCR key; EXPIRE key 60</code>; atomic. Trade some latency for correctness.</font></td></tr>
+<tr valign="top"><td><b>5. Per-Tier Rate Limits</b><br><i>"Free users: 100/hour. Paid: 10,000/hour. Enterprise: unlimited."</i></td><td><font color="#8b949e"><b>Policy dimension</b>: lookup limit per user based on their tier, then apply standard algorithm. Key the bucket by user_id; the capacity/rate depends on tier. Separates "how to rate-limit" from "what to rate-limit to".</font></td></tr>
+<tr valign="top"><td><b>6. Leaky Bucket (outbound shaping)</b><br><i>"Smooth outgoing traffic to exactly N req/sec, queuing excess."</i></td><td><font color="#8b949e">Variant: fixed drain rate, queue absorbs bursts. Good for <b>outbound</b> rate-limiting (don't DDoS downstream). Token bucket is for <b>inbound</b> (protect self).</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P13: REGEX + COUNTER / AWK ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p13"><font color="#58a6ff" size="5">13. Regex + Counter / awk</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "parse logs", "extract IP/email/phone", "count occurrences in text"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3">Text-analytics problems all decompose into the same pipeline: <b>extract &rarr; normalize &rarr; count</b>. Regex handles extraction; a Counter handles aggregation. <code>awk</code> fuses both steps when lines are whitespace-delimited and logic is simple. Streaming line-by-line keeps memory flat regardless of file size &mdash; critical for GB-scale logs.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Extract &rarr; normalize to canonical form &rarr; count. Stream line by line."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Forgetting to normalize before counting.</b> <code>555-123-4567</code> and <code>5551234567</code> should count as the same number. Strip separators first. Second trap: <b>catastrophic backtracking</b> with nested quantifiers like <code>(a+)+</code> on pathological input. Third trap: loading a multi-GB file into memory &mdash; <b>always</b> iterate <code>for line in f:</code>.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Python <code>re</code> + Counter &rarr; <code>awk</code> for one-liners &rarr; <b>structured logging</b> (JSON lines, <code>jq</code>) instead of regex when you control the producer &rarr; <b>log aggregators</b> (CloudWatch Logs Insights, Elasticsearch) for fleet-wide search &rarr; <b>approximate top-K</b> (Count-Min Sketch) when the distinct-key count itself is huge.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Given an auth log, report the top 10 IPs by failed SSH login count."</b>
+<ul>
+  <li>Regex: <code>r'Failed password.*from (\d{1,3}(?:\.\d{1,3}){3})'</code>.</li>
+  <li>Stream file line by line; <code>Counter[match.group(1)] += 1</code>.</li>
+  <li><code>counter.most_common(10)</code>.</li>
+  <li>Bash equivalent: <code>grep "Failed password" auth.log | grep -oE '[0-9.]+' | sort | uniq -c | sort -rn | head -10</code>.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Depends on <b>Counter / hash map</b> for aggregation. Pairs with <b>heap</b> for top-K (<code>counter.most_common(k)</code> uses one internally). For huge logs, upgrade to <b>streaming pipelines</b> (Kafka + workers). The "normalize before count" discipline is the same idea as canonicalization in deduplication.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>re.compile</code> once, reuse; <code>re.findall</code> for all matches, <code>re.finditer</code> for streaming; named groups <code>(?P&lt;ip&gt;\d+\.\d+\.\d+\.\d+)</code> are more readable than indices; <code>collections.Counter</code> for aggregation. CLI equivalents: <code>grep -oE</code>, <code>awk</code>, <code>sort | uniq -c | sort -rn</code>.<br><b>Practice:</b> <a href="coding.html#regex-text"><font color="#58a6ff">Coding Q20 &middot; Auth Log Parsing</font></a>, <a href="coding.html#regex-text"><font color="#58a6ff">Q21 &middot; sed and awk</font></a>, <a href="coding.html#regex-text"><font color="#58a6ff">Q22 &middot; Regular Expressions</font></a>, <a href="coding.html#problem-solving"><font color="#58a6ff">Q6 &middot; IP Validator</font></a>. This pattern is where AFT interviews live.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Count SSH Brute-Force Attempts per IP</b><br><i>"Parse <code>/var/log/auth.log</code>, rank IPs by failed login count."</i></td><td><font color="#8b949e">Canonical AFT pattern. Regex for "Failed password &hellip; from (IP)". Counter. <code>most_common()</code>. Or one-line shell: <code>grep "Failed password" | awk '{print $(NF-3)}' | sort | uniq -c | sort -rn</code>.</font></td></tr>
+<tr valign="top"><td><b>2. Extract All Email Addresses from Text</b><br><i>"Given raw text, list every email address."</i></td><td><font color="#8b949e"><code>re.findall(r'[\w.+-]+@[\w-]+\.[\w.-]+', text)</code>. Good enough for most cases; perfect RFC-5322 regex is a famous joke. Know the limits.</font></td></tr>
+<tr valign="top"><td><b>3. Validate IP Address (v4)</b><br><i>"Is <code>192.168.1.300</code> a valid IPv4?"</i></td><td><font color="#8b949e">Regex <b>alone isn't enough</b> &mdash; need range check on each octet (0-255). Split on '.', parse each, validate 0&le;n&le;255. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q6</font></a>.</font></td></tr>
+<tr valign="top"><td><b>4. Top K HTTP Endpoints from Access Log</b><br><i>"Parse nginx access log; return 5 most-requested paths."</i></td><td><font color="#8b949e"><b>Full pipeline</b>: regex extract path from log line, Counter, <code>most_common(5)</code>. Or shell: <code>awk '{print $7}' access.log | sort | uniq -c | sort -rn | head -5</code>. Both work &mdash; Python scales better with parsing complexity.</font></td></tr>
+<tr valign="top"><td><b>5. Normalize Phone Numbers Before Counting</b><br><i>"Count unique phone numbers, handling formats: <code>555-123-4567</code>, <code>(555) 123-4567</code>, <code>5551234567</code>."</i></td><td><font color="#8b949e"><b>Normalize before counting</b>. Strip non-digits with <code>re.sub(r'\D', '', phone)</code>, <i>then</i> feed to Counter. Classic mistake: count raw; you'll miscount equivalent numbers. See <a href="coding.html#problem-solving"><font color="#58a6ff">Coding Q9</font></a>.</font></td></tr>
+<tr valign="top"><td><b>6. Find Files With "ERROR" and Show Context</b><br><i>"Like <code>grep -B 2 -A 2 ERROR /var/log/*.log</code> but in Python."</i></td><td><font color="#8b949e"><b>Streaming + buffer</b>. Keep a sliding buffer of last N lines; on match, print buffer + next N lines. Shows regex + sliding-window + streaming I/O in one problem.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ==================== P14: ENUMS + ABSTRACTIONS ==================== -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h2 id="p14"><font color="#58a6ff" size="5">14. Enums + Abstractions (OOP Design)</font></h2>
+<font size="3" color="#8b949e"><i>Signals:</i> "design a system with several kinds of X", "extensible for future types", "Pizza / Parking Lot / Vending Machine"</font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top"><td width="22%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; WHY IT WORKS</b></font></td>
+<td bgcolor="#11261c"><font size="3"><b>Enums</b> replace magic strings with type-safe values &mdash; misspelling <code>Size.MEIDUM</code> fails fast at parse time. <b>Abstract base classes / Protocols</b> define contracts so new types can be added <b>without touching existing code</b> (open/closed principle). Favoring <b>composition over inheritance</b> avoids the deep-hierarchy trap (<code>PepperoniLargeStuffedCrustPizza</code>). The whole approach makes change <b>local</b> instead of shotgun surgery across the codebase.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; MENTAL MODEL</b></font></td>
+<td bgcolor="#0a1a2a"><font size="3"><b>"Fixed set of variants &rarr; enum. Fixed contract with varying behavior &rarr; interface. Varying attributes &rarr; composition."</b></font></td></tr>
+
+<tr valign="top"><td bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; TRAP</b></font></td>
+<td bgcolor="#2a1f14"><font size="3"><b>Inheritance for variants that are just different data.</b> <code>class PepperoniPizza(Pizza)</code> is wrong &mdash; topping is an attribute, not a type. Second trap: <b>God classes</b> that know everything (Pizza knowing its own price + the catalog + discounts). Separate <b>data</b> from <b>catalog</b> from <b>logic</b>. Third trap: over-engineering &mdash; for a 10-line task, skip the interface.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128310; ESCALATION</b></font></td>
+<td bgcolor="#241b2e"><font size="3">Enums + simple classes &rarr; <b>ABCs / Protocols</b> for polymorphism &rarr; <b>Strategy pattern</b> (pluggable algorithm) &rarr; <b>Builder pattern</b> (stepwise construction with optional fields) &rarr; <b>Dependency Injection</b> (pass collaborators in; don't instantiate them inside) &rarr; <b>Domain-Driven Design</b> (aggregates, value objects, repositories).</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1c2430"><font size="2" color="#58a6ff"><b>&#127919; REAL QUESTION</b></font></td>
+<td bgcolor="#1c2430"><font size="3"><b>"Design a Pizza ordering system: sizes, crust types, toppings, tax, promotions."</b>
+<ul>
+  <li><code>Size</code>, <code>Base</code>: enums. <code>Topping</code>: dataclass (name, price).</li>
+  <li><code>Pizza</code>: dataclass (size, base, list of toppings). <code>Order</code>: list of pizzas.</li>
+  <li>Catalog (price dicts) lives separately &mdash; change prices without touching Pizza.</li>
+  <li><code>PricingStrategy</code> interface with <code>DefaultPricing</code>, <code>TenPercentOff</code>, <code>WithTax</code> &mdash; new rule = new class, no edits to Pizza.</li>
+</ul>
+</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0a0e13"><font size="2" color="#8b949e"><b>&#128279; BRIDGES</b></font></td>
+<td bgcolor="#0a0e13"><font size="3">Connects to nearly every design question: <b>pub/sub (Event Bus)</b> uses abstract Subscriber; <b>config management</b> uses abstract ConfigSource; <b>file filters</b> use composable Predicate. The <b>Strategy pattern</b> appears in pricing, retry policies, rate limits, and caching evictors.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#0f1f14"><font size="2" color="#3fb950"><b>&#128013; PYTHON + PRACTICE</b></font></td>
+<td bgcolor="#0f1f14"><font size="3"><b>Stdlib:</b> <code>enum.Enum</code> or <code>enum.IntEnum</code> for fixed variants; <code>dataclasses.dataclass(frozen=True)</code> for value objects (get <code>__eq__</code>, <code>__repr__</code> for free); <code>typing.Protocol</code> for duck-typed interfaces (no inheritance needed); <code>abc.ABC</code> + <code>@abstractmethod</code> when you want strict base classes.<br><b>Practice:</b> <a href="coding.html#logical-maintainable"><font color="#58a6ff">Coding Q14 &middot; Pizza Builder</font></a> &mdash; drill this until you can design it cold. It's <i>the</i> OOP question for AFT and covers enums, dataclasses, strategy pattern, and open/closed in one problem.</font></td></tr>
+
+<tr valign="top"><td bgcolor="#1a1f2e"><font size="2" color="#79c0ff"><b>&#128221; PRACTICE PROBLEMS</b></font></td>
+<td bgcolor="#1a1f2e"><font size="3">
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top"><td width="45%"><b>1. Design a Pizza Ordering System</b><br><i>"Sizes, crust types, toppings, tax, promotions; prices change over time."</i></td><td><font color="#8b949e">Canonical. <code>Size</code> and <code>Crust</code> as enums. <code>Topping</code> as dataclass. <code>Pizza</code> as dataclass. <b>Strategy pattern</b> for pricing (Default, TenPercentOff, WithTax). See <a href="coding.html#logical-maintainable"><font color="#58a6ff">Coding Q14</font></a>.</font></td></tr>
+<tr valign="top"><td><b>2. Design a Notification System</b><br><i>"Send by Email, SMS, Push, or Slack; users pick preferred channels."</i></td><td><font color="#8b949e"><code>Channel</code> as enum. <code>Sender</code> as <code>Protocol</code> with <code>send(msg)</code>; implementations per channel. Compose a user's channels; dispatch over the list. <b>Open/closed</b>: add new channel without editing existing code.</font></td></tr>
+<tr valign="top"><td><b>3. Design a Payment Gateway Abstraction</b><br><i>"Support Stripe, PayPal, Square, with same app API."</i></td><td><font color="#8b949e"><code>PaymentProcessor</code> ABC with <code>charge(amount, card)</code>. Subclasses per provider. App code depends on the ABC, not concrete classes. Mockable in tests. Swap providers via config.</font></td></tr>
+<tr valign="top"><td><b>4. Design an Event Bus / Pub-Sub</b><br><i>"Publishers emit events; many subscribers react; new subscribers without editing publisher."</i></td><td><font color="#8b949e"><b>Observer pattern</b>. <code>Event</code> dataclass. <code>Subscriber</code> ABC with <code>handle(event)</code>. <code>EventBus</code> maintains a subscriber list per event type. Demonstrates loose coupling.</font></td></tr>
+<tr valign="top"><td><b>5. Design a Shopping Cart with Discounts</b><br><i>"Items, quantities, multiple discount rules (10% off, BOGO, loyalty)."</i></td><td><font color="#8b949e"><b>Strategy pattern</b> for <code>DiscountRule</code>; composable (apply in order or pick best). <code>Cart</code> dataclass. Separating <b>data</b> (items) from <b>logic</b> (discounts) is the point.</font></td></tr>
+<tr valign="top"><td><b>6. Design a Ride-Sharing Pricing Engine</b><br><i>"Base fare + distance + time + surge + rider-type discount."</i></td><td><font color="#8b949e"><b>Chain of Responsibility</b>: each <code>PriceComponent</code> adds or multiplies; pass an accumulator object through the chain. Or a list of strategies. Lets you add "promo code" or "airport fee" without breaking existing logic.</font></td></tr>
+</table>
+</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ================================================================ -->
+<!-- PATTERN COMBINATION MATRIX                                        -->
+<!-- ================================================================ -->
+<a name="matrix"></a>
+<table width="100%" bgcolor="#161b22" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="6" color="#f0883e"><b>&#128279; Pattern Combination Matrix</b></font>
+<br><br>
+<font size="3" color="#c9d1d9">Real interview problems rarely use <b>one</b> pattern in isolation. The senior-level signal is recognizing when <b>two patterns compose</b>. Here are the combinations that show up most often:</font>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0d1117" cellpadding="12" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#21262d">
+  <td width="18%"><font size="3" color="#f0883e"><b>Pattern A</b></font></td>
+  <td width="18%"><font size="3" color="#f0883e"><b>Pattern B</b></font></td>
+  <td width="27%"><font size="3" color="#f0883e"><b>Classic Problem</b></font></td>
+  <td width="17%"><font size="3" color="#f0883e"><b>Cost (time / space)</b></font></td>
+  <td width="20%"><font size="3" color="#f0883e"><b>Why They Combine</b></font></td>
+</tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Sliding Window</b></font></td><td><font size="3" color="#c9d1d9"><b>Hash Map</b></font></td><td><font size="3" color="#c9d1d9">Longest substring without repeating characters</font></td><td><font size="3" color="#7ee787">O(n) / O(k)</font></td><td><font size="3" color="#8b949e">Window tracks range; map tracks contents in O(1)</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Prefix Sum</b></font></td><td><font size="3" color="#c9d1d9"><b>Hash Map</b></font></td><td><font size="3" color="#c9d1d9">Subarray sum equals K</font></td><td><font size="3" color="#7ee787">O(n) / O(n)</font></td><td><font size="3" color="#8b949e">Prefix gives O(1) range sum; map finds complement</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>BFS</b></font></td><td><font size="3" color="#c9d1d9"><b>Hash Set / Map</b></font></td><td><font size="3" color="#c9d1d9">Shortest path in a grid or word ladder</font></td><td><font size="3" color="#7ee787">O(V+E) / O(V)</font></td><td><font size="3" color="#8b949e">Queue drives order; set prevents revisits (O(1) lookup)</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Heap</b></font></td><td><font size="3" color="#c9d1d9"><b>Counter / Hash Map</b></font></td><td><font size="3" color="#c9d1d9">Top K frequent elements</font></td><td><font size="3" color="#7ee787">O(n log K) / O(n)</font></td><td><font size="3" color="#8b949e">Counter builds frequencies; heap of size K keeps leaders</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Hash Map</b></font></td><td><font size="3" color="#c9d1d9"><b>Doubly Linked List</b></font></td><td><font size="3" color="#c9d1d9">LRU cache</font></td><td><font size="3" color="#7ee787">O(1) / O(capacity)</font></td><td><font size="3" color="#8b949e">Map gives O(1) lookup; list gives O(1) move-to-front &amp; evict</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Monotonic Stack</b></font></td><td><font size="3" color="#c9d1d9"><b>Hash Map</b></font></td><td><font size="3" color="#c9d1d9">Next greater element II (with indexing)</font></td><td><font size="3" color="#7ee787">O(n) / O(n)</font></td><td><font size="3" color="#8b949e">Stack finds relationship; map aligns query to input order</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Retry + Backoff</b></font></td><td><font size="3" color="#c9d1d9"><b>Rate Limit</b></font></td><td><font size="3" color="#c9d1d9">Robust HTTP client honoring 429 <code>Retry-After</code></font></td><td><font size="3" color="#7ee787">bounded time</font></td><td><font size="3" color="#8b949e">Backoff on failure; limiter prevents self-DDoS on retry</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Enums</b></font></td><td><font size="3" color="#c9d1d9"><b>Strategy Pattern</b></font></td><td><font size="3" color="#c9d1d9">Pricing / pub-sub / eviction policy extensibility</font></td><td><font size="3" color="#7ee787">&mdash;</font></td><td><font size="3" color="#8b949e">Enum is the "kind"; strategy is the "behavior per kind"</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Two Pointers</b></font></td><td><font size="3" color="#c9d1d9"><b>Binary Search</b></font></td><td><font size="3" color="#c9d1d9">Closest pair / find range of a value</font></td><td><font size="3" color="#7ee787">O(n log n) / O(1)</font></td><td><font size="3" color="#8b949e">Binary search positions one pointer; two pointers refines</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Sliding Window</b></font></td><td><font size="3" color="#c9d1d9"><b>Monotonic Deque</b></font></td><td><font size="3" color="#c9d1d9">Sliding window maximum</font></td><td><font size="3" color="#7ee787">O(n) / O(k)</font></td><td><font size="3" color="#8b949e">Window defines range; deque keeps max-candidate in O(1)</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>Regex</b></font></td><td><font size="3" color="#c9d1d9"><b>Counter + Heap</b></font></td><td><font size="3" color="#c9d1d9">Top K log patterns / most-visited endpoints</font></td><td><font size="3" color="#7ee787">O(n log K) / O(n)</font></td><td><font size="3" color="#8b949e">Regex extracts the signal; Counter+heap ranks it</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>DFS</b></font></td><td><font size="3" color="#c9d1d9"><b>Memoization (Hash Map)</b></font></td><td><font size="3" color="#c9d1d9">All paths with repeated subproblems &rarr; DP</font></td><td><font size="3" color="#7ee787">O(states) / O(states)</font></td><td><font size="3" color="#8b949e">DFS explores; map caches subresults to avoid re-work</font></td></tr>
+
+</table>
+
+<br>
+<table width="100%" bgcolor="#0a1a2a" cellpadding="15" cellspacing="0" border="0">
+<tr><td><font size="3" color="#58a6ff"><b>&#128161; Interview signal:</b> <font color="#c9d1d9">When you spot a <i>second</i> pattern joining the first, say it out loud: <b>"I'll use a sliding window, but I also need a hash map inside the window to count chars in O(1)."</b> Naming the combo separates mid-level from senior.</font></font></td></tr>
+</table>
+
+<br><br>
+
+<!-- ================================================================ -->
+<!-- 30-SECOND DECISION FRAMEWORK                                      -->
+<!-- ================================================================ -->
+<a name="framework"></a>
+<table width="100%" bgcolor="#161b22" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="6" color="#f0883e"><b>&#129504; The 30-Second Decision Framework</b></font>
+<br><br>
+<font size="3" color="#c9d1d9">When an interviewer finishes stating a problem, you have <b>~30 seconds of thinking silence</b> before it gets weird. Walk this decision tree in your head. Each step should narrow the candidate patterns.</font>
+</td></tr>
+</table>
+<br>
+
+<!-- STEP 1 -->
+<table width="100%" bgcolor="#11261c" cellpadding="15" cellspacing="0" border="0">
+<tr><td>
+<font size="5" color="#3fb950"><b>&#10122; STEP 1 &mdash; What's the input shape?</b></font>
+</td></tr>
+</table>
+<table width="100%" bgcolor="#0d1117" cellpadding="12" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#161b22"><td width="25%"><font size="3" color="#f0883e"><b>If input is&hellip;</b></font></td><td><font size="3" color="#f0883e"><b>Reach for&hellip;</b></font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Sorted array</b></font></td><td><font size="3" color="#c9d1d9">Two pointers, binary search</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Unsorted array / list</b></font></td><td><font size="3" color="#c9d1d9">Hash map, prefix sum, sort-first-then-pattern</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>String</b></font></td><td><font size="3" color="#c9d1d9">Sliding window, hash map, stack, two pointers</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Tree</b></font></td><td><font size="3" color="#c9d1d9">DFS (recursion), BFS (level-order)</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Graph / grid</b></font></td><td><font size="3" color="#c9d1d9">BFS (shortest path), DFS (all paths / components), Union-Find</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Stream / unknown length</b></font></td><td><font size="3" color="#c9d1d9">Heap (top-K), reservoir sampling, sliding window</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Intervals</b></font></td><td><font size="3" color="#c9d1d9">Sort by start, sweep line, heap of end-times</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Design / open-ended</b></font></td><td><font size="3" color="#c9d1d9">Enums + interfaces + composition, identify invariants</font></td></tr>
+</table>
+
+<br>
+
+<!-- STEP 2 -->
+<table width="100%" bgcolor="#0a1a2a" cellpadding="15" cellspacing="0" border="0">
+<tr><td>
+<font size="5" color="#58a6ff"><b>&#10123; STEP 2 &mdash; What's being asked?</b></font>
+</td></tr>
+</table>
+<table width="100%" bgcolor="#0d1117" cellpadding="12" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#161b22"><td width="25%"><font size="3" color="#f0883e"><b>Verb / Goal</b></font></td><td><font size="3" color="#f0883e"><b>Implication</b></font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Find / search</b></font></td><td><font size="3" color="#c9d1d9">Hash map (exact), binary search (ordered), BFS/DFS (in a graph)</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Count / frequency</b></font></td><td><font size="3" color="#c9d1d9">Counter / hash map; sometimes prefix sum</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Shortest / minimum</b></font></td><td><font size="3" color="#c9d1d9">BFS (unweighted), Dijkstra (weighted), sliding window (substring), DP</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Longest / maximum</b></font></td><td><font size="3" color="#c9d1d9">Sliding window (variable), DP, monotonic stack</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Top K / K-th</b></font></td><td><font size="3" color="#c9d1d9">Heap of size K, Quickselect</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>All (enumerate)</b></font></td><td><font size="3" color="#c9d1d9">DFS / backtracking, BFS for shortest-all</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>Optimize / maximize value</b></font></td><td><font size="3" color="#c9d1d9">Greedy (if proven safe), DP (overlapping subproblems), two pointers</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>Design (build a &hellip;)</b></font></td><td><font size="3" color="#c9d1d9">Define data model &rarr; identify operations &rarr; pick structures per op &rarr; scale</font></td></tr>
+</table>
+
+<br>
+
+<!-- STEP 3 -->
+<table width="100%" bgcolor="#2a1f14" cellpadding="15" cellspacing="0" border="0">
+<tr><td>
+<font size="5" color="#ffa657"><b>&#10124; STEP 3 &mdash; Which constraint unlocks a pattern?</b></font>
+</td></tr>
+</table>
+<table width="100%" bgcolor="#0d1117" cellpadding="12" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#161b22"><td width="30%"><font size="3" color="#f0883e"><b>Constraint hint</b></font></td><td><font size="3" color="#f0883e"><b>Unlocks</b></font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>"Sorted" or "monotonic"</b></font></td><td><font size="3" color="#c9d1d9">Two pointers, binary search &mdash; O(n log n) / O(log n)</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>"Unique" / "no duplicates"</b></font></td><td><font size="3" color="#c9d1d9">Hash set lookups; often simpler invariants</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>"Contiguous" / "subarray"</b></font></td><td><font size="3" color="#c9d1d9">Sliding window, prefix sum &mdash; NOT combinations</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>"In-place" / "O(1) space"</b></font></td><td><font size="3" color="#c9d1d9">Two pointers, cyclic swap, bit manipulation</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>"All permutations" / "all combinations"</b></font></td><td><font size="3" color="#c9d1d9">Backtracking &mdash; exponential is expected</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>"Huge N, small K"</b></font></td><td><font size="3" color="#c9d1d9">Heap of size K, not full sort &mdash; O(n log K)</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>"Huge file / doesn't fit in memory"</b></font></td><td><font size="3" color="#c9d1d9">Streaming, generators, external sort, chunked reads</font></td></tr>
+<tr bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>"Online / real-time" / "as data arrives"</b></font></td><td><font size="3" color="#c9d1d9">Heap, sliding window, incremental stats</font></td></tr>
+<tr><td><font size="3" color="#c9d1d9"><b>"Values bounded" (0..100, lowercase a&ndash;z)</b></font></td><td><font size="3" color="#c9d1d9">Counting sort, fixed-size array as counter &mdash; O(n)</font></td></tr>
+</table>
+
+<br>
+
+<!-- STEP 4 -->
+<table width="100%" bgcolor="#241b2e" cellpadding="15" cellspacing="0" border="0">
+<tr><td>
+<font size="5" color="#bc8cff"><b>&#10125; STEP 4 &mdash; State brute force, then upgrade</b></font>
+</td></tr>
+</table>
+<table width="100%" bgcolor="#0d1117" cellpadding="15" cellspacing="0" border="1" bordercolor="#30363d">
+<tr><td>
+<font size="3" color="#c9d1d9">
+<b>Always start by saying the brute force out loud</b> &mdash; it shows you understand the problem and gives you a baseline to beat. Then ask yourself the upgrade questions:
+<br><br>
+<ol>
+  <li><b>"Can a hash map turn O(n<sup>2</sup>) lookup into O(n)?"</b> &mdash; works for two-sum, duplicates, counts, and complement problems.</li>
+  <li><b>"Is the data already ordered, or can I order it cheaply?"</b> &mdash; unlocks two pointers or binary search.</li>
+  <li><b>"Am I recomputing the same subranges?"</b> &mdash; prefix sum, sliding window, or memoization fixes it.</li>
+  <li><b>"Am I doing a full sort when I only need top K?"</b> &mdash; heap of size K.</li>
+  <li><b>"Can I process one pass instead of nested passes?"</b> &mdash; monotonic stack, single-pass window.</li>
+  <li><b>"Do I actually need to materialize everything?"</b> &mdash; generator / stream / lazy evaluation.</li>
+</ol>
+<br>
+<b>Interview tip:</b> Narrate this. "Brute force is O(n<sup>2</sup>) because I'd check every pair. The input is sorted, so I can use two pointers for O(n)." That sentence alone passes many phone screens.
+</font>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ================================================================ -->
+<!-- RAPID-FIRE DRILL                                                  -->
+<!-- ================================================================ -->
+<a name="drill"></a>
+<table width="100%" bgcolor="#161b22" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="6" color="#f0883e"><b>&#9889; Rapid-Fire Drill &mdash; 10 Questions, &lt;10s Each</b></font>
+<br><br>
+<font size="3" color="#c9d1d9">Read the problem. <b>Cover the answer column with your hand</b> and call out the pattern out loud in under 10 seconds. If you hesitate, that's a pattern to re-review. Do this 3 times the week before the interview.</font>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0d1117" cellpadding="12" cellspacing="0" border="1" bordercolor="#30363d">
+<tr bgcolor="#21262d">
+  <td width="5%"><font size="3" color="#f0883e"><b>#</b></font></td>
+  <td width="65%"><font size="3" color="#f0883e"><b>Problem (one line)</b></font></td>
+  <td width="30%"><font size="3" color="#f0883e"><b>Your answer &rarr;</b></font></td>
+</tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>1</b></font></td>
+<td><font size="3" color="#c9d1d9">Given a sorted list of numbers, find two that sum to a target.</font></td>
+<td bgcolor="#0a0e13"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>2</b></font></td>
+<td><font size="3" color="#c9d1d9">Find the longest substring that contains at most K distinct characters.</font></td>
+<td bgcolor="#0d1117"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>3</b></font></td>
+<td><font size="3" color="#c9d1d9">Count how many contiguous subarrays have sum exactly K (negative numbers allowed).</font></td>
+<td bgcolor="#0a0e13"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>4</b></font></td>
+<td><font size="3" color="#c9d1d9">In a stream of integers, return the K largest so far at any time.</font></td>
+<td bgcolor="#0d1117"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>5</b></font></td>
+<td><font size="3" color="#c9d1d9">Given a maze grid of 0s and 1s, find minimum steps from top-left to bottom-right.</font></td>
+<td bgcolor="#0a0e13"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>6</b></font></td>
+<td><font size="3" color="#c9d1d9">Parse 10GB of access logs and return the 5 most-hit URLs.</font></td>
+<td bgcolor="#0d1117"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>7</b></font></td>
+<td><font size="3" color="#c9d1d9">Validate a string of brackets like <code>"([{}])"</code>.</font></td>
+<td bgcolor="#0a0e13"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>8</b></font></td>
+<td><font size="3" color="#c9d1d9">Build a cache that supports O(1) get and put and evicts the least-recently-used entry.</font></td>
+<td bgcolor="#0d1117"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>9</b></font></td>
+<td><font size="3" color="#c9d1d9">In a rotated sorted array, check if a target value exists.</font></td>
+<td bgcolor="#0a0e13"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>10</b></font></td>
+<td><font size="3" color="#c9d1d9">HTTP client must tolerate flaky upstream returning 503; keep retrying safely.</font></td>
+<td bgcolor="#0d1117"><font size="3" color="#8b949e">&hellip;</font></td></tr>
+
+</table>
+
+<br>
+
+<!-- Answers block, visually separated -->
+<table width="100%" bgcolor="#161b22" cellpadding="15" cellspacing="0" border="2" bordercolor="#3fb950">
+<tr><td>
+<font size="5" color="#3fb950"><b>&#9989; Answers (cover above while reading)</b></font>
+<br><br>
+<table width="100%" bgcolor="#0d1117" cellpadding="10" cellspacing="0" border="0">
+<tr bgcolor="#21262d"><td width="5%"><font size="3" color="#f0883e"><b>#</b></font></td><td width="35%"><font size="3" color="#f0883e"><b>Pattern</b></font></td><td><font size="3" color="#f0883e"><b>Why</b></font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>1</b></font></td>
+<td><font size="3" color="#3fb950"><b>Two pointers</b></font></td>
+<td><font size="3" color="#8b949e">Sorted + pair target &rarr; squeeze from both ends; O(n).</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>2</b></font></td>
+<td><font size="3" color="#3fb950"><b>Sliding window + hash map</b></font></td>
+<td><font size="3" color="#8b949e">Variable-size window; map counts chars; shrink when &gt;K distinct.</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>3</b></font></td>
+<td><font size="3" color="#3fb950"><b>Prefix sum + hash map</b></font></td>
+<td><font size="3" color="#8b949e">Count occurrences of <code>prefix - K</code>; negatives kill sliding window.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>4</b></font></td>
+<td><font size="3" color="#3fb950"><b>Min-heap of size K</b></font></td>
+<td><font size="3" color="#8b949e">Keeps K biggest; pop smaller when full. O(n log K), O(K) memory.</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>5</b></font></td>
+<td><font size="3" color="#3fb950"><b>BFS + visited set</b></font></td>
+<td><font size="3" color="#8b949e">Unweighted shortest path &rarr; BFS guarantees min-hops by level.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>6</b></font></td>
+<td><font size="3" color="#3fb950"><b>Streaming Counter + heap</b> (or <code>awk | sort | uniq -c | sort | head</code>)</font></td>
+<td><font size="3" color="#8b949e">Don't load 10GB; stream, count, keep top 5.</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>7</b></font></td>
+<td><font size="3" color="#3fb950"><b>Stack</b></font></td>
+<td><font size="3" color="#8b949e">Push openers, match on closer &mdash; LIFO is exactly what nesting needs.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>8</b></font></td>
+<td><font size="3" color="#3fb950"><b>Hash map + doubly linked list</b> (or <code>OrderedDict</code>)</font></td>
+<td><font size="3" color="#8b949e">Map = O(1) find; list = O(1) move &amp; evict tail.</font></td></tr>
+
+<tr valign="top"><td><font size="3" color="#c9d1d9"><b>9</b></font></td>
+<td><font size="3" color="#3fb950"><b>Modified binary search</b></font></td>
+<td><font size="3" color="#8b949e">Each half is sorted; at <code>mid</code>, decide which half is clean, recurse.</font></td></tr>
+
+<tr valign="top" bgcolor="#0a0e13"><td><font size="3" color="#c9d1d9"><b>10</b></font></td>
+<td><font size="3" color="#3fb950"><b>Exponential backoff + jitter</b></font></td>
+<td><font size="3" color="#8b949e">Distinguish retryable (5xx, 429) from not (4xx); honor <code>Retry-After</code>; cap total time.</font></td></tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="100%" bgcolor="#11261c" cellpadding="20" cellspacing="0" border="0">
+<tr><td align="center">
+<font size="5" color="#3fb950"><b>&#127919; The goal isn't memorization. It's <i>pattern reflex.</i></b></font>
+<br><br>
+<font size="3" color="#c9d1d9">If you read a problem and the right pattern pops up in your head <b>before you finish reading</b>, you're ready.</font>
+<br><br>
+<font size="3" color="#8b949e">Review this page once the night before. Then close the laptop and sleep.</font>
+</td></tr>
+</table>
+
+<br><br>
+
+</font>
+</td></tr>
+</table>
+
+</body>
+</html>
