@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SysDE L4 Prep — Networking, HTTP &amp; Security</title>
+</head>
+<body bgcolor="#0d1117" text="#e6edf3" link="#58a6ff" vlink="#bc8cff" alink="#ffa657">
+
+<table width="100%" bgcolor="#161b22" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+  <font face="Helvetica, Arial, sans-serif" size="4" color="#e6edf3"><b>SysDE L4 Prep</b></font>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <font face="Helvetica, Arial, sans-serif" size="3">
+    <a href="index.html"><font color="#8b949e">Home</font></a> &nbsp;&middot;&nbsp;
+    <a href="patterns.html"><font color="#8b949e">Patterns</font></a> &nbsp;&middot;&nbsp;
+    <a href="coding.html"><font color="#8b949e">Coding &amp; Algorithms</font></a> &nbsp;&middot;&nbsp;
+    <a href="scripting-linux.html"><font color="#8b949e">Scripting &amp; Linux</font></a> &nbsp;&middot;&nbsp;
+    <a href="networking-security.html"><font color="#58a6ff"><b>Networking &amp; Security</b></font></a> &nbsp;&middot;&nbsp;
+    <a href="troubleshooting-ops.html"><font color="#8b949e">Troubleshooting &amp; Ops</font></a> &nbsp;&middot;&nbsp;
+    <a href="systems-cloud.html"><font color="#8b949e">Systems &amp; Cloud</font></a>
+  </font>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="1000" align="center" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<font face="Helvetica, Arial, sans-serif">
+
+<h1><font color="#e6edf3" size="6">Networking, HTTP &amp; Security</font></h1>
+<p><font size="3" color="#8b949e">19 questions &mdash; AFT-priority tagged. High-signal for production debugging conversations.</font></p>
+
+<br>
+
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#127919; WHY THIS MATTERS FOR AFT SUPPORT</b></font>
+<br><br>
+<font size="3">Production issues are often network issues &mdash; DNS, TLS certs, load balancer health, SSH access, firewall rules. The JD lists "troubleshooting production software issues" as #1 &mdash; this page underpins half of those scenarios.</font>
+</td></tr>
+</table>
+
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787">Contents</font></h3>
+<font size="3">
+<ol>
+  <li><a href="#networking"><font color="#58a6ff">Networking</font></a> &nbsp;<font color="#8b949e">&mdash; 13 questions</font></li><br>
+  <li><a href="#http"><font color="#58a6ff">HTTP &amp; Web</font></a> &nbsp;<font color="#8b949e">&mdash; 3 questions</font></li><br>
+  <li><a href="#security"><font color="#58a6ff">Security</font></a> &nbsp;<font color="#8b949e">&mdash; 3 questions</font></li>
+</ol>
+</font>
+</td></tr>
+</table>
+
+<br><br><br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="networking"><font color="#58a6ff" size="6">1. Networking</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+<!-- START -->
+
+
+<!-- ============ Q1 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q1 &middot; HTTP Status Codes</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Name HTTP code categories and explain them. Give specific examples.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">1xx  Informational    100 Continue, 101 Switching Protocols
+2xx  Success          200 OK, 201 Created, 204 No Content
+3xx  Redirection      301 Moved Permanently, 302 Found, 304 Not Modified
+4xx  Client Error     400 Bad Request, 401 Unauthorized, 403 Forbidden,
+                      404 Not Found, 429 Too Many Requests
+5xx  Server Error     500 Internal, 502 Bad Gateway, 503 Unavailable,
+                      504 Gateway Timeout
+
+# Common gotchas
+401 vs 403   401 = not authenticated; 403 = authenticated but not allowed
+301 vs 302   301 permanent (cache); 302 temporary (do not cache)
+502 vs 504   502 upstream returned bad response; 504 upstream timed out
+429          Rate limited; check Retry-After header
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE FIRST DIGIT IS THE WHOLE STORY</b></font>
+<br><br>
+<font size="3"><b>Every HTTP status code is three digits</b>, but the <b>first digit alone</b> tells you who's to blame and what action to take. Once you internalize that, the rest is detail.
+<br><br>
+<b>1xx &mdash; Informational (rare, usually invisible).</b> The server is still processing; more data is coming. <b>100 Continue</b> is the protocol-level "send me the body, I've verified the headers" response when a client uses <code>Expect: 100-continue</code>. <b>101 Switching Protocols</b> is what the server sends when you upgrade from HTTP to WebSocket. You almost never see these at the application layer &mdash; they're handled by the stack below.
+<br><br>
+<b>2xx &mdash; Success.</b>
+<ul>
+  <li><b>200 OK:</b> the default "it worked"; response has a body.</li>
+  <li><b>201 Created:</b> after <code>POST</code>; the <code>Location</code> header should point at the new resource. This is a signal of API quality.</li>
+  <li><b>202 Accepted:</b> "I got your request, I'll do it asynchronously." Used for long-running operations; pair with a <code>Location</code> header pointing to a status endpoint.</li>
+  <li><b>204 No Content:</b> success but nothing to return &mdash; typical for <code>DELETE</code>, or <code>PUT</code> when the resource didn't change in ways the client cares about. <b>Must have no body.</b></li>
+</ul>
+<b>3xx &mdash; Redirection &amp; Caching.</b>
+<ul>
+  <li><b>301 Moved Permanently:</b> browsers and search engines <b>cache this forever</b>. Use it for permanent URL changes. Getting this wrong (serving 301 during a test migration) is how you end up with users stuck redirecting to a dead path for weeks.</li>
+  <li><b>302 Found</b> / <b>307 Temporary Redirect:</b> "go here for now, but ask me next time." 307 preserves the method (POST stays POST); 302's semantics historically flipped that, which is why 307 exists.</li>
+  <li><b>304 Not Modified:</b> the resource hasn't changed since the client's cached version &mdash; sent in response to conditional requests with <code>If-None-Match</code> (ETag) or <code>If-Modified-Since</code>. The response has no body &mdash; it saves bandwidth.</li>
+</ul>
+<b>4xx &mdash; Client did something wrong. Don't retry without fixing the request.</b>
+<ul>
+  <li><b>400 Bad Request:</b> malformed &mdash; missing field, wrong type, broken JSON.</li>
+  <li><b>401 Unauthorized</b> vs <b>403 Forbidden:</b> the most common mix-up. <b>401 = "I don't know who you are"</b> (credentials missing or invalid &mdash; send them and retry). <b>403 = "I know who you are and you still can't have this"</b> (retrying with same creds won't help). The naming is historical and misleading; remember it by "401 needs login, 403 needs different permissions".</li>
+  <li><b>404 Not Found:</b> resource doesn't exist. <b>Sometimes used to hide 403</b> to avoid leaking existence &mdash; not bad practice for private resources.</li>
+  <li><b>405 Method Not Allowed:</b> the URL exists but your verb doesn't apply (e.g., <code>PUT /search</code>). The response <b>must</b> include an <code>Allow</code> header listing the valid methods.</li>
+  <li><b>409 Conflict:</b> you tried to modify something that's in a state that makes your edit invalid &mdash; typical for optimistic concurrency control ("your version is stale").</li>
+  <li><b>422 Unprocessable Entity:</b> syntactically valid JSON, but the values fail validation ("email field not a valid email"). Some APIs prefer 400 for this &mdash; pick one and be consistent.</li>
+  <li><b>429 Too Many Requests:</b> rate limit hit. <b>Must</b> include <code>Retry-After</code> (either seconds or an HTTP-date). This is the feedback loop that lets a well-behaved client back off &mdash; honoring it is the core of the Retry + Backoff pattern.</li>
+</ul>
+<b>5xx &mdash; Server (or something between you and the server) broke. Retrying <i>may</i> help.</b>
+<ul>
+  <li><b>500 Internal Server Error:</b> uncaught exception, bug. <b>Generic failure</b>; the server is telling you "something went wrong on my side and I won't be more specific". Don't retry idempotent-only requests blindly &mdash; a 500 on a <code>POST /charge</code> could mean "the request succeeded but the response was lost".</li>
+  <li><b>502 Bad Gateway:</b> a proxy or load balancer got a response from the upstream but it was garbage &mdash; protocol violation, wrong bytes. Typically means "upstream crashed or restarted mid-request".</li>
+  <li><b>503 Service Unavailable:</b> the server is up but can't serve right now &mdash; overload, maintenance, draining. <b>Retry-After</b> is the right header to include. 503 is what you'd serve during a deployment.</li>
+  <li><b>504 Gateway Timeout:</b> the upstream didn't respond in time. <b>502 vs 504 vs 503</b>: 502 = upstream talked but said gibberish; 504 = upstream didn't talk; 503 = <i>this</i> server chose not to. Distinguishing these lets you know which layer to look at first.</li>
+</ul>
+<b>What makes this an L4 question:</b> the interviewer wants to see you think about <b>idempotency + retries + blast radius</b>. A <code>GET</code> returning 500 is safe to retry; a <code>POST</code> returning 500 may have succeeded server-side before the failure. 429 and 503 retries need backoff. 4xx except 429 should not be retried without human review. That understanding is what separates "someone who memorized the codes" from "someone who's debugged production".
+<br><br>
+<b>The "what codes does your API actually emit?" move:</b> <code>curl -sI -o /dev/null -w "%{http_code}\n" $URL</code> gets just the status code. For production systems, the useful question is "what's our 5xx rate over the last 1h?" &mdash; alert on any sustained 5xx above ~0.1%. CloudWatch, Datadog, Prometheus all expose HTTP status as a metric for this.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot name any status codes.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows 200 and 404 but can't explain categories.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Names all 5 categories with correct descriptions but limited examples.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">All 5 categories with 2+ examples each; practical meaning of 200/301/400/404/500/503.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Nuances: 401 vs 403, 301 vs 302, 502 vs 504; 429 rate limiting; monitoring on 5xx; idempotency implications for retries.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q2 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q2 &middot; TCP vs UDP</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain the differences between TCP and UDP. When would you use each?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>COMPARISON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">TCP  Connection-oriented, reliable (retransmission), ordered,
+     flow control, congestion control. Higher overhead.
+     Use for: HTTP, SSH, FTP, email.
+
+UDP  Connectionless, no delivery guarantee, no ordering,
+     lower overhead. Use for: DNS, streaming, gaming, VoIP,
+     real-time metrics.
+
+# Trade-off: reliability vs latency/overhead
+
+# When app-level reliability is preferred over TCP:
+# - Real-time where stale data is worse than lost
+# - Multicast/broadcast (UDP only)
+# - QUIC/HTTP3 built on UDP for 0-RTT and no head-of-line blocking
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHY BOTH EXIST</b></font>
+<br><br>
+<font size="3">The real question is "why did the IP stack design <i>two</i> transport protocols?" Every other decision flows from that.
+<br><br>
+<b>IP (the layer below) is unreliable by design.</b> Packets can be dropped, reordered, duplicated, or corrupted. TCP and UDP are the two honest answers to "what do you want the transport layer to do about that?". <b>TCP</b> says "hide all of it from the application &mdash; guarantee a byte stream arrives in order". <b>UDP</b> says "don't try, just hand each packet over as-is and let the application decide".
+<br><br>
+<b>TCP gives you four guarantees</b>, and each one costs:
+<ul>
+  <li><b>Delivery</b> &mdash; via sequence numbers, ACKs, and retransmission on timeout. <b>Cost:</b> an extra round-trip of handshaking and holdbacks on packet loss.</li>
+  <li><b>Order</b> &mdash; receiver buffers out-of-order segments until the missing one arrives. <b>Cost:</b> <b>head-of-line blocking</b> &mdash; a single lost packet stalls the whole stream until it's retransmitted. This is why loading many small resources over HTTP/1.1 on a lossy link feels worse than their size would suggest.</li>
+  <li><b>Flow control</b> &mdash; <b>receive window</b> (advertised in TCP headers) lets a slow receiver say "don't send more than N bytes until I ACK". Prevents the sender from overwhelming the receiver's buffer.</li>
+  <li><b>Congestion control</b> &mdash; <b>congestion window</b>, managed by the <i>sender</i>, grows on success (AIMD, CUBIC, BBR) and shrinks on loss. Keeps the network itself from collapsing under load. This is why a cold TCP connection starts slow and ramps up (TCP slow start).</li>
+</ul>
+<b>UDP gives you almost nothing &mdash; and that's the point.</b> No handshake, no sequencing, no retransmission, no flow control. Each packet is independent. For applications where <b>losing a packet is fine</b> (video frames: a missing frame is a glitch, not corruption; DNS: just retry the query; gaming: new position supersedes old), UDP's lower overhead is a feature. You save one RTT of handshake + any retransmission delay.
+<br><br>
+<b>The interesting modern case: QUIC / HTTP/3.</b> Google and others rebuilt reliable transport <i>on top of UDP</i>. Why? Because <b>head-of-line blocking in TCP is a kernel-level problem</b> &mdash; you can't fix it without OS changes, which ship slowly. QUIC runs in userspace, uses UDP for packets, and does its own flow/congestion/reliability per-stream, so one lost packet in stream A doesn't block stream B. It also merges the TCP and TLS handshakes into one, saving an RTT on every new connection. Same four guarantees, better implementation, because UDP didn't lock them out of the protocol evolution loop.
+<br><br>
+<b>The "DNS uses UDP" nuance:</b> DNS uses UDP by default for speed (a query and response fit in one packet each, no handshake), but falls back to TCP when the response is too large to fit in a single UDP packet (originally 512 bytes, now often 4096 with EDNS). That's why <b>port 53 is open on both UDP and TCP</b> on any DNS server. DNSSEC responses and zone transfers (<code>AXFR</code>) require TCP.
+<br><br>
+<b>When you'd actually choose UDP and build reliability yourself:</b> real-time streaming, VPNs (WireGuard, OpenVPN), game servers, video calls (WebRTC), service-to-service messaging in a trusted network where latency matters more than absolute delivery. If you can tolerate occasional loss or you have your own retry logic, the overhead of TCP's guarantees is wasted work.
+<br><br>
+<b>Interview escalation:</b> if the interviewer digs, they're probing for <b>Nagle's algorithm</b> (TCP coalesces small writes to avoid packet spam; disabled with <code>TCP_NODELAY</code> for low-latency apps), <b>SO_REUSEADDR / SO_REUSEPORT</b> (port binding after abrupt close), <b>TCP keepalive</b> (detect dead peers without application-level pings), and <b>how TCP handles network partitions</b> (connections can be half-open if one side rebooted silently &mdash; keepalive or app-level heartbeats are the fix).</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain either protocol.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">"TCP reliable, UDP fast" but can't explain why.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Lists differences but can't give practical use cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Connection-oriented + reliable + ordered + flow/congestion control vs connectionless + lower overhead; correct use cases (TCP: HTTP/SSH/email; UDP: DNS/video/gaming/VoIP).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">DNS UDP + fallback to TCP; QUIC/HTTP3 on UDP; head-of-line blocking; window sizing; Nagle's algorithm; UDP multicast/broadcast; when UDP + app-level reliability beats TCP.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q3 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q3 &middot; DNS Record Types</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What types of DNS records do you know? Explain what each is used for.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">A      hostname -&gt; IPv4 address
+AAAA   hostname -&gt; IPv6 address
+CNAME  alias -&gt; another hostname
+MX     mail exchange servers (priority + host)
+NS     authoritative nameservers for the zone
+SOA    zone authority / serial / refresh / retry / expire / TTL
+TXT    arbitrary text; SPF / DKIM / DMARC / domain verification
+PTR    reverse DNS (IP -&gt; hostname)
+SRV    service location (service.proto.name -&gt; port + host)
+CAA    which CAs may issue certificates
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; DNS IS A DISTRIBUTED KEY-VALUE STORE WITH TYPED VALUES</b></font>
+<br><br>
+<font size="3"><b>Every DNS record is a tuple</b> (name, type, TTL, value). The <b>name</b> is the key you look up (<code>www.example.com</code>); the <b>type</b> determines how the <b>value</b> is interpreted. Different types exist because "name &rarr; string" isn't enough &mdash; you need "name &rarr; IPv4 address", "name &rarr; mail server with priority", "name &rarr; authoritative signature for my domain". DNS grew by adding more types, not by changing the schema.
+<br><br>
+<b>A and AAAA &mdash; the workhorses.</b> <b>A</b> maps a name to a <b>32-bit IPv4</b> address; <b>AAAA</b> ("quad-A") maps to a <b>128-bit IPv6</b>. Why the weird name? A single <code>A</code> record holds 4 bytes, and <code>AAAA</code> holds 4&times; that. When a client calls <code>getaddrinfo("foo.com")</code>, the resolver typically queries both in parallel (dual-stack), and the client prefers IPv6 if present &mdash; behaviour called <b>Happy Eyeballs</b>. Multiple A records on the same name produce <b>DNS round-robin</b> &mdash; the resolver rotates which IP it returns first, a poor-man's load balancer.
+<br><br>
+<b>CNAME &mdash; alias to another name.</b> "<code>www.example.com</code> is really <code>example.com</code>". Resolvers chase the chain until they hit an A/AAAA. Two important rules: (1) a CNAME can't coexist with other records at the same name &mdash; if <code>www.example.com</code> is a CNAME, it can't <i>also</i> have MX or TXT records, because the CNAME replaces all lookups. (2) <b>you cannot CNAME the apex</b> (the zone root <code>example.com</code>) in strict DNS, because the zone root must have SOA and NS records. Cloud providers work around this with <b>ALIAS</b> or <b>ANAME</b> records (Route 53 Alias, Azure DNS) that look like CNAMEs but are resolved server-side.
+<br><br>
+<b>MX &mdash; where mail goes.</b> Each MX record has a <b>priority</b> (lower = preferred) and a <b>hostname</b> (not an IP; the hostname must itself have A/AAAA). Multiple MX records with different priorities are the backup pattern: <code>10 mail1</code>, <code>20 mail2</code>. Sending servers try lower priority first, fall through on failure.
+<br><br>
+<b>NS and SOA &mdash; who is in charge.</b> <b>NS</b> (name server) records say "these hosts are authoritative for this zone". <b>SOA</b> (Start of Authority) is one per zone and carries the <b>zone's metadata</b>: the primary nameserver, an admin email (with <code>.</code> replacing <code>@</code>, because <code>@</code> has special meaning in DNS), a <b>serial number</b> (incremented on every zone change &mdash; secondaries use this to detect "do I need to refresh?"), and four timers: <b>refresh</b> (how often secondaries check for changes), <b>retry</b> (how fast to try again on failure), <b>expire</b> (secondaries stop answering after this), <b>minimum TTL</b> (negative caching duration for NXDOMAIN). Bumping the serial is how you "publish" a zone update.
+<br><br>
+<b>TXT &mdash; arbitrary text, but actually a pile of conventions.</b>
+<ul>
+  <li><b>SPF</b> (Sender Policy Framework): <code>"v=spf1 include:_spf.google.com ~all"</code> &mdash; "these hosts are allowed to send mail as my domain". Receivers check this to reduce spoofing.</li>
+  <li><b>DKIM</b>: public key used to verify the signature on outgoing mail.</li>
+  <li><b>DMARC</b>: policy that tells receivers what to do when SPF/DKIM fail (reject, quarantine, allow).</li>
+  <li><b>Domain verification</b> &mdash; Google/AWS/etc. ask you to add a specific TXT record to prove you own the domain before they'll issue certs or grant API access.</li>
+  <li><b>Let's Encrypt DNS-01 challenge</b> uses a TXT record to prove ownership.</li>
+</ul>
+<b>PTR &mdash; reverse DNS (IP &rarr; name).</b> Lives in a special zone <code>in-addr.arpa</code> (IPv4) or <code>ip6.arpa</code> (IPv6). PTR records only work if the <b>owner of the IP</b> (your cloud provider, typically) has configured them. <b>Mail servers check reverse DNS</b> as a spam signal &mdash; if your outbound SMTP IP doesn't have PTR matching your HELO name, a lot of providers tag your mail as spam.
+<br><br>
+<b>SRV &mdash; service discovery, pre-Kubernetes.</b> Format: <code>_service._proto.name &rarr; priority weight port host</code>. "Here's where to find XMPP for example.com, and on what port". Heavily used by Microsoft AD (<code>_ldap._tcp.example.com</code>), SIP/VoIP, and older service discovery. Kubernetes creates SRV records for every service (<code>_http._tcp.my-service.my-namespace.svc.cluster.local</code>) for this exact reason.
+<br><br>
+<b>CAA &mdash; which CAs may issue certificates for your domain.</b> A newer record (2013) that tells the TLS ecosystem "only Let's Encrypt may issue for example.com". Misissuance risk mitigation &mdash; if an attacker compromises a different CA, they still can't get a valid cert for your domain because publicly-trusted CAs check CAA before issuing.
+<br><br>
+<b>TTL &mdash; the knob that controls cache pain.</b> TTL on every record tells resolvers how long to cache the answer. <b>Short TTLs</b> (60s) let you change records quickly (emergencies, failover), but increase query load on your authoritative servers. <b>Long TTLs</b> (86400 = 1 day) are efficient but mean changes take a long time to propagate. The <b>universal play before a planned migration</b>: lower TTL to 60s a day in advance, do the migration, then raise back. For emergencies, you still have to wait out the old TTL at resolvers that already cached &mdash; DNS propagation delays are a classic production pitfall.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot name any DNS record types.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows only A records.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">A and CNAME but limited on others.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">A, AAAA, CNAME, MX, NS, SOA, TXT with practical use cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">SRV, PTR, CAA; SOA fields (serial/refresh/retry/expire); TTL and caching; TXT uses (SPF, DKIM, DMARC, domain verification); DNS-based service discovery.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q4 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q4 &middot; Subnetting &amp; Network Calculation</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; How many hosts are in a /23 network? What are the benefits of subnetting? A router has a /25 interface and a PC has a /24 &mdash; why can't they communicate?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># /23 usable hosts
+32 - 23 = 9 host bits -&gt; 2^9 = 512 addresses
+Minus 2 (network + broadcast) = 510 usable
+
+# Benefits
+- Smaller broadcast domains
+- Isolation / security
+- Smaller routing tables
+- Efficient IP allocation
+
+# /25 router vs /24 PC mismatch
+Different subnet masks =&gt; different ideas of what is "local".
+The PC thinks more hosts are on its local subnet than the router
+does; some traffic gets sent directly (ARP) instead of to the
+gateway, breaking communication. Both sides must agree on mask.
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; A SUBNET IS WHAT "LOCAL" MEANS</b></font>
+<br><br>
+<font size="3"><b>An IP address is 32 bits split into "network" and "host" portions.</b> The subnet mask (or its shorthand, <code>/N</code> CIDR notation) tells you how many bits are network. A <code>/24</code> means the first 24 bits identify the network and the remaining 8 identify hosts within that network. That split is what every networking decision on a host hangs on.
+<br><br>
+<b>The calculation shortcut:</b> hosts in a <code>/N</code> subnet = <code>2^(32-N) - 2</code>. The <b>minus 2</b> is because the all-zeros host address is the <i>network address</i> itself (not assignable) and the all-ones address is the <i>broadcast address</i> (reserved for "send to everyone on this subnet"). So /23 = 2^9 - 2 = 510, /24 = 254, /25 = 126, /30 = 2 (point-to-point links use /30 because you only need two hosts).
+<br><br>
+<b>Why subnetting exists at all &mdash; four reasons:</b>
+<ul>
+  <li><b>Smaller broadcast domains.</b> ARP, DHCP, and other layer-2 protocols broadcast to every host in a subnet. A flat /16 with 65k hosts would drown in broadcast traffic. Splitting into many /24s keeps that noise localized.</li>
+  <li><b>Security boundaries.</b> Firewalls and ACLs operate on subnet granularity. Putting "database servers" in their own subnet lets you write "only app subnet can reach DB subnet on port 5432" &mdash; much cleaner than per-host rules.</li>
+  <li><b>Smaller routing tables.</b> Routers don't need a route per host; they need a route per subnet. This is what made CIDR (Classless Inter-Domain Routing) a game-changer in the 90s &mdash; before it, the internet's routing tables were about to explode.</li>
+  <li><b>Efficient IP allocation.</b> Before CIDR, you could only get /8, /16, or /24. A company that needed 500 hosts was forced to take a /16 (65k). CIDR lets them take a /23 (510) and everyone wins.</li>
+</ul>
+<b>The mask-mismatch question tests layer-2 understanding.</b> When a host wants to send a packet, it uses <b>its own subnet mask</b> to decide: "is the destination on my local subnet?". If yes, it ARPs for the destination's MAC address and sends directly. If no, it sends to its <b>default gateway</b>.
+<br><br>
+So: PC thinks it's on <code>192.168.1.0/24</code> (all of <code>.1-.254</code> is local). Router thinks the same wire is <code>192.168.1.0/25</code> (only <code>.1-.126</code> is local; the rest need to be reached via a different interface). When PC at <code>.50</code> tries to reach <code>.150</code>:
+<ul>
+  <li>PC says "<code>.150</code> is on my local subnet", ARPs for it. Depending on ARP behavior, either nothing responds (packet dropped) or the wrong device answers (packet misrouted).</li>
+  <li>Even if the ARP succeeds and the packet lands at the router, the router says "<code>.150</code> is not on my <code>/25</code> local segment" and tries to route it elsewhere &mdash; likely back out the same interface or to an unexpected destination.</li>
+</ul>
+<b>Fixing this</b> means making both sides agree on the mask. Mask misconfigurations are a surprisingly common root cause of "works for some hosts, not others" production issues.
+<br><br>
+<b>Special address ranges worth knowing</b> (RFC 1918 private + reserved):
+<ul>
+  <li><b><code>10.0.0.0/8</code></b> &mdash; 16M addresses, most common for large corporate nets and cloud VPCs.</li>
+  <li><b><code>172.16.0.0/12</code></b> &mdash; 1M addresses, <code>172.16.0.0</code> through <code>172.31.255.255</code>.</li>
+  <li><b><code>192.168.0.0/16</code></b> &mdash; 65k, home routers and small offices.</li>
+  <li><b><code>127.0.0.0/8</code></b> &mdash; loopback (you only ever use <code>127.0.0.1</code>, but the whole /8 is reserved).</li>
+  <li><b><code>169.254.0.0/16</code></b> &mdash; "link-local" &mdash; when DHCP fails, hosts self-assign from here. <b>AWS instance metadata lives at <code>169.254.169.254</code></b> (IMDSv2 endpoint); it works because every VPC routes this link-local address to the hypervisor.</li>
+  <li><b><code>100.64.0.0/10</code></b> &mdash; Carrier-grade NAT space; increasingly used in cloud for shared services.</li>
+</ul>
+<b>VLSM (Variable Length Subnet Masks)</b> is the modern default &mdash; you can have a /16 at the top, split into /20s for sites, split into /24s for VLANs, and /30s for point-to-point links, all within the same VPC. <b>Supernetting</b> is the opposite: aggregate many small networks into one route advertisement so your upstream router has fewer entries.
+<br><br>
+<b>IPv6 subnetting:</b> addresses are 128 bits, convention is to allocate /64 per subnet (plenty of hosts forever), and sites typically get /48 or /56. You rarely hand-calculate hosts in IPv6 &mdash; the answer is always "essentially unlimited".</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot calculate hosts from CIDR; doesn't understand subnetting.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Attempts calculation but gets it wrong.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Calculation correct (510) but limited on benefits or mask mismatch.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">510 usable hosts; benefits (smaller broadcast, security, smaller RT, efficient IPs); explains mask mismatch breaks communication.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">VLSM; supernetting/CIDR aggregation; private vs public IP ranges; NAT + subnetting; calculates subnet boundaries; IPv6 subnetting differences.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q5 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q5 &middot; TCP 3-Way Handshake</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain the TCP 3-way handshake in detail. What happens at each step? What about connection termination?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># 3-way establishment
+Client  --&gt; SYN  (seq=x)                   Server
+Client &lt;--  SYN-ACK (seq=y, ack=x+1)       Server
+Client  --&gt; ACK  (ack=y+1)                 Server
+# Connection ESTABLISHED
+
+# 4-way termination
+Initiator --&gt; FIN           Peer
+Initiator &lt;-- ACK           Peer
+Initiator &lt;-- FIN           Peer
+Initiator --&gt; ACK           Peer
+# Initiator enters TIME_WAIT (2 * MSL)
+
+# Purpose
+# - Synchronize sequence numbers for reliable delivery
+# - Negotiate TCP options (MSS, window scaling, SACK)
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE HANDSHAKE IS A STATE SYNC</b></font>
+<br><br>
+<font size="3"><b>The 3-way handshake does one essential job: agree on starting sequence numbers and TCP options before a single byte of application data flows.</b> Every TCP byte is numbered; without a synchronized starting point, you can't detect duplicates, reorder segments, or ACK anything.
+<br><br>
+<b>Step by step, with what's really happening:</b>
+<ul>
+  <li><b>Client &rarr; SYN (seq=x)</b>: "I want to talk. My starting sequence number is <code>x</code>." The client picks <code>x</code> <b>randomly</b>, not 0 &mdash; if it used 0, an attacker could forge packets claiming to be in the middle of any new connection. Randomized Initial Sequence Numbers (ISN) are a defense against off-path TCP injection. The SYN also carries TCP option proposals: <b>MSS</b> (max segment size this side can receive), <b>window scale</b> (multiplier for the 16-bit window field &mdash; needed for modern link speeds), <b>SACK permitted</b> (selective acknowledgment capability), <b>timestamps</b>.</li>
+  <li><b>Server &rarr; SYN-ACK (seq=y, ack=x+1)</b>: "Got it. My starting sequence is <code>y</code>, and I acknowledge <code>x+1</code> (ready for the next byte after yours)." The server's sequence is also random. Server locks in its side of the negotiated options. At this point the server has a half-open connection in its <b>SYN_RCVD</b> state.</li>
+  <li><b>Client &rarr; ACK (ack=y+1)</b>: "Acknowledging your <code>y</code>." Connection is now ESTABLISHED on both sides. <b>Any data can piggyback on this ACK</b> &mdash; the client doesn't have to wait another round trip to start sending. <b>TCP Fast Open</b> goes further: with a prior cookie, the client can put application data in the initial SYN, saving another RTT for subsequent connections.</li>
+</ul>
+<b>Why it's 3 steps, not 2:</b> if the client just sent "SYN, my seq is x" and the server replied "OK, acknowledged", there's no way to be sure the server's own seq got through. The third ACK confirms the client received the server's sequence. In general, <b>both sides must confirm they received the other's ISN</b> &mdash; that requires three messages.
+<br><br>
+<b>Termination is 4-way because TCP is <i>full-duplex</i>.</b> Each side closes its outbound stream independently. Client sends FIN ("I'm done sending"), server ACKs, server sends its own FIN when its application decides to close ("I'm done too"), client ACKs. The two FINs can arrive at different times because each side may still have data to deliver after receiving the peer's FIN. If both sides close simultaneously, you can see a simultaneous close (3-way).
+<br><br>
+<b>TIME_WAIT is the most operationally painful TCP state.</b> After sending the final ACK, the initiator (typically the client that called <code>close()</code> first) enters <b>TIME_WAIT</b> for <code>2*MSL</code> (Maximum Segment Lifetime, usually 60-120 seconds). Purpose: (1) ensure the final ACK reaches the peer &mdash; if it's lost, the peer retransmits its FIN and TIME_WAIT can ACK it again; (2) make sure old duplicate packets from this connection don't bleed into a new connection reusing the same 4-tuple.
+<br><br>
+On a <b>high-traffic client</b> that opens and closes many short connections to the same server (typical of poorly-configured reverse proxies), you can hit the <b>local port exhaustion</b> problem: every TIME_WAIT ties up a (source IP, source port, dest IP, dest port) tuple. With a single local IP and a single destination, you have ~28,000 ephemeral ports; at 10k/s short connections you exhaust ports in seconds. The fixes:
+<ul>
+  <li><b>Connection reuse / HTTP keep-alive</b> &mdash; don't open a new TCP connection per request.</li>
+  <li><b><code>SO_REUSEADDR</code> / <code>SO_REUSEPORT</code></b> &mdash; let new sockets bind over TIME_WAIT ones (safely, when compatible).</li>
+  <li><b><code>net.ipv4.tcp_tw_reuse</code></b> sysctl &mdash; allow reusing sockets in TIME_WAIT when the timestamp option confirms it's safe (preferred over the unsafe <code>tcp_tw_recycle</code>).</li>
+</ul>
+<b>The security angle: SYN floods.</b> An attacker sends many SYNs with spoofed source IPs; the server allocates resources for each in <code>SYN_RCVD</code> and waits for the third ACK that never comes. Eventually the server's connection backlog fills up and real clients can't connect. <b>SYN cookies</b> are the defense: the server doesn't actually allocate state on receiving a SYN. Instead, it crafts a SYN-ACK with a cookie (a hash of connection info + secret) as its ISN. If the client is real and replies with an ACK, the server can validate the cookie and reconstruct the connection state. Only legitimate clients cost the server memory.
+<br><br>
+<b>What the interviewer really wants:</b> show that you know the handshake is about <b>synchronization + negotiation</b>, not just "three packets". Mention sequence randomization (security), option negotiation (MSS, window scale), and TIME_WAIT (operations) &mdash; each is an invitation to a deeper follow-up.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot describe the handshake; confuses TCP with UDP.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows "SYN, SYN-ACK, ACK" but cannot explain purpose or sequence numbers.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Describes 3 steps but can't explain why or what sequence numbers do.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">SYN (ISN) -&gt; SYN-ACK (ack + own seq) -&gt; ACK; purpose (reliable establishment, seq sync); 4-way termination; TIME_WAIT.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">ISN randomization for security; TCP options (MSS, window scaling, SACK); SYN flood + SYN cookies; TIME_WAIT (2*MSL) impact on high-traffic servers; TCP Fast Open.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q6 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q6 &middot; OSI Model</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain the OSI model. What are the 7 layers and what happens at each?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>OSI LAYERS</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">7  Application    HTTP, DNS, SMTP, SSH
+6  Presentation   TLS, compression, encoding
+5  Session        session mgmt, dialog control
+4  Transport      TCP, UDP -- segments, ports
+3  Network        IP -- packets, routing
+2  Data Link      Ethernet, MAC, ARP -- frames, switches
+1  Physical       cables, signals, bits
+
+# Troubleshooting by layer
+L1: check cables, interface lights
+L2: check ARP, duplicate MACs
+L3: check routing table, default gateway
+L4: check ports, firewall, conntrack
+L7: check application logs, curl
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; LAYERS ARE ENCAPSULATION BOUNDARIES</b></font>
+<br><br>
+<font size="3"><b>The OSI model is a conceptual framework, not a literal implementation.</b> It was designed by committee in the 80s as a "what if we standardized everything?" reference. The actual internet runs on the <b>TCP/IP model</b> (4 layers: Link, Internet, Transport, Application), which collapses OSI 5-7 into one ("Application"). But OSI is still the lingua franca for <b>troubleshooting</b> &mdash; when someone says "this is a layer 3 problem", they mean "it's an IP/routing issue, not DNS or TCP".
+<br><br>
+<b>The core idea is encapsulation.</b> Each layer adds its own header (and sometimes trailer) around the data from the layer above, then hands it to the layer below. When a packet arrives, each layer strips its header and passes the payload up. Like nested envelopes. The practical consequence: each layer only talks to its peer layer on the other machine, and doesn't care about what's inside the payload or how the layers below deliver it.
+<br><br>
+<b>Layer 1 &mdash; Physical.</b> Literal bits on a wire (or photons on fiber, or radio waves on WiFi). Hubs and repeaters operate here; they don't care about anything above bits. <b>Troubleshooting cues:</b> cable unplugged, no link light, mismatched duplex, NIC errors in <code>ip -s link</code>.
+<br><br>
+<b>Layer 2 &mdash; Data Link.</b> <b>Frames</b> with MAC addresses; scope is a single physical network segment. Ethernet, WiFi (802.11), VLANs, ARP live here. Switches operate at L2 &mdash; they learn which MAC is on which port and forward frames. <b>ARP</b> is the L2-to-L3 bridge: "who has IP <code>10.0.0.1</code>? Tell me your MAC." Every host maintains an ARP cache; corrupted ARP is a classic cause of "I can't reach my gateway" issues (<code>arp -a</code>, <code>ip neigh</code>).
+<br><br>
+<b>Layer 3 &mdash; Network.</b> <b>Packets</b> with IP addresses; scope is end-to-end across any number of networks. Routers operate here; they read the destination IP and consult their routing table to decide which interface to send out. ICMP (used by <code>ping</code>, <code>traceroute</code>, and error messages like "host unreachable") is L3. IPsec is L3.
+<br><br>
+<b>Layer 4 &mdash; Transport.</b> <b>Segments</b> with ports. TCP and UDP live here. Firewalls that filter by port (security groups, iptables on port) are L4. <b>L4 load balancers</b> (AWS NLB, HAProxy in TCP mode) distribute by TCP/UDP tuples without inspecting application data &mdash; they're fast, work with any protocol, and are oblivious to headers.
+<br><br>
+<b>Layer 5 &mdash; Session.</b> In theory: dialog control, checkpoint/restart, session tokens. In practice: mostly folded into the application layer today. NetBIOS, RPC, and SOCKS are canonical examples. You rarely distinguish L5 from L7 in modern stacks.
+<br><br>
+<b>Layer 6 &mdash; Presentation.</b> In theory: data format translation (ASCII/EBCDIC), compression, encryption. In practice: <b>TLS is often called a "layer 6" concept</b> but it really operates between L4 and L7 &mdash; it runs on top of TCP and provides an encrypted byte stream to the application. The "layer 6" label is a teaching convenience.
+<br><br>
+<b>Layer 7 &mdash; Application.</b> HTTP, DNS, SMTP, SSH, BGP (yes, BGP is an application running over TCP). <b>L7 load balancers</b> (ALB, CloudFront, nginx) read headers, URL paths, and cookies to route &mdash; much more powerful than L4, but require terminating the connection to inspect. <b>WAFs</b> (web application firewalls) operate at L7.
+<br><br>
+<b>The TCP/IP model vs OSI:</b> TCP/IP merges L1+L2 into <b>"Link"</b> (the stack doesn't care about the cable vs WiFi distinction), L3 is <b>"Internet"</b>, L4 is <b>"Transport"</b>, and L5+L6+L7 become <b>"Application"</b>. Most real engineering uses TCP/IP's granularity. You'll hear both.
+<br><br>
+<b>Why the layering actually matters in production:</b> when something breaks, the right question is "which layer is this?". <b>Ping works but SSH fails</b> = L3 OK, L4 or L7 problem (firewall? service down?). <b>DNS fails but ping by IP works</b> = L3 OK, L7 problem (resolver down). <b>Can't ping the gateway</b> = L2 problem (ARP) or L3 misconfig. <b>Interface shows no carrier</b> = L1 problem (cable, switch port). Naming the layer focuses where to look next.
+<br><br>
+<b>Where TLS sits &mdash; the question that trips people up:</b> TLS runs <b>over TCP</b> (so above L4) but <b>under the application protocol</b> (so below L7). Some teachers call it "layer 6" or "5-6"; others (including the IETF) say "TLS is between 4 and 7". The pragmatic answer: "TLS sits on top of TCP and provides an encrypted byte stream to the application".</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot name any layers.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Names 2-3 layers but can't explain what happens at each.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Names most layers but can't map protocols or explain practical significance.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">All 7 layers with functions; maps common protocols; explains encapsulation.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">TCP/IP model (4 layers) vs OSI and why it's more practical; troubleshooting-by-layer; where TLS operates; L4 vs L7 load balancers; SDN and layering.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q7 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q7 &middot; Routing Protocols</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Which routing protocol would you use on a medium-size network, and why?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">IGP (Interior Gateway Protocols) -- within an AS
+  RIP     distance-vector, hop count, legacy, small networks
+  OSPF    link-state, areas, fast convergence, medium/large
+  IS-IS   link-state, very large networks (ISP backbones)
+  EIGRP   Cisco hybrid, advanced distance-vector
+
+EGP (Exterior Gateway Protocols) -- between AS
+  BGP     path-vector, policy-driven, internet-scale
+
+# Typical choice for a medium-size corporate network
+OSPF -- link-state, scales well, fast convergence,
+        area-based hierarchical design
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; TWO FAMILIES OF ROUTING ALGORITHMS</b></font>
+<br><br>
+<font size="3"><b>A routing protocol is how routers tell each other "here's how to reach network X".</b> The internet is ultimately a forest of routing tables, kept in sync by protocols that exchange reachability information. Two algorithmic families explain almost every protocol: <b>distance-vector</b> and <b>link-state</b>. A third, <b>path-vector</b>, is essentially distance-vector with extra policy metadata.
+<br><br>
+<b>Distance-vector (RIP, EIGRP family).</b> Each router tells its neighbors "I can reach network X in N hops". Neighbors update their own tables and propagate. Simple, minimal state, but <b>slow to converge</b> after a topology change (the "count-to-infinity" problem: router A hears from B that "X is 2 hops", so A says "I can reach X via B in 3 hops"; if X dies, it takes many rounds of exchange for A and B to believe it's gone). <b>RIP</b> maxes out at 15 hops and uses simple hop count as the metric &mdash; legacy, tiny networks only.
+<br><br>
+<b>Link-state (OSPF, IS-IS).</b> Every router floods its <i>local</i> connectivity (which neighbors are reachable and at what cost) to <b>every other router</b> in the area. Each router independently builds a complete map of the network topology and runs <b>Dijkstra's shortest path algorithm</b> to compute routes. Far more state, far more memory, but much faster convergence: when a link goes down, one flood update reaches everyone, and everyone recalculates.
+<br><br>
+<b>OSPF is the default choice for medium/large internal networks</b> because:
+<ul>
+  <li><b>Fast convergence</b> (seconds, vs minutes for RIP) &mdash; critical when a link fails during business hours.</li>
+  <li><b>Area hierarchy</b> &mdash; OSPF lets you split the network into areas connected to a backbone (area 0). Routers only carry detailed state for their own area; other areas are summarized. Keeps the Dijkstra computation tractable and limits flooding scope.</li>
+  <li><b>Cost-based metric</b> &mdash; you can set per-link costs (typically inversely proportional to bandwidth) and steer traffic explicitly.</li>
+  <li><b>Open standard</b> &mdash; works across vendors. EIGRP is Cisco-proprietary (though now open-ish); IS-IS is comparable to OSPF and preferred in very large ISP backbones, but OSPF has more tooling and familiarity.</li>
+</ul>
+<b>Path-vector &mdash; BGP.</b> Between Autonomous Systems (ISPs, cloud providers, large enterprises), you use BGP. Instead of hop count or link cost, BGP exchanges the <b>full AS path</b> to each network ("to reach X, go through AS 65001, then AS 65002, then it's theirs"). This serves two purposes: (1) loop prevention (if your own AS number appears in the path, don't use that route), and (2) <b>policy-based routing</b> &mdash; ASes can refuse to route through competitors, prefer paid transit over free peering, apply different metrics for different customers, etc. BGP isn't about finding the shortest path; it's about <b>enforcing business relationships</b>.
+<br><br>
+<b>Why BGP is inappropriate for internal networks:</b> it's slow (convergence in minutes), chatty (full tables are hundreds of MB), and policy-complex. For your corporate LAN, you just want "find the best path fast". OSPF does that.
+<br><br>
+<b>Why this is marked LOW for AFT:</b> as an SDE, you'll rarely configure a routing protocol. But you may hit routing questions in a debugging context &mdash; "traffic from us-east-1 to ap-south-1 is slow" could be a BGP path issue on AWS's backbone, and knowing the vocabulary lets you read their network post-mortems. For cloud work, the <b>VPC route tables</b> you edit are static routing &mdash; no protocol negotiation, just hand-written "send <code>0.0.0.0/0</code> to this IGW" entries.
+<br><br>
+<b>Modern layer on top &mdash; SDN and overlay networks.</b> Cloud data centers increasingly use SDN (software-defined networking) where the control plane is centralized and the physical topology is hidden. VXLAN, Geneve, and similar overlays let you build a virtual L2 network on top of IP. You'll hear less about traditional OSPF/BGP and more about "this route was installed by the controller".</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot name any routing protocol.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Names BGP or RIP without understanding when each applies.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Suggests OSPF or BGP but can't articulate why.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">OSPF for medium internal networks; link-state for IGP; distinguishes from BGP (inter-AS path-vector).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">OSPF areas + hierarchical design; convergence time differences; why BGP is inappropriate internally; EIGRP (Cisco) and IS-IS (large).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q8 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q8 &middot; "No Route to Host" Troubleshooting</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; You run <code>wget http://www.amazon.com</code> and get "no route to host." What could be happening and how would you troubleshoot?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SYSTEMATIC CHECKLIST</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">ip addr                    # is our interface up with an IP?
+ip route                   # is there a default route?
+ping -c 1 &lt;gateway&gt;        # can we reach the gateway?
+
+dig www.amazon.com         # DNS resolving? returns an A record?
+nslookup www.amazon.com
+
+traceroute www.amazon.com  # where does it stop?
+mtr www.amazon.com         # continuous combined ping+trace
+
+iptables -L -v             # local firewall blocking?
+ss -tan                    # existing TCP state
+
+# Distinguish errors
+"No route to host"      = ICMP host unreachable, routing/ARP
+"Connection refused"    = reached host, nothing on port
+"Connection timed out"  = no response in window (firewall drop, down host)
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE THREE ERRORS TELL YOU WHICH LAYER TO LOOK AT</b></font>
+<br><br>
+<font size="3"><b>The key insight: "no route to host", "connection refused", and "connection timed out" are three entirely different failures that sound similar but point at different layers.</b> Getting this distinction right is the whole interview-worthy moment.
+<br><br>
+<b>"No route to host" (EHOSTUNREACH) &mdash; Layer 3 problem.</b> Your kernel couldn't find a path. Either your routing table has no entry for the destination (no default gateway, or the default gateway itself unreachable), or the ARP request for the gateway got no reply, or a router along the path sent back an ICMP "host unreachable" message. The destination service isn't even in the question &mdash; you never got close enough to test it.
+<br><br>
+<b>"Connection refused" (ECONNREFUSED) &mdash; Layer 4 problem, but a <i>good</i> one.</b> Your TCP SYN reached the destination host, and the host's kernel actively rejected it by sending a TCP RST. The rejection means <b>nothing is listening on that port</b>. The host is up and reachable; the service is down or bound to a different port. This is often a debugging relief &mdash; you've eliminated network as a cause.
+<br><br>
+<b>"Connection timed out" (ETIMEDOUT) &mdash; ambiguous, but usually a firewall.</b> You sent a SYN, heard nothing back, kept retrying, gave up after ~75 seconds (kernel default). Most common causes in order: (1) a firewall in the path silently dropped your packet (security groups, iptables DROP, corporate proxy); (2) the destination host is completely offline (no one to reply at all); (3) asymmetric routing (your SYN arrived, their SYN-ACK didn't come back). <b>"Dropped" not "refused"</b> is what firewalls do by default because silent drops slow down attackers (they have to wait for their own timeout instead of getting fast RST feedback).
+<br><br>
+<b>The systematic diagnostic ladder &mdash; walk from your own machine outward:</b>
+<ol>
+  <li><b>Do I have an IP?</b> <code>ip addr</code> &mdash; if my interface has no address, nothing else matters. Typical fix: DHCP, <code>dhclient eth0</code>, check cable/WiFi.</li>
+  <li><b>Do I have a route?</b> <code>ip route</code> &mdash; must show a default route (<code>default via 10.0.0.1 dev eth0</code>). No default = I can only reach my local subnet.</li>
+  <li><b>Can I reach my gateway?</b> <code>ping -c 2 $(ip route | awk '/default/ {print $3}')</code> &mdash; if not, it's ARP/L2 (wrong VLAN, unplugged, bad MAC) or the gateway itself is down.</li>
+  <li><b>Does DNS work?</b> <code>dig amazon.com</code> &mdash; a timeout or SERVFAIL here is an L7 DNS issue, not a routing issue. <code>dig @1.1.1.1 amazon.com</code> bypasses the local resolver to isolate.</li>
+  <li><b>Can I reach the destination IP directly?</b> <code>ping &lt;resolved-IP&gt;</code> &mdash; bypasses DNS completely. ICMP is often blocked, so silence here isn't conclusive; try <code>nc -zv $IP 443</code> instead (TCP probe).</li>
+  <li><b>Where along the path does it die?</b> <code>mtr -n $IP</code> or <code>traceroute -T $IP</code> &mdash; the last hop that responds is usually just before the problem. Asterisks all the way through could just mean ICMP filtering; interpret carefully.</li>
+  <li><b>Is my own firewall blocking?</b> <code>iptables -L -v -n</code>, or on cloud: check security groups and NACLs. "outbound allowed" isn't always true &mdash; egress rules can block.</li>
+  <li><b>Is the destination's firewall blocking?</b> You usually can't see this directly. Symptom: port probe (<code>nc -zv</code>) times out but you know the service is running. Ask the destination owner to confirm they accept your source IP.</li>
+  <li><b>Is the destination service actually up?</b> If <code>nc</code> shows "connection refused" or succeeds but then reads zero bytes, the service is down or misconfigured (wrong bind address, <code>127.0.0.1</code> only).</li>
+</ol>
+<b>The AFT-flavor escalation:</b> "works from my laptop but fails from the EC2 instance". Isolate the difference by testing <code>curl -v</code> from both, compare network paths (<code>mtr</code>), compare source IPs (NAT gateway?), compare security groups and route tables, check if you're in a public vs private subnet. Cloud debugging adds <b>VPC route tables, security groups (stateful, L4), NACLs (stateless, L3/L4), and endpoint policies</b> as additional filtering layers. A single missing route in a VPC can produce exactly this symptom.
+<br><br>
+<b>One subtle trap:</b> the error message your application shows isn't always the error the kernel returned. <code>curl</code> and <code>wget</code> often print "Could not resolve host" for DNS failures, "Connection timed out" for firewall/reachability, "Connection refused" when the port is closed &mdash; <b>read the exact wording</b>. Different languages and libraries have different translations, but the kernel syscall return value (<code>-ENETUNREACH</code>, <code>-EHOSTUNREACH</code>, <code>-ECONNREFUSED</code>, <code>-ETIMEDOUT</code>) is the ground truth.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"The website is down" &mdash; no diagnostic approach.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Suggests checking URL but no systematic approach.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Identifies as network issue; suggests ping but doesn't go deeper.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Multiple causes (local config, host offline, service not running, firewall); diagnostic tools (<code>ip addr</code>/<code>ip route</code>, <code>dig</code>, <code>traceroute</code>, <code>iptables -L</code>).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Distinguishes "no route" vs "connection refused" vs "timed out"; ARP checks; MTU issues; default gateway reachable?; both local and remote firewalls; routing table analysis.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q9 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q9 &middot; Network Packet Loss Investigation</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Users report intermittent connectivity issues to your service. How do you investigate packet loss?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>INVESTIGATION</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">ping -c 100 target               # measure loss %
+mtr -n -c 100 target             # which hop loses?
+tcpdump -i eth0 host target      # packet capture
+ip -s link                       # interface errors (RX/TX drops)
+ethtool -S eth0                  # NIC stats
+ss -ti                           # TCP retransmission stats
+
+# Bandwidth test
+iperf3 -c target -t 30
+
+# Check MTU path
+ping -M do -s 1472 target        # no-fragment, 1472 + 28 = 1500
+
+# Tune buffers under load
+sysctl net.core.rmem_max
+sysctl net.core.wmem_max
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; PACKET LOSS HAS A LAYER AND A LOCATION</b></font>
+<br><br>
+<font size="3"><b>"Intermittent connectivity" is one of the most common support tickets you'll see.</b> The wide phrasing is a signal &mdash; the reporter knows something's wrong but can't localize it. Your job is to <b>localize the loss in both layer and location</b> before you try to fix anything.
+<br><br>
+<b>Step 1 &mdash; confirm loss is real, not perceived.</b> Users often report "slow" or "flaky" when the problem is actually a specific endpoint, a specific time of day, or an application-layer issue. Reproduce with hard data: <code>ping -c 1000 -i 0.2 $TARGET</code> gives you a loss percentage over a few minutes. Run from <b>multiple locations</b> (your laptop, a canary host near the service, a host far away) &mdash; if only one location sees loss, the problem is path-specific.
+<br><br>
+<b>Step 2 &mdash; locate the lossy hop.</b> <code>mtr</code> is the tool. It combines <code>ping</code> and <code>traceroute</code>: continuously probes each hop along the path and shows per-hop loss and latency. The classic pattern:
+<ul>
+  <li><b>Loss starts at hop N and continues through the rest</b> = the problem is at hop N or that router is CPU-limited for ICMP replies but forwards fine. Check the hop after (if it's your own infrastructure, log into it).</li>
+  <li><b>Loss at hop N but 0% after</b> = that router rate-limits ICMP replies (common for backbone routers). <b>It's not actually losing your real traffic</b> &mdash; only its ICMP responses. Harmless; ignore.</li>
+  <li><b>Loss only at the destination</b> = the last mile (the server, its host's NIC, its hypervisor, its load balancer).</li>
+  <li><b>Loss across multiple specific hops, correlated in time</b> = upstream network congestion or BGP path flapping.</li>
+</ul>
+<b>Step 3 &mdash; check the interface on each end.</b> <code>ip -s link show eth0</code> shows RX/TX drops and errors. Any non-zero counters (especially <code>RX-DRP</code> or <code>RX-ERR</code> growing) is a local cause: NIC saturated, kernel ring buffer too small, or physical layer issues. <code>ethtool -S eth0</code> gives vendor-specific counters that are often more informative (<code>rx_no_buffer_count</code>, <code>tx_hw_errors</code>, <code>rx_csum_offload_errors</code>). On cloud: <code>ethtool -S</code> on an ENA-enabled EC2 instance shows AWS-specific counters like <code>bw_in_allowance_exceeded</code> &mdash; <b>hitting instance bandwidth limits can present as packet loss</b>.
+<br><br>
+<b>Step 4 &mdash; check TCP's own view.</b> <code>ss -ti</code> on an active connection shows you retransmits, RTO, CWND, and congestion window state per connection. A rising <code>retrans</code> counter during normal load means TCP is seeing loss at the application layer. <code>nstat</code> or <code>/proc/net/snmp</code> (TcpRetransSegs, TcpInSegs) give system-wide retransmit rates. <b>Retransmit rate above ~0.5%</b> is noticeable; above 2% causes serious slowdown because TCP keeps backing off.
+<br><br>
+<b>Step 5 &mdash; MTU and Path MTU Discovery.</b> If large packets drop but small ones succeed, you've got an MTU problem. Default Ethernet is 1500 bytes; some VPN tunnels, VXLAN overlays, or misconfigured links have smaller MTUs. If ICMP "fragmentation needed" messages are blocked by a firewall, PMTU discovery breaks and you get a <b>black hole</b> &mdash; large packets silently dropped. Diagnostic:
+<ul>
+  <li><code>ping -M do -s 1472 $TARGET</code> &mdash; no-fragment bit set, payload 1472. Success = MTU &ge; 1500 end-to-end. If it fails, decrement until you find the ceiling.</li>
+  <li>Fix: lower MTU on your interface (<code>ip link set eth0 mtu 1400</code>), enable TCP MSS clamping on your firewall, or unblock ICMP type 3 code 4.</li>
+</ul>
+<b>Step 6 &mdash; packet capture for root cause.</b> <code>tcpdump -i eth0 -w /tmp/cap.pcap host $TARGET</code> for a few minutes, pull to your laptop, open in Wireshark. Wireshark's "Expert Info" pane highlights retransmissions, out-of-order, zero-window, and dup ACKs &mdash; these paint a picture of where in a TCP conversation loss happened. <b>Capturing on both ends simultaneously</b> is the gold standard; comparing what each side sent vs received pins down the direction and location of loss.
+<br><br>
+<b>Step 7 &mdash; bandwidth and buffer tuning.</b> On a fat-pipe WAN link (cross-region), default TCP buffers are too small; TCP can't keep enough data in flight to saturate the link. <code>sysctl net.core.rmem_max</code> and <code>net.ipv4.tcp_rmem</code> set receive buffer limits. On servers doing high-throughput work, bumping these is standard tuning. <code>iperf3</code> measures achievable throughput between two hosts under ideal (no other traffic) conditions &mdash; use it to prove "the link can do 10 Gbps but my app only does 1 Gbps" before tuning.
+<br><br>
+<b>The overarching mental model:</b> loss happens at one of four places:
+<ul>
+  <li><b>The sending host</b> (buffer overflow, NIC error, cgroups limiting bandwidth).</li>
+  <li><b>Some network hop in between</b> (congested link, broken router, rate-limiting device, MTU mismatch).</li>
+  <li><b>The receiving host</b> (buffer overflow, NIC errors, kernel dropping due to conntrack table full).</li>
+  <li><b>The application layer</b> (app not reading fast enough so TCP window closes, then "loss" is really backpressure).</li>
+</ul>
+Narrowing the diagnosis to one of these four categories is the real deliverable.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"Check if the server is up" &mdash; no understanding of packet loss.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Uses ping but can't interpret results or investigate further.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Uses ping and traceroute; identifies loss exists but can't determine where.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3"><code>ping -c 100</code>; <code>mtr</code> for per-hop loss; <code>tcpdump</code>; interface errors (<code>ip -s link</code>, <code>ethtool -S</code>); correlates with traffic; TCP retransmits.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3"><code>ss -ti</code> for TCP retransmit stats; MTU issues + fragmentation; <code>iperf3</code> for bandwidth; buffer tuning (<code>net.core.rmem_max</code>); Wireshark for deep analysis; SNMP/NMS for long-term; QoS.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q10 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q10 &middot; SSH Configuration &amp; Tunneling</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain SSH tunneling. What is local port forwarding vs remote port forwarding? Give a practical example.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Local port forwarding  (-L)
+# Expose a remote service through a local port on MY machine
+ssh -L 3306:db-server:3306 user@bastion
+# Now connect locally: mysql -h 127.0.0.1
+
+# Remote port forwarding  (-R)
+# Expose a local service to a remote network
+ssh -R 8080:localhost:3000 user@remote-host
+# Remote host can hit its own :8080 and reach my :3000
+
+# Dynamic port forwarding  (-D) -- SOCKS proxy
+ssh -D 1080 user@jumphost
+
+# Multi-hop / jump host
+ssh -J bastion.example.com internal-host
+
+# ~/.ssh/config
+Host bastion
+    HostName bastion.example.com
+    User ramya
+    IdentityFile ~/.ssh/id_ed25519
+Host internal
+    ProxyJump bastion
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; TUNNELS ARE PORTS OVER A SECURE SESSION</b></font>
+<br><br>
+<font size="3"><b>An SSH tunnel is nothing more than "I've already authenticated a secure channel to this remote host &mdash; let me carry extra TCP connections inside it".</b> Once you grasp that framing, <code>-L</code> vs <code>-R</code> vs <code>-D</code> become about <b>which direction</b> the tunneled connection flows and <b>where the listener opens</b>.
+<br><br>
+<b><code>-L localport:targethost:targetport</code> (Local forward) &mdash; opens a listener on YOUR machine, tunnels to the remote side, then the remote side opens a TCP connection from the remote host to <code>targethost:targetport</code>.</b> Think of it as "exposing a remote service locally". The classic use case: your production DB is inside a private VPC, only the bastion host can reach it. You run <code>ssh -L 3306:prod-db.internal:3306 bastion</code>. Now you point <code>mysql -h 127.0.0.1</code> at your local port; the traffic tunnels over SSH to the bastion, and the bastion opens a fresh TCP connection to the DB. <b>From the DB's perspective, the connection is coming from the bastion</b>, not from you &mdash; this is both useful (ACLs just need to allow the bastion) and sometimes confusing (DB logs show the bastion as source).
+<br><br>
+<b><code>-R remoteport:targethost:targetport</code> (Remote forward) &mdash; opens a listener on the REMOTE machine, tunnels back to your side.</b> Think of it as "exposing a local service remotely". Use case: you're running a dev server on your laptop on port 3000, and you want a colleague's server (or a webhook tester) to reach it. <code>ssh -R 8080:localhost:3000 remote</code> makes port 8080 on <code>remote</code> forward to your laptop's port 3000. This is the primitive behind tools like <code>ngrok</code> &mdash; a public relay + reverse tunnel to your local dev box.
+<br><br>
+<b><code>-D localport</code> (Dynamic, SOCKS proxy) &mdash; opens a SOCKS proxy listener on your machine; any TCP connection you route through that SOCKS proxy is tunneled to the remote side and fanned out from there.</b> Unlike <code>-L</code> which hardcodes one target, <code>-D</code> lets the <i>client</i> specify the target per-request. Use case: browsing as if from the bastion &mdash; configure your browser SOCKS proxy to <code>127.0.0.1:1080</code> and every page load goes out from the bastion's IP. This is how security researchers / travelers route web traffic through a trusted exit point.
+<br><br>
+<b>Jump hosts / bastion pattern.</b> In AFT-scale infrastructure, production hosts are in private subnets with no direct SSH from the internet. The access pattern is <b>laptop &rarr; bastion (public) &rarr; target (private)</b>. The old way: SSH to bastion, SSH again from there. The <b>modern way: <code>ssh -J bastion target</code></b> (ProxyJump). The client opens a TCP tunnel to <code>bastion</code>, then negotiates the SSH protocol with <code>target</code> <i>through</i> that tunnel &mdash; <b>the target authenticates you directly, end-to-end, with your key never touching the bastion</b>. This is much more secure than agent forwarding (see below).
+<br><br>
+<b><code>~/.ssh/config</code> is where this all gets tidy.</b> Instead of long commands, you write once and reference by nickname. Example:
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2">Host bastion
+    HostName bastion.prod.example.com
+    User ramya
+    IdentityFile ~/.ssh/id_ed25519_prod
+
+Host prod-*
+    ProxyJump bastion
+    User ramya
+    IdentityFile ~/.ssh/id_ed25519_prod
+    ServerAliveInterval 60
+    ControlMaster auto
+    ControlPath /tmp/ssh-%h-%p-%r
+    ControlPersist 10m</font></pre>
+Then <code>ssh prod-db01</code> automatically goes through the bastion, reuses the connection (ControlMaster), and keeps it alive.
+<br><br>
+<b>Agent forwarding (<code>-A</code>) is dangerous and often misused.</b> Agent forwarding means "let the remote host ask my local SSH agent to sign things for it". It's convenient &mdash; you can SSH from the bastion to the target without putting keys on the bastion. But <b>anyone with root on the bastion can hijack your agent socket</b> and authenticate as you to any host your keys reach. <code>ProxyJump</code> is safer: the client talks to the target directly through the tunnel; the bastion never sees any key material. Prefer <code>-J</code>; avoid <code>-A</code>.
+<br><br>
+<b>Reliability: <code>autossh</code>.</b> A plain SSH tunnel dies when the TCP connection breaks (network blip, laptop sleep). <code>autossh -M 20000 -L ...</code> wraps SSH with health monitoring and reconnects automatically. Useful for long-running dev tunnels or persistent reverse tunnels.
+<br><br>
+<b>When SSH tunneling is the wrong answer:</b> if you need a many-host, many-service, always-on network between environments, a <b>VPN</b> (WireGuard, AWS Site-to-Site, Tailscale) is the right abstraction &mdash; same outcome, less operational fuss. SSH tunnels are perfect for <b>ad-hoc</b>, one-off access; VPNs are for <b>continuous</b> integration. For AWS-native: <b>SSM Session Manager</b> replaces SSH entirely for many use cases, tunneling through the agent on the instance (no inbound port 22 needed).</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of SSH tunneling.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows SSH for remote access but doesn't understand tunneling.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Understands tunneling but can't distinguish local vs remote or write the commands.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Local forwarding (<code>-L</code>) + example (DB through bastion); remote forwarding (<code>-R</code>); practical use cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Dynamic (<code>-D</code>) SOCKS; <code>~/.ssh/config</code>; <code>ProxyJump</code>; agent forwarding security; <code>autossh</code>; VPN/WireGuard alternatives; bastion host pattern.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q11 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q11 &middot; What Happens When You Type a URL</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Walk me through everything that happens when you type <code>www.amazon.com</code> in your browser and press Enter. Go as deep as you can.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>EXPECTED FLOW</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">1.  Browser cache / OS DNS cache / hosts file
+2.  DNS resolution: stub resolver -&gt; recursive resolver
+    -&gt; root -&gt; TLD (.com) -&gt; authoritative ns
+3.  ARP for default gateway (if remote)
+4.  TCP 3-way handshake to server IP:443
+5.  TLS handshake
+    - ClientHello (ciphers, SNI, ALPN)
+    - ServerHello + Certificate (chain)
+    - Key exchange (ECDHE -- PFS)
+    - Finished; symmetric keys established
+6.  HTTP(S) GET / HTTP/1.1 (or /2 via ALPN)
+    -&gt; load balancer (ALB/NLB)  -&gt; CDN edge
+    -&gt; backend: auth, DB, cache
+7.  Response with status + headers + body
+8.  Browser parses HTML, builds DOM/CSSOM
+    Fetches sub-resources (CSS, JS, images)
+    Executes JS, paints, interactive
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE INDUSTRY'S FAVORITE WHITEBOARD QUESTION</b></font>
+<br><br>
+<font size="3"><b>This is the question that separates candidates.</b> The full journey touches every layer of the stack, and interviewers love it because they can drill down wherever your answer is weakest. A well-organized answer is <b>layered</b>: name each phase first, then offer to go deeper on any part. Here's what "deep" looks like at each layer.
+<br><br>
+<b>Phase 1 &mdash; Before DNS: cache layers.</b> The browser has its own DNS cache (see <code>chrome://net-internals/#dns</code>), which has a per-entry TTL. If missing, it asks the OS. The OS consults <b>/etc/nsswitch.conf</b> (on Linux) or equivalent to decide the lookup order &mdash; typically <code>/etc/hosts</code> first, then the system resolver cache (<code>systemd-resolved</code>, <code>nscd</code>, or similar), then DNS over the network. A stale <code>/etc/hosts</code> entry can short-circuit everything and is a classic "DNS isn't resolving correctly" red herring.
+<br><br>
+<b>Phase 2 &mdash; DNS resolution.</b> The OS sends a query to its configured <b>recursive resolver</b> (from <code>/etc/resolv.conf</code>, often your ISP's or a public one like 1.1.1.1/8.8.8.8). If the resolver hasn't cached the answer, it walks the hierarchy:
+<ul>
+  <li>Asks a <b>root server</b> (there are 13 logical root server clusters globally; the resolver has hardcoded hints).</li>
+  <li>Root replies "I don't know amazon.com, but I know the nameservers for <b>.com</b>".</li>
+  <li>Recursive resolver asks <b>.com</b> nameservers. They reply with the authoritative nameservers for <code>amazon.com</code>.</li>
+  <li>Recursive resolver asks those nameservers for <code>www.amazon.com</code>. They return the A record (or a CNAME pointing at a CDN like <code>d3ag4hukkh62yn.cloudfront.net</code>, which the resolver follows).</li>
+</ul>
+This whole process happens in ~20-50ms if caches are cold, microseconds if anything is cached. <b>DNSSEC</b> adds signature validation at each step (rarely breaks client-visibly but protects against cache poisoning).
+<br><br>
+<b>Phase 3 &mdash; TCP to the resolved IP.</b> The browser calls <code>connect()</code> with the server IP and port 443. The kernel routing table is consulted to pick an interface. If the destination isn't on the local subnet, an ARP request finds the MAC of the default gateway. The <b>3-way handshake</b> begins (see Q5). For performance, browsers maintain a connection pool and often have <b>a TCP connection already open</b> to popular sites via HTTP/2's single-connection multiplexing.
+<br><br>
+<b>Phase 4 &mdash; TLS handshake.</b> Only if HTTPS. The client sends <b>ClientHello</b> with: supported TLS versions, cipher suites, <b>SNI</b> (Server Name Indication &mdash; the hostname, which is how a single IP can serve certs for multiple domains), and ALPN protocols (h2, h3, http/1.1). The server responds with <b>ServerHello</b> picking one cipher, its <b>certificate chain</b> (leaf + intermediates, without the root), and if using ECDHE, a signed ephemeral key share. The client verifies the chain up to a trusted root CA (in the OS or browser trust store), checks the hostname matches the cert's SAN list, and generates a shared symmetric key via ECDHE (<b>Perfect Forward Secrecy</b>: past sessions aren't decryptable even if the server's long-term key is stolen). All subsequent traffic is encrypted with the symmetric key. <b>TLS 1.3</b> compresses all this to <b>one round trip</b> (vs TLS 1.2's two); 0-RTT data is possible with prior session tickets.
+<br><br>
+<b>Phase 5 &mdash; HTTP request.</b> Inside the TLS channel, the browser sends: <code>GET / HTTP/2</code>, <code>Host: www.amazon.com</code> (crucial for virtual hosting), <code>User-Agent</code>, <code>Accept</code>, <code>Accept-Encoding: gzip, br</code> (compression methods), <code>Cookie</code>, and a pile of others. HTTP/2 multiplexes many requests onto one TCP connection; HTTP/3 runs over QUIC (UDP) to avoid head-of-line blocking.
+<br><br>
+<b>Phase 6 &mdash; The server side.</b> The request typically hits a <b>CDN edge</b> first (CloudFront, Akamai); if the resource is cacheable and fresh, the CDN responds directly without touching origin. For dynamic content, the CDN forwards to an <b>ALB/NLB</b> which picks a backend. The backend might hit authentication, then business logic, then a database or a cache. The response is written back up the chain; the CDN may cache it. Total: anywhere from 10ms to several hundred depending on cache hits.
+<br><br>
+<b>Phase 7 &mdash; Browser rendering.</b> The browser starts parsing HTML as bytes stream in (streaming parse). As it encounters <code>&lt;link rel="stylesheet"&gt;</code> and <code>&lt;script&gt;</code> tags, it fires more requests (sometimes in parallel, sometimes render-blocking). The <b>DOM</b> is built; CSS is applied to build the <b>CSSOM</b>; they combine into the <b>Render Tree</b>. JavaScript runs and may modify any of these. The browser does <b>layout</b> (where does each box go?), <b>paint</b> (which pixels get which color?), and <b>composite</b> (GPU-accelerated layer merging).
+<br><br>
+<b>The performance measurements hidden in the question</b> &mdash; timing each phase is what <b>Chrome DevTools &rarr; Network &rarr; Timing</b> shows: DNS Lookup, Initial Connection (TCP), SSL (TLS), Waiting (TTFB = server thinking time), Content Download. <code>curl -w</code> with <code>time_namelookup / time_connect / time_appconnect / time_starttransfer / time_total</code> gives you the same from the command line &mdash; essential for debugging "which part is slow".
+<br><br>
+<b>The senior-level move</b> is to volunteer the <b>failure modes</b> at each step: DNS can resolve to stale IPs if TTLs are long; a TCP SYN can be dropped; TLS cert validation can fail; the server can return 5xx; the browser can block on a slow render-blocking script. Offering "I can go deeper on any of these" invites the interviewer to pick, which lets them see what <i>they</i> want without you guessing wrong.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"The website loads" &mdash; no understanding.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Mentions DNS but can't describe the full flow.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">DNS -&gt; connection -&gt; response but misses TCP handshake, TLS, or rendering.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Browser/OS cache -&gt; recursive DNS -&gt; TCP 3WH -&gt; TLS -&gt; HTTP -&gt; server -&gt; response -&gt; DOM/CSSOM/render.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">ARP; CDN edge caching; HTTP/2 multiplexing; keep-alive; HSTS; OCSP stapling; browser critical rendering path; JS blocking; window scaling for perf.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q12 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q12 &middot; Cannot SSH to Server</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; You're unable to SSH into a server from your workstation. Walk me through your troubleshooting steps.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SYSTEMATIC STEPS</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">ping host                    # L3 reachability
+dig host                     # DNS resolves correctly?
+nc -zv host 22               # is :22 open at all?
+ssh -vvv user@host           # verbose SSH output
+
+# From another machine: is it just you?
+ssh user@host
+
+# On the server (via console / IPMI if no SSH)
+systemctl status sshd
+journalctl -u sshd -n 100
+tail /var/log/auth.log        # or /var/log/secure on RHEL
+
+# Client-side
+ls -la ~/.ssh                 # 700 dir, 600 keys
+cat ~/.ssh/known_hosts | grep host
+cat ~/.ssh/config
+
+# Common causes
+# - firewall / security group blocking :22
+# - sshd not running or listening on wrong interface
+# - MaxSessions/MaxStartups limit in sshd_config
+# - user account locked or shell = /sbin/nologin
+# - AllowUsers / AllowGroups restrictions
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; CAN'T SSH IS A STACK OF SEVEN THINGS</b></font>
+<br><br>
+<font size="3"><b>"I can't SSH" is really seven different failures wearing the same sweater.</b> Walk outward from your client, and you'll find the break:
+<br><br>
+<b>1. DNS.</b> Is the hostname resolving? <code>dig</code> or <code>host</code> the name. If it returns nothing or the wrong IP (stale cache, bad <code>/etc/hosts</code> entry), everything downstream fails weirdly. SSH will print "Could not resolve hostname".
+<br><br>
+<b>2. Network reachability to port 22 (or whatever SSH runs on).</b> <code>nc -zv host 22</code> is the isolation test &mdash; it's a TCP connect with no protocol; if this times out, the problem is network, not SSH. Distinguish:
+<ul>
+  <li><b>Timeout</b> = firewall silently dropping, or host is offline. Could be security group, NACL, iptables DROP, corporate proxy.</li>
+  <li><b>Connection refused</b> = you reached the host but nothing is on port 22. sshd isn't running, or listening on a different port/interface.</li>
+  <li><b>No route to host</b> = L3 problem (see Q8).</li>
+</ul>
+<b>3. sshd is running but misconfigured.</b> On the server side (via console/IPMI if SSH is gone): <code>systemctl status sshd</code>, <code>journalctl -u sshd -n 50</code>, check <code>ss -tnlp | grep :22</code>. If <code>Listen</code> is bound to <code>127.0.0.1</code> instead of <code>0.0.0.0</code>, you can only SSH from the box itself. <code>/etc/ssh/sshd_config</code> directives to check: <code>Port</code>, <code>ListenAddress</code>, <code>AllowUsers</code>, <code>AllowGroups</code>, <code>DenyUsers</code>, <code>PermitRootLogin</code>, <code>PasswordAuthentication</code>, <code>MaxSessions</code>, <code>MaxStartups</code> (floods reject when the limit is hit), <code>ChrootDirectory</code> (can break sftp-only setups).
+<br><br>
+<b>4. Authentication &mdash; keys or password.</b> <code>ssh -vvv user@host</code> shows the auth negotiation live. Frequent issues:
+<ul>
+  <li><b>Key file permissions wrong.</b> <code>chmod 600 ~/.ssh/id_*</code>, <code>chmod 700 ~/.ssh</code>. SSH refuses to use keys that are group-readable (paranoid but correct).</li>
+  <li><b>Server-side <code>authorized_keys</code> wrong permissions.</b> Must be <code>600</code>, owned by the user, home dir itself must be <code>750</code> or stricter. <code>auth.log</code> will show <code>Authentication refused: bad ownership or modes</code>.</li>
+  <li><b>Key not in agent.</b> <code>ssh-add -l</code> to check; <code>ssh-add ~/.ssh/id_ed25519</code> to add.</li>
+  <li><b>Algorithm mismatch.</b> Very old servers reject modern key types; very new servers may reject ancient SHA-1 RSA. <code>-vvv</code> shows the negotiation; try <code>-o PubkeyAcceptedKeyTypes=+ssh-rsa</code> as a temporary workaround.</li>
+</ul>
+<b>5. User account state.</b> The user exists (<code>getent passwd user</code>) but is locked (<code>passwd -S user</code> shows L), has a <code>nologin</code> shell, or is missing from the <code>AllowUsers</code> directive. <code>sudo -u user whoami</code> tests whether the account is functional at all.
+<br><br>
+<b>6. Host key changes &mdash; the "WARNING" screen.</b> If SSH prints <code>REMOTE HOST IDENTIFICATION HAS CHANGED!</code>, your <code>~/.ssh/known_hosts</code> has a stale entry (common after rebuilding a server with the same hostname). This is <b>correct by design</b> &mdash; SSH is warning that the host might be spoofed. Fix: <code>ssh-keygen -R hostname</code> to remove the stale entry, then reconnect and accept the new key (after verifying the fingerprint out-of-band if it's a production host).
+<br><br>
+<b>7. Out-of-band access when SSH is gone entirely.</b> AFT reality: you broke SSH on a production host by misconfiguring <code>sshd_config</code> and reloading. Now you can't get in to fix it. The options: <b>AWS EC2 Instance Connect / SSM Session Manager</b> (agent-based, no port 22 needed), <b>serial console</b>, <b>IPMI / iDRAC</b> for physical hosts, <b>user data / cloud-init</b> script that runs on next reboot. Always preserve at least one of these before touching <code>sshd_config</code>. <b>The canonical safe pattern:</b> open a second SSH session <i>before</i> editing <code>sshd_config</code>, then test the config (<code>sshd -t</code>), reload, and verify the second session still works <i>and</i> that you can open a third <i>before</i> closing the first.
+<br><br>
+<b>The "MaxStartups" trap</b>: if many users SSH at once (or a scanner hits you), sshd starts randomly dropping new connections long before any authentication fails. Symptoms are flaky "sometimes works, sometimes times out during banner". Tune <code>MaxStartups 100:30:200</code> (start dropping at 100 concurrent unauthenticated, 30% drop rate, hard cap at 200).
+<br><br>
+<b>Debugging the verbose output:</b> <code>ssh -vvv</code> output is long, but the first useful line is usually <code>debug1: Authentications that can continue:</code> &mdash; it tells you what the server is offering and what you've tried. Look for <code>debug1: Server accepts key: / Authenticated to</code> (success) vs <code>Permission denied (publickey,password).</code> (failure). If it never gets past "Connection established" you're in network territory; if it authenticates but disconnects, you're in shell/PAM/policy territory.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"The server is down" &mdash; no diagnostic steps.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Retries SSH; checks hostname; gives up.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Pings; checks if SSH is running elsewhere; limited systematic approach.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Network (ping), DNS (<code>nslookup</code>/<code>dig</code>), port (<code>nc -zv</code>), <code>ssh -vvv</code>, cross-host test, firewall/SG, sshd running, <code>/var/log/auth.log</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Key permissions (600/700); stale <code>known_hosts</code>; <code>~/.ssh/config</code> conflicts; MaxSessions/MaxStartups; locked user or <code>/sbin/nologin</code>; TCP wrappers; out-of-band access (console, IPMI) as fallback.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q13 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q13 &middot; Load Balancers</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What are load balancers, and how do they work? What types do you know?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Layer
+L4 (Transport)   TCP/UDP; fast; no app awareness    (NLB)
+L7 (Application) HTTP/HTTPS; routing by path/host   (ALB)
+Global / DNS     Route 53 latency-based, geo
+
+# Algorithms
+round-robin, least connections, IP hash, weighted,
+consistent hashing (for cache affinity)
+
+# Features
+- Health checks + passive ejection
+- Session persistence (sticky sessions via cookie)
+- SSL termination / TLS passthrough
+- Connection draining during deregister
+- Cross-zone load balancing
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; LOAD BALANCERS SOLVE TWO PROBLEMS AT ONCE</b></font>
+<br><br>
+<font size="3"><b>A load balancer exists because of two independent concerns that happen to share a solution:</b> (1) <b>one server isn't enough</b> &mdash; you need to spread load across many, and (2) <b>servers fail</b> &mdash; you need a stable entry point that survives individual failures. A load balancer is the "stable IP / DNS name" that clients see; behind it, instances come and go, scale up and down, without anyone noticing.
+<br><br>
+<b>L4 vs L7 is the first decision.</b>
+<ul>
+  <li><b>L4 load balancers</b> (AWS <b>NLB</b>, HAProxy in TCP mode, older hardware LBs) operate at the transport layer: they see only TCP/UDP 5-tuples (source IP, source port, dest IP, dest port, protocol). They <b>don't terminate the connection</b> &mdash; they forward packets or bridge TCP flows. Because they don't parse application data, they're <b>protocol-agnostic</b> (any TCP works: databases, Redis, custom binary protocols, WebSocket) and <b>extremely fast</b> (packet-level, nanoseconds). Downside: they can't route by URL path, can't modify headers, can't understand HTTP.</li>
+  <li><b>L7 load balancers</b> (AWS <b>ALB</b>, nginx, Envoy, HAProxy in HTTP mode) terminate the client connection, read the HTTP request, make routing decisions on <b>path / host / headers / cookies</b>, and open a fresh connection to the chosen backend. They can rewrite URLs, add security headers, serve error pages, do authentication. Downside: HTTP-only, more CPU per request, more configuration.</li>
+  <li><b>Rule of thumb:</b> HTTP &rarr; ALB/L7; raw TCP or absolute lowest latency &rarr; NLB/L4; both if you want L4 to front L7 for specific workloads.</li>
+</ul>
+<b>The routing algorithms each make a tradeoff:</b>
+<ul>
+  <li><b>Round-robin:</b> simplest, but ignores backend load. A struggling backend gets the same traffic as a healthy one.</li>
+  <li><b>Least connections:</b> sends new requests to the backend with the fewest active. Good default for long-lived or variable-duration requests.</li>
+  <li><b>IP hash / source hash:</b> the same client always goes to the same backend. Cheap way to get session affinity without cookies. Breaks on NAT (all clients behind a NAT share an IP).</li>
+  <li><b>Weighted:</b> for heterogeneous fleets (some bigger instances get more traffic) or for canary deploys (route 5% to the new version).</li>
+  <li><b>Consistent hashing:</b> used when backends have <b>cached state</b>. A key (session ID, user ID, request URL) maps to a backend; adding/removing backends only re-routes a small fraction. Essential for cache servers (memcached, Redis cluster); irrelevant for stateless app servers.</li>
+</ul>
+<b>Health checks are what make "high availability" real.</b> The LB periodically probes each backend (TCP connect for L4, HTTP request for L7). Backends failing N consecutive checks are <b>ejected</b> from the pool; they come back when they pass M consecutive checks. Tune the thresholds: too aggressive and flapping ejects healthy-but-slow backends; too loose and users see errors on dead backends. <b>Depth of the check matters</b> &mdash; checking <code>/healthz</code> that just returns 200 doesn't catch "DB is down but my process is up". A proper health check verifies downstream dependencies too (but not so aggressively that it <i>itself</i> takes down the service).
+<br><br>
+<b>Sticky sessions &mdash; the pattern that doesn't scale.</b> If your app stores session state in-memory per backend, you need to send the same user back to the same backend every time. ALB does this with a cookie (<code>AWSALB</code>); nginx with <code>ip_hash</code> or a cookie. <b>The real fix is to make the app stateless</b>: store sessions in Redis/DynamoDB/a JWT, and any backend can serve any request. Sticky sessions are a band-aid; persistence-in-Redis is the cure.
+<br><br>
+<b>TLS termination vs passthrough.</b> Terminate at the LB (decrypt at LB, forward plaintext to backends): backends don't need cert management, and the LB can inspect headers (required for L7). Downside: traffic between LB and backend is unencrypted &mdash; fine in a private VPC, not fine across the internet. <b>Passthrough</b> (LB forwards the encrypted bytes to the backend, which terminates TLS): end-to-end encryption, but the LB can't make L7 routing decisions. ALB only does termination; NLB can passthrough. Many production setups terminate at the LB and also re-encrypt to backends for defense-in-depth.
+<br><br>
+<b>Connection draining (deregistration delay).</b> When you remove a backend from the pool (deploy, scale down, health check failure), the LB stops sending <i>new</i> connections to it but keeps existing ones open for a grace period (default 300s on AWS). This is what makes rolling deployments possible without dropping requests. Tune it to your longest request time; too short and long-running requests get chopped; too long and deploys are slow.
+<br><br>
+<b>DNS-based / global load balancing.</b> Route 53 latency-based routing and similar services don't have a real LB &mdash; they return different IPs from DNS based on client location, so a user in Tokyo gets your <code>ap-northeast-1</code> LB IP and a user in Dublin gets <code>eu-west-1</code>. Works across regions; limitation: DNS caching (TTL) delays failover. <b>Anycast</b> is the sibling technique at the routing layer: one IP address, announced from many locations; BGP decides which location is "closest" per client. Used by CloudFront, Cloudflare, Google DNS.
+<br><br>
+<b>The AFT-relevant insight:</b> in a fulfillment environment, you'll encounter LBs as the first suspect during incidents. "The service is returning 502s" often means the LB can't reach backends (are they healthy?) or backends are returning bad responses (502 from LB upstream = "something's wrong server-side, check app"). Knowing the difference between <b>502 (bad response from upstream)</b>, <b>503 (LB itself overloaded or no healthy backends)</b>, and <b>504 (upstream timeout)</b> immediately localizes the fault.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain what a load balancer does.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">"Distributes traffic" but can't explain how or name types.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Basic round-robin; one type; no health checks.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Distributes traffic for availability/scale; L4 vs L7; algorithms; health checks, sticky sessions, SSL termination.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">ALB vs NLB vs CLB in AWS; connection draining; cross-zone; enables blue/green; global DNS-based LB (Route 53); auto-scaling integration; consistent hashing for cache affinity.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="http"><font color="#58a6ff" size="6">2. HTTP &amp; Web</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q14 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q14 &middot; HTTP Status Codes (detailed)</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Name the HTTP status code categories (2XX, 3XX, 4XX, 5XX) and give specific examples with when they occur.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; STATUS CODES AS OPERATIONAL SIGNALS</b></font>
+<br><br>
+<font size="3">This question is the <b>operational</b> cousin of Q1 &mdash; where Q1 focused on knowing the codes, this one is about <b>what they tell you about your system's health</b>. Same codes, different lens.
+<br><br>
+<b>2xx/3xx vs 4xx vs 5xx as a health signal.</b> In a production dashboard, the ratio of these three buckets is your <b>availability SLO</b>. A healthy system is mostly 2xx with a small amount of legitimate 3xx (redirects) and 4xx (users making bad requests). When 5xx climbs, you're on fire. When 4xx climbs sharply, <i>something changed</i> &mdash; a client deployed a new version with bugs, or you deployed stricter validation, or an attacker is probing. Both directions are meaningful signals.
+<br><br>
+<b>The 5xx category is the alerting target.</b> Every mature team has a metric like "5xx rate > 0.5% over 5 minutes" that pages oncall. <b>Why not alert on absolute count?</b> Because traffic varies &mdash; 100 errors in a quiet period is catastrophic, 100 errors at peak is noise. Rate (errors / total) is the stable signal. <b>Why a window?</b> Because transient spikes are common (one bad deploy, one transient dependency hiccup). Five-minute windows balance responsiveness with noise rejection.
+<br><br>
+<b>The 4xx nuances that matter in production:</b>
+<ul>
+  <li><b>401 vs 403:</b> a sudden jump in 401s often means an auth service is failing or keys expired. 403s mean "I authenticated you but something is denied" &mdash; could be a permissions bug or an attempted privilege escalation. Dashboards should split these.</li>
+  <li><b>404:</b> scraped by search engines, broken links, or probing. A baseline level of 404s is healthy; a jump usually means a deploy broke routing.</li>
+  <li><b>429 Too Many Requests:</b> rate-limit hits. A well-behaved client should back off. If you see sustained 429s for legitimate users, your limits are too tight; if you see 429s for one specific client, they're misbehaving. Include <code>Retry-After</code> so clients know when to retry.</li>
+  <li><b>499 (nginx-specific):</b> client closed the connection before we responded. Often means your backend is too slow; the client gave up waiting. Not an HTTP standard code but very useful operationally.</li>
+</ul>
+<b>The 5xx distinctions in a load-balanced system:</b>
+<ul>
+  <li><b>500 Internal Server Error:</b> uncaught exception in your app. Stack trace hopefully went somewhere.</li>
+  <li><b>502 Bad Gateway:</b> the LB got a garbage response from the backend. Typical causes: backend crashed mid-request, backend closed the connection unexpectedly, protocol mismatch. Root-cause inside the backend.</li>
+  <li><b>503 Service Unavailable:</b> no healthy backends (all health checks failing), or the LB itself is throttling (e.g., CloudFront under extreme load). "My service is down entirely".</li>
+  <li><b>504 Gateway Timeout:</b> backend didn't respond in time. The LB has a <b>request timeout</b> (often 30-60s); if the backend doesn't write the response within that, the LB cuts the connection and returns 504. Could be slow DB queries, deadlocks, or just a legitimately long operation.</li>
+</ul>
+<b>Idempotency + retries &mdash; the interview test.</b> Given a 5xx response, can you safely retry? <b>Depends on the verb and the design</b>:
+<ul>
+  <li><code>GET</code>, <code>HEAD</code>, <code>PUT</code>, <code>DELETE</code> are <b>idempotent by HTTP spec</b> &mdash; repeating them should produce the same outcome. Safe to retry.</li>
+  <li><code>POST</code> is <b>not</b> idempotent. A 500 on <code>POST /charge</code> might mean "we charged you and the response was lost" or "we failed before charging". Retrying could double-charge. <b>Idempotency keys</b> (client-generated UUID sent in a header; server dedupes) are the standard solution.</li>
+  <li>A <b>429 response with Retry-After</b> is explicit permission to retry after that delay &mdash; respect it.</li>
+</ul>
+<b>Dashboards that tell a story:</b>
+<ul>
+  <li><b>Status code histogram over time</b> &mdash; a stacked chart of 2xx/3xx/4xx/5xx rates. The shape tells you what's changing.</li>
+  <li><b>5xx rate per endpoint</b> &mdash; errors aren't usually uniform; one broken endpoint stands out.</li>
+  <li><b>P50, P95, P99 latency</b> alongside status codes &mdash; many outages start as latency problems (5xx is a late signal).</li>
+  <li><b>Status code distribution per caller</b> (identified by API key or client IP) &mdash; detects "this one integration partner's traffic is failing".</li>
+</ul></font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot name any status codes; doesn't understand HTTP.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows 200 and 404 but can't explain categories.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Names a few codes but can't explain significance or operational context.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">2xx success, 3xx redirection, 4xx client error, 5xx server error; multiple examples per category; 5xx = server-side, 4xx = client-side.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Monitoring on 5xx rate as SLA; 401 vs 403; 429 (rate limit); 502 vs 504 in LB context; idempotency and retry logic; dashboards based on status distribution.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q15 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q15 &middot; Web Server Architecture</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain the difference between a web server and an application server. How does a reverse proxy fit in?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>TYPICAL ARCHITECTURE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">Client -&gt; CDN -&gt; Load Balancer
+       -&gt; Reverse Proxy (Nginx / Envoy)
+       -&gt; Application Server (Gunicorn / Tomcat / Puma)
+       -&gt; Database / Cache
+
+# Web server    handles HTTP connections, serves static content
+# App server    executes app code, generates dynamic content
+# Reverse proxy load balances, terminates TLS, caches,
+#               routes based on host/path, hides backend topology
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THREE ROLES, OFTEN BLURRED</b></font>
+<br><br>
+<font size="3">The distinction between "web server", "application server", and "reverse proxy" has blurred as software has evolved. The <b>roles</b> are still distinct; it's just that modern tools often play more than one.
+<br><br>
+<b>Web server (the classical role):</b> terminate HTTP connections from clients, serve <b>static files</b> (HTML, CSS, JS, images), and handle protocol-level concerns (keepalives, HTTP/2 multiplexing, request parsing). Apache and nginx were born as web servers. <b>Serving a static site</b> doesn't need anything more &mdash; bytes on disk flow to bytes on wire with minimal processing. Performance is I/O-bound and scales per connection; an event-driven server (nginx) can handle 100k concurrent connections on modest hardware.
+<br><br>
+<b>Application server (the execution role):</b> run your <b>application code</b> &mdash; Python, Java, Ruby, Go &mdash; to generate dynamic responses. Gunicorn, uWSGI (Python), Tomcat, Jetty (Java), Puma (Ruby) are all app servers. They speak either HTTP directly or a private protocol (WSGI, FastCGI, AJP) to a web server in front. App servers are CPU-bound and <b>typically much lower per-process concurrency</b> &mdash; a Python/Gunicorn worker handles one request at a time (with some async improvements); you run many workers to scale.
+<br><br>
+<b>Reverse proxy (the routing role):</b> sits between clients and one or more backends; clients see one address, the proxy decides which backend gets the request. <b>Functions</b>: load balancing, TLS termination, caching, rate limiting, request rewriting, header manipulation, authentication at the edge, WebSocket proxying. Nginx, Envoy, HAProxy, Traefik are the popular choices. <b>ALB and CloudFront</b> are AWS-managed versions.
+<br><br>
+<b>Why "web server" and "reverse proxy" blur:</b> nginx can be either (or both at once). A single nginx instance might serve <code>/static/*</code> from disk directly (web server role), proxy <code>/api/*</code> to a Gunicorn upstream (reverse proxy role), and route <code>/admin/*</code> to a different backend. The config file specifies the behavior per location.
+<br><br>
+<b>The canonical production topology:</b>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2">Client
+  \u2193 HTTPS
+CDN (CloudFront/Akamai)                      \u2190 edge cache, global POPs
+  \u2193
+Cloud LB (ALB/NLB)                           \u2190 TLS termination, routing
+  \u2193
+Reverse proxy (nginx/Envoy)                  \u2190 app-specific routing, rate limit
+  \u2193 HTTP (plaintext, private network)
+Application server (Gunicorn, Tomcat)        \u2190 runs your code
+  \u2193
+Database / Cache / Queue</font></pre>
+Each layer adds value: CDN reduces latency and origin load; cloud LB provides auto-scaling and health-checked entry; reverse proxy adds fine-grained control the cloud LB lacks; app server runs code; DB/cache store state. <b>Simpler apps skip layers</b> &mdash; a small service might just be ALB &rarr; Gunicorn, no nginx needed; a static site is just CloudFront &rarr; S3, no compute at all.
+<br><br>
+<b>Why a reverse proxy in front of an app server &mdash; even when the app server speaks HTTP natively?</b>
+<ul>
+  <li><b>Slow clients:</b> the reverse proxy buffers. A mobile user on a bad connection takes 10 seconds to send a 1MB upload; you don't want your app-server worker tied up reading bytes that slowly. The proxy accepts the full request first, then hands it to the app server in one burst.</li>
+  <li><b>Static file serving:</b> handing <code>/images/logo.png</code> back from disk is millions of times faster in nginx than in Python code.</li>
+  <li><b>TLS termination:</b> Python/Java crypto is slower than nginx's, and cert management in one place is cleaner.</li>
+  <li><b>Operational safety:</b> nginx can return a cached page or a maintenance message when the backend is down, instead of a TCP error.</li>
+  <li><b>Security:</b> rate limiting, WAF rules, header stripping happen at the edge.</li>
+  <li><b>Zero-downtime deploys:</b> nginx can drain connections from the old backend while routing new ones to the new backend.</li>
+</ul>
+<b>The modern wrinkle: Go and similar languages.</b> A native-compiled, event-loop-based service (Go, Rust, Node) can handle tens of thousands of concurrent connections directly &mdash; the "slow clients" argument weakens. Many Go services deploy as <b>just the binary behind an ALB</b>, no nginx in the middle. That's fine; add a reverse proxy when you need a feature it provides, not as cargo-cult architecture.
+<br><br>
+<b>Event-driven vs thread-per-request</b> is the key architectural difference that explains why some servers scale and others don't:
+<ul>
+  <li><b>Thread/process-per-request</b> (Apache prefork, classic Java servlets): one OS thread per concurrent request. Memory grows linearly with concurrency; thread context switches are expensive. Caps out around a few thousand concurrent connections.</li>
+  <li><b>Event-driven</b> (nginx, Node, Go, Python async): one (or a few) threads using <code>epoll</code>/<code>kqueue</code> to handle thousands of connections cooperatively. Memory per connection is bytes, not MB. Caps at 100k+ connections, but CPU-bound work blocks the loop &mdash; you need to be careful about what runs in the event thread.</li>
+</ul></font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot differentiate web server from app server; doesn't know reverse proxy.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows Apache/Nginx are web servers but can't explain app server role.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Static vs dynamic but can't explain reverse proxy.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Web server (Nginx, Apache) serves static + HTTP; app server (Gunicorn, Tomcat) runs app code; reverse proxy fronts backends (LB, TLS termination, cache, routing, security); typical arch.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Nginx event-driven vs Apache process/thread; upstream config; zero-downtime deploys; CDN as global reverse proxy; WebSocket proxying; rate limiting and buffering at proxy layer.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q16 (removed) Nginx vs Apache, Q17 REST API Design, Q18 REST vs GraphQL vs gRPC ============ -->
+
+<!-- ============ Q16 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q16 &middot; "amazon.com" &mdash; Deep Walkthrough</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Walk me through everything that happens from typing "amazon.com" in the browser to the page being displayed. Go as deep as you can.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; AMAZON-FLAVORED VARIANT</b></font>
+<br><br>
+<font size="3">This is the same question as Q11 but asked at Amazon, about amazon.com specifically. The interviewer may be <b>looking for details about CloudFront, Route 53, ALBs, and large-scale architecture specifically</b>. See Q11's full flow for the layer-by-layer walkthrough; here are the Amazon-specific details worth sprinkling in.
+<br><br>
+<b>DNS: Route 53 with latency-based routing.</b> <code>amazon.com</code> has multiple A records for different regions. Route 53 checks your <b>client's IP against EDNS Client Subnet</b> and returns the region with the lowest latency. So a user in Frankfurt gets a different IP than one in Tokyo, even though the DNS name is identical. <b>CNAME chains</b>: <code>www.amazon.com</code> might CNAME to a CloudFront distribution, which in turn has anycast IPs announced from hundreds of edge POPs globally.
+<br><br>
+<b>CDN: CloudFront edge.</b> The first TCP connection goes to the closest CloudFront POP (<b>Point of Presence</b> &mdash; a data center physically close to the user). CloudFront terminates TLS there. If the request is for a cacheable static asset (product images, CSS, JS), CloudFront serves it directly without touching origin. For dynamic content (<code>/</code>, <code>/cart</code>), CloudFront forwards to the origin over a backbone-optimized connection (AWS's private fiber), which is much faster than the public internet. <b>POP-to-origin latency</b> is often 5-20ms even across continents.
+<br><br>
+<b>The origin layer.</b> CloudFront connects to an <b>ALB</b> in the region. ALB does health-checked load balancing to backend fleets, typically hundreds of EC2 instances or ECS tasks across multiple availability zones. Each fleet runs behind an auto-scaling group that adds/removes capacity based on traffic.
+<br><br>
+<b>The request inside Amazon.</b> The ALB's selected backend receives the request. Amazon's architecture is famously <b>services-all-the-way-down</b> &mdash; a single <code>GET /</code> for the homepage fans out into hundreds of internal service calls (product catalog, personalization, recommendations, inventory, price, ratings, shipping eligibility, cart, user session, A/B test assignment). Each is its own service, each has its own fleet, each has its own SLA. Failures are <b>isolated</b> &mdash; if the recommendations service is down, the page still renders (with a fallback), not 500s.
+<br><br>
+<b>Caching layers everywhere.</b> Before a request hits a database, it probably passes through multiple caches: ElastiCache (Redis/Memcached), in-process caches, DynamoDB Accelerator (DAX). Many reads never touch the primary datastore.
+<br><br>
+<b>Response path.</b> Assembled response goes back through ALB &rarr; CloudFront edge (may cache if headers permit) &rarr; TLS encrypted &rarr; user. <b>Client-side rendering</b> continues: progressive HTML parse, sub-resource fetches (many are already warm in CloudFront), JavaScript hydration, image lazy loading. Amazon is aggressive about the <b>critical rendering path</b> &mdash; inline critical CSS, defer non-critical JS, preload key images &mdash; because a faster page = more sales.
+<br><br>
+<b>Observability in this flow.</b> Every request has a <b>trace ID</b> (X-Amzn-Trace-Id header) that follows it through every service. When something is slow, you pull up the trace and see "40ms in DNS, 5ms TLS, 12ms at the ALB, 180ms at the recommendations service with a 200ms timeout" &mdash; the slow service is named immediately. This is <b>AWS X-Ray / CloudWatch ServiceLens / internal tools</b> territory.
+<br><br>
+<b>Failure modes an interviewer might ask about:</b>
+<ul>
+  <li><b>"A whole region is down."</b> Route 53 health checks detect this; the DNS answer switches to another region. Uses <b>failover routing policy</b>. Client sees a ~TTL-worth of disruption.</li>
+  <li><b>"CloudFront edge POP is down."</b> Anycast routing automatically shifts clients to the next-closest POP. Invisible to users.</li>
+  <li><b>"Certificate expiry."</b> CloudFront uses ACM (AWS Certificate Manager) which auto-renews; the cert is distributed to every POP. Manual cert management is a common source of outages elsewhere.</li>
+  <li><b>"DDoS on a single IP."</b> CloudFront + AWS Shield absorb the attack at the edge before it reaches the origin. Shield Advanced adds WAF rules.</li>
+</ul>
+<b>The Amazon differentiator in this answer:</b> talk about <b>trace IDs, fallback behavior for slow dependencies, and regional failover</b>. Those three show you think at operational scale, not just about a single request.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"The browser loads the page" &mdash; no understanding.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Mentions DNS and HTTP but can't explain in between.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">DNS -&gt; TCP -&gt; HTTP -&gt; response but misses TLS, rendering pipeline, caching.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Browser cache + recursive DNS (root/TLD/authoritative) -&gt; TCP 3WH -&gt; TLS -&gt; HTTP -&gt; server -&gt; response -&gt; DOM/CSSOM/render.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">ARP resolution; OS socket creation; LB routing; CDN edge caching; HTTP/2 multiplexing; keep-alive; critical rendering path; JS execution blocking; HSTS preload; OCSP stapling.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="security"><font color="#58a6ff" size="6">3. Security</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q17 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q17 &middot; SSH Key Pairs &amp; Authentication</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain how SSH key-based authentication works. How is it different from password auth? How would you set it up?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SETUP</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Generate key (Ed25519 recommended)
+ssh-keygen -t ed25519 -C "ramya@laptop"
+
+# Install public key on server
+ssh-copy-id user@host
+# or append ~/.ssh/id_ed25519.pub to server's ~/.ssh/authorized_keys
+
+# Required perms
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/id_ed25519
+chmod 644 ~/.ssh/id_ed25519.pub
+chmod 600 ~/.ssh/authorized_keys
+
+# Disable password auth on server
+# /etc/ssh/sshd_config
+PasswordAuthentication no
+PermitRootLogin prohibit-password
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; PUBLIC-KEY CRYPTO IN ONE PROTOCOL</b></font>
+<br><br>
+<font size="3"><b>SSH key authentication replaces "what you know" (password) with "what you have" (private key).</b> The private key never leaves your machine &mdash; not over the wire, not to the server. The server only has your public key and uses it to verify that you possess the matching private key. This is <b>fundamentally stronger</b> than passwords because (a) keys aren't phishable, (b) they can be much higher entropy than any password, (c) a compromised server learns your public key but can't impersonate you elsewhere.
+<br><br>
+<b>How the authentication actually flows:</b>
+<ol>
+  <li>Client connects, TCP established, SSH protocol version negotiated, key exchange (Diffie-Hellman variant) establishes a shared symmetric key &mdash; <b>all further traffic is encrypted</b> regardless of auth method.</li>
+  <li>Client declares "I want to authenticate as <code>ramya</code> using public-key auth" and offers its public key fingerprint.</li>
+  <li>Server checks <code>~ramya/.ssh/authorized_keys</code>; if it contains the offered public key, it generates a random challenge and sends it encrypted for that public key.</li>
+  <li>Only the matching private key can decrypt it (or more precisely, sign it &mdash; the details depend on key type). Client signs the challenge + session identifier with its private key and sends back.</li>
+  <li>Server verifies the signature using the public key; if it matches, authentication succeeds. <b>The private key never crosses the network; only signatures do.</b></li>
+</ol>
+<b>Key types and their tradeoffs:</b>
+<ul>
+  <li><b>RSA-2048 / RSA-4096:</b> the historical default. Still safe; RSA-4096 is overkill for most cases. Some very old servers only support RSA.</li>
+  <li><b>Ed25519:</b> the modern recommendation. Much smaller keys (~68 bytes public), faster signing/verification, resistant to side-channel attacks, designed specifically for the "one-shot signature" use case SSH needs. <b>Use Ed25519 unless you must support an ancient server.</b></li>
+  <li><b>ECDSA (P-256):</b> middle ground &mdash; smaller and faster than RSA, but with some caveats about nonce reuse that Ed25519 avoids.</li>
+  <li><b>DSA:</b> deprecated, don't use.</li>
+</ul>
+<b>The permissions matter.</b> SSH is paranoid about key file modes because a world-readable private key is a serious vulnerability. <b>SSH will refuse to load keys</b> if:
+<ul>
+  <li><code>~/.ssh</code> is group- or world-writable (must be <code>700</code>).</li>
+  <li><code>~/.ssh/id_*</code> (private keys) are readable by anyone else (must be <code>600</code>).</li>
+  <li>The user's home directory itself is too permissive.</li>
+</ul>
+The server's <code>auth.log</code> will log <b>Authentication refused: bad ownership or modes</b> &mdash; that's your signal.
+<br><br>
+<b><code>ssh-agent</code> is the convenience/security tradeoff.</b> Without an agent, you'd type your key's passphrase on every SSH command. The agent holds your unlocked private keys in memory and signs on demand. Start it (usually automatic on login), add keys with <code>ssh-add</code>. <b>Always use a passphrase on your private key</b> &mdash; otherwise a stolen laptop = full access everywhere. On macOS, <code>ssh-add --apple-use-keychain ~/.ssh/id_ed25519</code> stores the passphrase in Keychain so you're prompted once per reboot.
+<br><br>
+<b>Hardening <code>sshd_config</code> on the server side:</b>
+<ul>
+  <li><code>PasswordAuthentication no</code> &mdash; disable passwords entirely once keys work. Stops brute-force attacks cold.</li>
+  <li><code>PermitRootLogin prohibit-password</code> (or better, <code>no</code>) &mdash; never allow root login with a password; with keys, only if essential.</li>
+  <li><code>PubkeyAuthentication yes</code>, <code>ChallengeResponseAuthentication no</code>.</li>
+  <li><code>AllowUsers ramya ops-admin</code> &mdash; whitelist specific users rather than implicitly allowing all.</li>
+  <li><code>MaxAuthTries 3</code>, <code>LoginGraceTime 30</code> &mdash; bound brute-force attempts.</li>
+  <li><code>AllowAgentForwarding no</code> unless explicitly needed &mdash; prefer ProxyJump.</li>
+  <li><code>PermitEmptyPasswords no</code>, <code>X11Forwarding no</code> by default.</li>
+</ul>
+<b>SSH certificates &mdash; the enterprise-scale evolution.</b> Manually managing <code>authorized_keys</code> across thousands of hosts is a nightmare (onboarding, offboarding, rotation). <b>SSH CA</b>: a trusted signing authority issues short-lived certificates (1-24 hour validity) that include your identity and permitted principals. Servers are configured with <code>TrustedUserCAKeys /etc/ssh/ca.pub</code> and accept any certificate signed by the CA. <b>Revocation is implicit</b> &mdash; expired certs stop working. Tools: HashiCorp Vault SSH, AWS IAM + EC2 Instance Connect, Teleport, BastionZero. This is the AFT-scale pattern; raw <code>authorized_keys</code> is for small shops.
+<br><br>
+<b>What an attacker can still do if they have your private key:</b> everything you can. Mitigations:
+<ul>
+  <li><b>Passphrase on the key</b> &mdash; slows them down (needs local access + passphrase).</li>
+  <li><b>Hardware-backed keys</b> (YubiKey, Touch ID in macOS, TPM) &mdash; the private key never leaves the device. Signing requires physical presence.</li>
+  <li><b>Short-lived certificates</b> &mdash; compromised material expires before it can be used much.</li>
+  <li><b>Separate keys per environment</b> &mdash; dev key compromise doesn't leak prod.</li>
+</ul></font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain SSH or the key concept.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows SSH for remote access but can't explain key-based auth.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Understands public/private concept but can't explain auth flow or setup.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3"><code>ssh-keygen</code>, public key in <code>authorized_keys</code>, client signs challenge with private key; more secure than passwords; <code>ssh-agent</code>; correct perms (700/.ssh, 600/keys).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">RSA vs Ed25519; agent forwarding security implications; certificate-based SSH auth; disable password auth in <code>sshd_config</code>; jump hosts/bastions; SSH tunneling (-L/-R).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q18 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q18 &middot; SSL/TLS Handshake</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain how SSL/TLS works. What happens during the TLS handshake?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>TLS 1.2 HANDSHAKE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">1. ClientHello   cipher suites, TLS version, random, SNI, ALPN
+2. ServerHello   selected cipher, random
+   + Certificate   server's cert chain
+   + ServerKeyExchange (ECDHE params)
+   + ServerHelloDone
+3. Client verifies cert chain against trust store
+4. ClientKeyExchange  (ECDHE pub key)
+5. Both derive session keys from shared secret
+6. ChangeCipherSpec + Finished (both directions)
+-&gt; Symmetric encryption begins
+
+# TLS 1.3 reduces to 1 RTT (and 0-RTT for resumption)
+# Asymmetric for key exchange -- slow
+# Symmetric for data -- fast
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; TLS GIVES YOU THREE PROPERTIES</b></font>
+<br><br>
+<font size="3"><b>TLS is the thing that turns HTTP into HTTPS, SMTP into SMTPS, and raw TCP into a private channel.</b> Its job is to deliver three security properties over an untrusted network:
+<ol>
+  <li><b>Confidentiality</b> &mdash; nobody in between can read the data.</li>
+  <li><b>Integrity</b> &mdash; nobody in between can modify the data without detection.</li>
+  <li><b>Authentication</b> &mdash; the client can verify the server is who it claims to be (and optionally the reverse).</li>
+</ol>
+The handshake establishes all three before any application data flows.
+<br><br>
+<b>Why the handshake mixes asymmetric and symmetric crypto.</b> Asymmetric crypto (RSA, ECDSA) is <b>slow</b> &mdash; milliseconds per operation, not useful for streaming a file. Symmetric crypto (AES, ChaCha20) is <b>fast</b> &mdash; gigabits per second. So TLS uses asymmetric only once, at the start, to agree on a shared symmetric key, then encrypts everything after that symmetrically. <b>The handshake is really just a key exchange</b>, plus identity verification via certificates.
+<br><br>
+<b>TLS 1.2 handshake (the version most questions describe):</b>
+<ul>
+  <li><b>ClientHello:</b> client sends the list of <b>cipher suites it supports</b>, TLS version, a random number, <b>SNI</b> (the hostname it wants to talk to &mdash; essential for virtual hosting), <b>ALPN</b> (protocols it speaks: HTTP/1.1, h2, h3), and TLS extensions.</li>
+  <li><b>ServerHello:</b> server picks one cipher suite from the offered list (preferring something like <code>TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384</code>), sends its own random, and follows with: <b>Certificate</b> (the full chain, leaf + intermediates), <b>ServerKeyExchange</b> (ECDHE parameters &mdash; ephemeral public key for the Diffie-Hellman exchange, signed with the server's long-term key from the cert), and <b>ServerHelloDone</b>.</li>
+  <li><b>Client verifies the certificate.</b> Walks the chain from leaf to root, checking each signature. Root must be in the client's trust store. Verifies the leaf's SAN/CN matches the hostname. Checks expiry, revocation (OCSP or CRL).</li>
+  <li><b>ClientKeyExchange:</b> client sends its ECDHE public key. Now both sides have each other's ECDHE public keys and can compute the shared secret without ever transmitting it.</li>
+  <li><b>Key derivation:</b> both sides derive session keys from (client random + server random + shared secret) using a key derivation function.</li>
+  <li><b>ChangeCipherSpec + Finished:</b> both sides confirm they're switching to the encrypted channel. The Finished message includes a hash of the entire handshake, proving both parties saw the same sequence &mdash; prevents downgrade attacks.</li>
+</ul>
+That's <b>two round trips</b> before the application can send its first byte &mdash; noticeable on high-latency links.
+<br><br>
+<b>TLS 1.3 &mdash; the modern version.</b> TLS 1.3 (2018) cut the fat: removed obsolete ciphers, mandated forward secrecy, merged several round trips. The handshake is <b>one round trip</b>, and for resumed sessions (client has a ticket from a previous connection), it can be <b>zero round trips</b> &mdash; encrypted application data in the very first packet. This matters enormously for mobile and global apps where RTT dominates.
+<br><br>
+<b>Perfect Forward Secrecy (PFS) via ECDHE.</b> In older "RSA key exchange" mode, the client encrypted the session key with the server's public key. If the server's private key ever leaked, <b>every past recorded session could be decrypted retroactively</b>. ECDHE uses <b>ephemeral</b> keys (generated per-session, thrown away after) &mdash; even if the server's long-term key is stolen later, past sessions stay private. TLS 1.3 mandates PFS; TLS 1.2 ECDHE cipher suites provide it.
+<br><br>
+<b>Certificate verification is where most breakage happens.</b> Common failure modes:
+<ul>
+  <li><b>Expired certificate.</b> Certs have a <code>notAfter</code> date. Expired = all clients refuse. Let's Encrypt autorenews; AWS ACM autorenews. Self-managed certs need monitoring (cert-manager in Kubernetes, or a simple cron with <code>openssl x509 -enddate</code>).</li>
+  <li><b>Hostname mismatch.</b> Cert says <code>www.example.com</code>, user connects to <code>example.com</code>. Fix: issue a cert with both as SANs, or use a wildcard <code>*.example.com</code>.</li>
+  <li><b>Untrusted CA / missing intermediate.</b> The server must send the <b>full chain</b> (leaf + intermediates, but not root; root is in the client's trust store). If only the leaf is served, clients that don't happen to have the intermediate cached will fail. Test with <code>openssl s_client -connect host:443 -servername host</code> and look for "Verify return code: 21 (unable to verify the first certificate)".</li>
+  <li><b>Clock skew.</b> If the client's clock is wildly off, the cert will appear either not-yet-valid or expired. NTP matters.</li>
+  <li><b>Revocation.</b> Certs can be revoked before expiry. Historically via CRLs (download a big list periodically), now usually OCSP (ask "is this cert revoked?" per connection). <b>OCSP Stapling</b> lets the server cache and serve the OCSP response, eliminating client-side OCSP round trips.</li>
+</ul>
+<b>The operational tools:</b>
+<ul>
+  <li><code>openssl s_client -connect host:443 -servername host -showcerts</code> &mdash; shows the full chain the server is presenting, cipher negotiated, everything.</li>
+  <li><code>openssl x509 -in cert.pem -text -noout</code> &mdash; decodes a cert file into readable fields.</li>
+  <li><code>echo | openssl s_client -connect host:443 2&gt;/dev/null | openssl x509 -noout -dates</code> &mdash; quick expiry check.</li>
+  <li><code>sslscan host</code>, <code>testssl.sh host</code> &mdash; automated audit tools; show which protocols and ciphers a server supports, flag weaknesses.</li>
+  <li><code>curl -v https://host</code> &mdash; shows the client-side view including SNI, ALPN, and verification result.</li>
+</ul>
+<b>The AFT-flavor follow-up:</b> <b>"At Amazon scale, how do you manage certs?"</b> Answer: <b>ACM (AWS Certificate Manager)</b> for public certs on AWS resources (auto-renewed, integrated with ALB/CloudFront/API Gateway); <b>ACM Private CA</b> for internal TLS. <b>HashiCorp Vault PKI</b> or <b>cert-manager + Let's Encrypt</b> for Kubernetes. <b>Short-lived certs</b> (hours not years) are the direction of travel &mdash; no revocation drama, automated rotation.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain SSL/TLS; no understanding of encryption in transit.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows HTTPS is "secure" but can't explain the handshake.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Understands certs involved but can't describe handshake steps or key exchange.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">ClientHello -&gt; ServerHello + Cert -&gt; cert verify -&gt; key exchange -&gt; symmetric encryption; asymmetric for exchange, symmetric for data; why (perf).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">TLS 1.2 vs 1.3 (1-RTT); Perfect Forward Secrecy via ephemeral DH; cert chains (root -&gt; intermediate -&gt; leaf); OCSP stapling; SNI; mTLS for service-to-service.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q22 (removed) Certificate Management ============ -->
+
+<!-- ============ Q19 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q19 &middot; Environment Variables (Security Angle)</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What are environment variables? How do you set them? What are the security considerations when storing secrets?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SECURITY CONSIDERATIONS</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Env vars leak via
+cat /proc/&lt;pid&gt;/environ      # any user with access to the PID
+ps eww                        # some systems show env in ps
+core dumps / crash reports
+child processes inherit env
+
+# Prefer secrets managers
+#   AWS SSM Parameter Store (SecureString)
+#   AWS Secrets Manager
+#   HashiCorp Vault
+#   sealed-secrets / SOPS for GitOps
+
+# If you must use env vars
+#   systemd: EnvironmentFile=/etc/myapp/secret.env (chmod 600, root-only)
+#   never commit .env files; add to .gitignore
+#   rotate on leak; audit access
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE THREAT MODEL OF ENV VARS</b></font>
+<br><br>
+<font size="3"><b>Env vars are fine for configuration, dangerous for secrets.</b> The 12-factor-app mantra "config via environment" conflates non-sensitive config (log level, port number, feature flag) with sensitive secrets (API keys, DB passwords). They need different handling. This question is really "do you know <i>where</i> env vars leak?"
+<br><br>
+<b>The six leak paths &mdash; memorize these:</b>
+<ol>
+  <li><b><code>/proc/&lt;pid&gt;/environ</code>.</b> Any process on the system that <b>shares your UID</b> can <code>cat</code> this and see every env var attached to your process &mdash; <code>cat /proc/$(pgrep myapp)/environ | tr '\0' '\n'</code>. Root can always read it. On a shared host or container with insufficient isolation, this is a real leak.</li>
+  <li><b><code>ps eww PID</code>.</b> On some systems / configurations, the full environment shows up in process listings. Less common on modern Linux (requires the same UID, and most distros have toned this down), but still possible.</li>
+  <li><b>Command-line arguments &mdash; worse than env.</b> <code>mysql -u root -pHUNTER2</code> is visible to <i>anyone</i> on the host via <code>ps aux</code>. At least env vars require the same UID. Never pass secrets on the command line.</li>
+  <li><b>Child process inheritance.</b> Any process you spawn inherits your entire env. Run <code>npm install</code> while <code>AWS_SECRET_ACCESS_KEY</code> is set, and every post-install script in every dependency has access to your creds. Be surgical &mdash; set secrets right before the call that needs them, unset after, or pass them via stdin or a short-lived file.</li>
+  <li><b>Core dumps / crash reports.</b> When a process crashes, the kernel may write a core file containing the full memory state &mdash; including env vars. Crash reporting services (Sentry, Crashlytics) may exfiltrate this to their servers. Disable core dumps (<code>ulimit -c 0</code>) in production or scrub reports.</li>
+  <li><b>Logs.</b> Frameworks often log the environment on startup for debugging. Error tracking may capture request context including env. Log scrubbing is needed; better, never put secrets in env in the first place.</li>
+</ol>
+<b>Why secrets managers are the right answer at AFT scale:</b>
+<ul>
+  <li><b>AWS Secrets Manager</b> and <b>SSM Parameter Store (SecureString)</b>: secrets stored encrypted at rest (KMS), accessed via IAM, with CloudTrail audit logs. Your application fetches at startup (or per-use) using its instance/role credentials &mdash; <b>no long-lived secret lives on disk anywhere</b>. Automatic rotation is supported (Secrets Manager can rotate DB passwords on schedule, coordinating with the DB to update both places).</li>
+  <li><b>HashiCorp Vault</b>: cloud-agnostic version. Same pattern: app authenticates to Vault (via AWS IAM, Kubernetes service account, short-lived tokens), fetches secrets, uses them without writing to disk. Supports <b>dynamic secrets</b> (Vault creates a fresh DB user for each app boot, revokes when the lease expires).</li>
+  <li><b>Kubernetes Secrets + sealed-secrets / SOPS</b>: K8s Secrets are base64-encoded-not-encrypted in etcd by default; enable encryption at rest. For GitOps (secrets in Git), <b>SOPS</b> encrypts values with KMS/PGP before commit, decrypts at deploy. <b>Sealed Secrets</b> (Bitnami) encrypts with a controller-managed key; only the cluster can decrypt, so you can safely push to a public repo.</li>
+</ul>
+<b>The acceptable middle ground:</b> if you <i>must</i> use env vars (legacy apps, constrained environments, quick prototypes), at least do these:
+<ul>
+  <li>Never commit <code>.env</code> files. <code>.gitignore</code> them. <code>git-secrets</code> / <code>trufflehog</code> / <code>gitleaks</code> scan commits for accidental secret leaks.</li>
+  <li>Use systemd's <code>EnvironmentFile=/etc/myapp/secret.env</code> with the file owned by root and mode 600. Systemd reads it, spawns the service with the env set, and the file is never world-readable.</li>
+  <li>Separate secrets from config. Commit <code>config.env.example</code> with placeholders; the real <code>secret.env</code> lives only on the server.</li>
+  <li>Rotate on any suspicion of leak. Have a runbook: "credentials N leaked &mdash; here are the steps to rotate and validate".</li>
+  <li>Use short-lived credentials where possible &mdash; AWS IAM roles instead of access keys, Vault dynamic secrets, database auth via IAM/Kerberos instead of passwords.</li>
+</ul>
+<b>The zero-trust direction:</b> modern architecture moves toward <b>no secrets at all</b> in environment or config.
+<ul>
+  <li><b>IAM roles for EC2/ECS/Lambda:</b> the instance metadata service (<code>169.254.169.254</code>) returns short-lived credentials. No access key to leak because there isn't one.</li>
+  <li><b>OIDC for CI/CD:</b> GitHub Actions, GitLab CI use OIDC to authenticate to AWS/GCP without static tokens &mdash; every pipeline run gets fresh, time-bounded credentials.</li>
+  <li><b>mTLS for service-to-service:</b> each service has a short-lived cert issued by the mesh (Istio, Linkerd, App Mesh). No bearer tokens to steal.</li>
+  <li><b>Database IAM auth:</b> RDS can authenticate via IAM tokens (15-minute lifetime), no DB password exists.</li>
+</ul>
+<b>The one rule to emphasize in the interview:</b> <b>secrets should never be in your shell history, your Git log, your CI config, or your container image.</b> If any of those happens, rotate immediately and investigate how. GitHub's secret scanning is good; <code>trufflehog</code> or <code>gitleaks</code> on PR is better.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain env vars; no security awareness.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>export</code> but doesn't think about leaks.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Can set variables but unaware of how they leak (/proc, ps, child inheritance).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">key=value inherited by children; <code>.bashrc</code> vs <code>.bash_profile</code> vs <code>/etc/environment</code>; discusses NOT storing secrets in env; mentions secrets managers.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3"><code>/proc/PID/environ</code> leak; systemd <code>EnvironmentFile</code> with chmod 600; Vault/SSM Parameter Store/Secrets Manager; secret rotation; audit logging; SOPS/sealed-secrets for GitOps.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+</font>
+</td></tr>
+</table>
+
+</body>
+</html>
