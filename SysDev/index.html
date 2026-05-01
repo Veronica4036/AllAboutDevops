@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SDE AFT Support Interview Prep — Home</title>
+</head>
+<body bgcolor="#0d1117" text="#e6edf3" link="#58a6ff" vlink="#bc8cff" alink="#ffa657">
+
+<table width="100%" bgcolor="#161b22" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+  <font face="Helvetica, Arial, sans-serif" size="4" color="#e6edf3"><b>SDE AFT Support Prep</b></font>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <font face="Helvetica, Arial, sans-serif" size="3">
+    <a href="index.html"><font color="#58a6ff"><b>Home</b></font></a> &nbsp;&middot;&nbsp;
+    <a href="patterns.html"><font color="#8b949e">Patterns</font></a> &nbsp;&middot;&nbsp;
+    <a href="coding.html"><font color="#8b949e">Coding &amp; Algorithms</font></a> &nbsp;&middot;&nbsp;
+    <a href="scripting-linux.html"><font color="#8b949e">Scripting &amp; Linux</font></a> &nbsp;&middot;&nbsp;
+    <a href="networking-security.html"><font color="#8b949e">Networking &amp; Security</font></a> &nbsp;&middot;&nbsp;
+    <a href="troubleshooting-ops.html"><font color="#8b949e">Troubleshooting &amp; Ops</font></a> &nbsp;&middot;&nbsp;
+    <a href="systems-cloud.html"><font color="#8b949e">Systems &amp; Cloud</font></a>
+  </font>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="1000" align="center" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<font face="Helvetica, Arial, sans-serif">
+
+<h1><font color="#e6edf3" size="6">System Development Engineer &mdash; AFT Support</font></h1>
+<p><font size="3" color="#8b949e">Interview prep tuned to <b>Amazon Fulfillment Technologies Support</b>. Python-focused (with light Java). Skip SQL.</font></p>
+
+<br>
+
+<!-- Role framing -->
+<table width="100%" bgcolor="#132030" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128269; WHAT THIS TEAM ACTUALLY DOES</b></font>
+<br><br>
+<font size="3">AFT Support SDEs handle <b>production incidents</b> on fulfillment systems: shipment, availability, customer promises, shipment optimization. Per the JD, daily work includes:</font>
+<ul>
+  <li><font size="3"><b>Troubleshoot &amp; diagnose</b> production software issues</font></li>
+  <li><font size="3"><b>Build monitoring solutions</b> &mdash; detect before failure</font></li>
+  <li><font size="3"><b>Automate support processes</b> &mdash; scripts, tools, runbooks</font></li>
+  <li><font size="3"><b>Fix internally developed code</b> &mdash; Perl, Ruby, C/C++, Java (you'll mostly read, occasionally patch)</font></li>
+  <li><font size="3"><b>Coordinate across</b> Dev / Ops / IT Support during high-impact issues</font></li>
+  <li><font size="3"><b>CI/CD pipelines, Linux/Unix, infrastructure automation</b></font></li>
+</ul>
+<br>
+<font size="2" color="#ffa657"><b>TRANSLATION:</b> They'll grade you on <b>logical, maintainable automation scripts</b>, <b>production instincts</b> (retries, idempotency, graceful shutdown), <b>Linux/ops fundamentals</b>, and <b>troubleshooting methodology</b>. Less on clever Leetcode.</font>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- Priority legend -->
+<table width="100%" bgcolor="#1c2430" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#ffa657"><b>&#127919; PRIORITY BADGES</b> (used throughout all pages)</font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="15%"><font color="#3fb950" size="4"><b>&#128994; HIGH</b></font></td>
+<td><font size="3">Directly matches AFT Support daily work. <b>Drill these until you can do them cold.</b> Automation, log parsing, retries, idempotency, Linux debugging, monitoring, incident management.</font></td>
+</tr>
+<tr valign="top">
+<td><font color="#e3b341" size="4"><b>&#128993; MEDIUM</b></font></td>
+<td><font size="3">Good to know for signal. One careful pass each. Coding fundamentals, classic DS, common networking/HTTP questions.</font></td>
+</tr>
+<tr valign="top">
+<td><font color="#8b949e" size="4"><b>&#9898; LOW</b></font></td>
+<td><font size="3">Skim once &mdash; don't drill. Pure algorithmic puzzles that are unlikely for this role. If time-pressed, skip entirely.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- 5-day plan -->
+<table width="100%" bgcolor="#11261c" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#7ee787"><b>&#9200; 5-DAY CRAM PLAN &mdash; TUNED FOR AFT SUPPORT</b></font>
+<br><br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+
+<tr valign="top">
+  <td width="15%" bgcolor="#0f1620"><font color="#58a6ff" size="4"><b>Day 1</b></font><br><font size="2" color="#8b949e">Scripting &amp;<br>Log Parsing</font></td>
+  <td bgcolor="#0f1620"><font size="3"><b>The bread and butter.</b> Open <a href="scripting-linux.html">Scripting &amp; Linux</a> and do all the &#128994; scripting questions (SSH brute-force logs, auth log parsing, find top-10, phone numbers, sed/awk, regex). Also from <a href="troubleshooting-ops.html">Troubleshooting</a>: the new <b>Python Ops Essentials</b> questions (idempotent script, log tailer, disk cleanup, graceful shutdown).</font></td>
+</tr>
+
+<tr valign="top">
+  <td bgcolor="#0f1620"><font color="#58a6ff" size="4"><b>Day 2</b></font><br><font size="2" color="#8b949e">OOP Design<br>(biggest signal)</font></td>
+  <td bgcolor="#0f1620"><font size="3"><b>Where SysDE interviews really live.</b> From <a href="coding.html">Coding</a>: <b>Pizza Builder</b> &mdash; drill this one deeply. Practice verbalizing abstractions, enums, interfaces, composition over inheritance, testability. Also review the OOP patterns in <a href="patterns.html">Patterns P14 &middot; Enums + Abstractions</a>.</font></td>
+</tr>
+
+<tr valign="top">
+  <td bgcolor="#0f1620"><font color="#58a6ff" size="4"><b>Day 3</b></font><br><font size="2" color="#8b949e">Production<br>Resilience</font></td>
+  <td bgcolor="#0f1620"><font size="3"><b>Showing production instincts separates you.</b> From <a href="coding.html">Coding</a>: Retry + Backoff (&#128994;), Rate Limiter (&#128994;), Producer/Consumer (&#128994;), LRU Cache. From <a href="troubleshooting-ops.html">Troubleshooting</a>: Incident Management, Monitoring &amp; Alerting, Runbooks.</font></td>
+</tr>
+
+<tr valign="top">
+  <td bgcolor="#0f1620"><font color="#58a6ff" size="4"><b>Day 4</b></font><br><font size="2" color="#8b949e">Linux Depth<br>&amp; Networking</font></td>
+  <td bgcolor="#0f1620"><font size="3"><b>They'll debug a real scenario with you.</b> From <a href="scripting-linux.html">Scripting &amp; Linux</a>: file perms, inodes, symlinks, signals, zombies, swap, systemd, process investigation, common troubleshooting commands. From <a href="networking-security.html">Networking</a>: TCP/UDP, DNS records, HTTP status codes, "no route to host", "cannot SSH".</font></td>
+</tr>
+
+<tr valign="top">
+  <td bgcolor="#0f1620"><font color="#58a6ff" size="4"><b>Day 5</b></font><br><font size="2" color="#8b949e">Mock runs<br>&amp; Gaps</font></td>
+  <td bgcolor="#0f1620"><font size="3"><b>Real talk-out-loud practice.</b> Pick 4 random &#128994; questions; solve each under a 25-min timer while narrating your thinking. Read the Coding page <b>Interview Playbook</b> and <b>Night-Before Cram Sheet</b> twice. Skim any &#128993; gaps. Skip all &#9898;.</font></td>
+</tr>
+
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- Python idioms reminder -->
+<table width="100%" bgcolor="#241b2e" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>&#128013; PYTHON IDIOMS TO REACH FOR</b> (interviewers expect these)</font>
+<br><br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from collections import Counter, defaultdict, deque, OrderedDict
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Iterator, Optional, Callable
+import heapq, itertools, functools, re, os, sys, time, logging
+
+# Counting            Counter(iterable), .most_common(k)
+# Grouping            defaultdict(list) &mdash; no KeyError, cleaner than dict.get
+# FIFO queue / BFS    deque([...]) with popleft() &mdash; O(1) both ends
+# LRU shortcut        OrderedDict + move_to_end / popitem(last=False)
+# Heap (top-K)        heapq.nlargest(k, data), heappush, heappop
+# Memoize             @functools.lru_cache(maxsize=None)
+# Value objects       @dataclass classes &mdash; auto __init__/__repr__
+# Enumerate fixed sets    class Size(Enum): SMALL = "S"; ...
+# Safe file ops       with open(path) as f: ...
+# Streaming           for line in f: yield parse(line)    # never read().splitlines()
+# Regex extract       re.findall(r'\b\d{1,3}(?:\.\d{1,3}){3}\b', line)
+# Timing              time.monotonic() for intervals; time.time() for wall-clock
+# Retry-friendly      raise + caller decides; don't swallow exceptions silently
+# Logging             logging.getLogger(__name__), not print()
+</font></pre>
+</td></tr>
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- Topic Pages -->
+<h2><font color="#58a6ff">Topic Pages</font></h2>
+
+<table width="100%" cellpadding="16" cellspacing="10" border="0">
+
+<tr>
+<td width="100%" bgcolor="#11261c" valign="top" colspan="2">
+  <a href="patterns.html"><font size="4" color="#3fb950"><b>&#128269; Pattern Recognition &mdash; Deep Dive</b></font></a> &nbsp; <font size="2" color="#3fb950"><b>&#11088; NIGHT-BEFORE REVIEW</b></font><br>
+  <font size="2" color="#8b949e">14 patterns &middot; combination matrix &middot; 30-second decision framework &middot; rapid-fire drill</font><br><br>
+  <font size="3">The "if you hear this, reach for that" intuition layer. Each pattern broken down into why it works, the 1-sentence mental model, common traps, escalation paths, real interview questions, and how patterns combine. Built for the night before.</font>
+</td>
+</tr>
+
+<tr>
+<td width="50%" bgcolor="#161b22" valign="top">
+  <a href="scripting-linux.html"><font size="4" color="#7ee787"><b>Scripting &amp; Linux</b></font></a> &nbsp; <font size="2" color="#3fb950"><b>&#128994; HIGHEST for AFT</b></font><br>
+  <font size="2" color="#8b949e">23 questions</font><br><br>
+  <font size="3">Bash &amp; Python automation, Linux fundamentals (perms, inodes, systemd, signals), config management, storage &amp; backup.</font>
+</td>
+<td width="50%" bgcolor="#161b22" valign="top">
+  <a href="troubleshooting-ops.html"><font size="4" color="#7ee787"><b>Troubleshooting &amp; Operations</b></font></a> &nbsp; <font size="2" color="#3fb950"><b>&#128994; HIGHEST for AFT</b></font><br>
+  <font size="2" color="#8b949e">22 questions + Python Ops Essentials</font><br><br>
+  <font size="3">Production incidents, process investigation, monitoring, runbooks, CI/CD, DR/HA. Plus the new AFT-tuned Python ops additions.</font>
+</td>
+</tr>
+
+<tr>
+<td width="50%" bgcolor="#161b22" valign="top">
+  <a href="coding.html"><font size="4" color="#7ee787"><b>Coding &amp; Algorithms</b></font></a> &nbsp; <font size="2" color="#e3b341"><b>&#128993; HIGH for AFT</b></font><br>
+  <font size="2" color="#8b949e">29 questions &middot; Python solutions</font><br><br>
+  <font size="3">Problem solving, logical &amp; maintainable code, data structures, regex, API design. Priority-tagged for AFT Support.</font>
+</td>
+<td width="50%" bgcolor="#161b22" valign="top">
+  <a href="networking-security.html"><font size="4" color="#7ee787"><b>Networking, HTTP &amp; Security</b></font></a> &nbsp; <font size="2" color="#e3b341"><b>&#128993; HIGH for AFT</b></font><br>
+  <font size="2" color="#8b949e">19 questions</font><br><br>
+  <font size="3">TCP/UDP, DNS, HTTP, SSL/TLS, SSH, subnetting, network troubleshooting. Drives production debugging conversations.</font>
+</td>
+</tr>
+
+<tr>
+<td width="50%" bgcolor="#161b22" valign="top" colspan="2">
+  <a href="systems-cloud.html"><font size="4" color="#7ee787"><b>Systems, Cloud &amp; Containers</b></font></a> &nbsp; <font size="2" color="#8b949e"><b>&#9898; MEDIUM for AFT</b> &mdash; less central at L4</font><br>
+  <font size="2" color="#8b949e">14 questions</font><br><br>
+  <font size="3">System design, load balancers, virtualization, containers, Kubernetes, microservices. Skim &#128994; here; deprioritize deep HLD.</font>
+</td>
+</tr>
+
+</table>
+
+<br><hr color="#30363d" size="1" noshade><br>
+
+<h2><font color="#58a6ff">Interview Playbook</font></h2>
+
+<table width="100%" bgcolor="#11261c" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<ol>
+  <li><font size="3"><b>Restate the problem</b> in your own words. Ask 2-3 clarifying questions (input size? duplicates? invalid input handling? single-node or distributed?).</font></li>
+  <li><font size="3"><b>Think out loud</b> &mdash; narrate your approach BEFORE writing code. Communication is graded equally with correctness.</font></li>
+  <li><font size="3"><b>Name your pattern.</b> "This is a sliding window / BFS / monotonic stack / flood fill problem." Shows pattern recognition.</font></li>
+  <li><font size="3"><b>Brute force first.</b> State O(n&sup2;), then ask "can we do O(n) with a hash map?" Worse to freeze silently than to submit suboptimal and iterate.</font></li>
+  <li><font size="3"><b>For OOP problems</b>: sketch the classes before writing any method body. Separate data, logic, and I/O layers.</font></li>
+  <li><font size="3"><b>Edge cases</b>: empty input, single element, duplicates, null/None, overflow, concurrency. Mention them BEFORE the interviewer prompts.</font></li>
+  <li><font size="3"><b>Production instincts</b> that separate SysDE candidates: idempotency, retry-with-backoff, graceful shutdown, logging over print, type hints, error messages with actionable info.</font></li>
+  <li><font size="3"><b>State complexity</b> when done. If suboptimal, volunteer: "Given more time, I'd add X."</font></li>
+  <li><font size="3"><b>If stuck:</b> say so. Ask for a nudge. Restate what you know. Stepping back beats rabbit-holing.</font></li>
+  <li><font size="3"><b>If you don't know SQL</b> and it comes up: say honestly "I don't have deep SQL experience but I understand the concepts at a high level &mdash; I can describe what I'd query for." Don't bluff.</font></li>
+</ol>
+</td></tr>
+</table>
+
+<br><br>
+
+<h2><font color="#58a6ff">SysDE L4 Evaluation Framework</font></h2>
+<p><font size="3" color="#8b949e">The rubric the interviewer is grading against.</font></p>
+
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="10" cellspacing="1" border="0">
+  <tr bgcolor="#1c2430">
+    <th align="left" width="20%"><font color="#58a6ff">Rating</font></th>
+    <th align="left"><font color="#58a6ff">What interviewer sees</font></th>
+  </tr>
+  <tr bgcolor="#161b22"><td><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Makes assumptions without clarifying; can't translate approach into code; overly complex or broken code; needs excessive guidance; can't discuss edge cases.</font></td></tr>
+  <tr bgcolor="#161b22"><td><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Some ability, notable gaps.</font></td></tr>
+  <tr bgcolor="#161b22"><td><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Some strengths, some concerns.</font></td></tr>
+  <tr bgcolor="#161b22"><td><font color="#7ee787"><b>Mild Strength (Meets Bar)</b></font></td><td><font size="3">Clarifies problem; communicates approach; readable, extensible, correct code; uses appropriate data structures.</font></td></tr>
+  <tr bgcolor="#161b22"><td><font color="#3fb950"><b>Strength (Raises Bar)</b></font></td><td><font size="3">All of the above + describes improvements/extensions; proposes tests; knows when to use advanced DS; discusses tradeoffs and edge cases.</font></td></tr>
+</table>
+
+<br><br>
+
+<table width="100%" bgcolor="#2a1f14" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#ffa657"><b>KEY EVALUATION PRINCIPLES</b></font>
+<ul>
+  <li><font size="3"><b>Coding focus for SysDE:</b> automation, logical, maintainable code. DS&amp;A and problem solving are secondary data points.</font></li>
+  <li><font size="3">"Peel the onion" until you get stuck &mdash; they're probing your ability to connect the dots.</font></li>
+  <li><font size="3">Over-engineering is a red flag &mdash; simpler that works beats complex that doesn't.</font></li>
+  <li><font size="3"><b>Beware of overconfidence.</b> Dive Deep into anything you claim; truly knowledgeable candidates follow up easily.</font></li>
+</ul>
+</td></tr>
+</table>
+
+<br><br>
+
+<h3><font color="#7ee787">Signals by Dimension</font></h3>
+<table width="100%" bgcolor="#161b22" cellpadding="10" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="25%"><font color="#58a6ff">Dimension</font></th><th align="left"><font color="#58a6ff">Key Signals</font></th></tr>
+<tr bgcolor="#161b22"><td><b>Coding</b></td><td><font size="3">Automation focus, logical and maintainable code, clarifying questions, working solution.</font></td></tr>
+<tr bgcolor="#161b22"><td><b>OAPI</b></td><td><font size="3">Toil reduction, service health monitoring, proactive ops, deployment best practices.</font></td></tr>
+<tr bgcolor="#161b22"><td><b>Troubleshooting</b></td><td><font size="3">Systematic approach, right tools, mitigation vs root cause, customer-impact awareness.</font></td></tr>
+<tr bgcolor="#161b22"><td><b>System Design</b></td><td><font size="3">Clarifies requirements, identifies components + interactions, considers scale/failure modes, avoids over-engineering.</font></td></tr>
+<tr bgcolor="#161b22"><td><b>Linux / Networking</b></td><td><font size="3">Hands-on: navigate filesystem, parse logs, troubleshoot connectivity, fundamentals.</font></td></tr>
+</table>
+
+<br><br>
+
+</font>
+</td></tr>
+</table>
+
+</body>
+</html>
