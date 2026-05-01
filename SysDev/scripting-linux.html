@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SysDE L4 Prep — Scripting &amp; Linux</title>
+</head>
+<body bgcolor="#0d1117" text="#e6edf3" link="#58a6ff" vlink="#bc8cff" alink="#ffa657">
+
+<table width="100%" bgcolor="#161b22" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+  <font face="Helvetica, Arial, sans-serif" size="4" color="#e6edf3"><b>SysDE L4 Prep</b></font>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <font face="Helvetica, Arial, sans-serif" size="3">
+    <a href="index.html"><font color="#8b949e">Home</font></a> &nbsp;&middot;&nbsp;
+    <a href="patterns.html"><font color="#8b949e">Patterns</font></a> &nbsp;&middot;&nbsp;
+    <a href="coding.html"><font color="#8b949e">Coding &amp; Algorithms</font></a> &nbsp;&middot;&nbsp;
+    <a href="scripting-linux.html"><font color="#58a6ff"><b>Scripting &amp; Linux</b></font></a> &nbsp;&middot;&nbsp;
+    <a href="networking-security.html"><font color="#8b949e">Networking &amp; Security</font></a> &nbsp;&middot;&nbsp;
+    <a href="troubleshooting-ops.html"><font color="#8b949e">Troubleshooting &amp; Ops</font></a> &nbsp;&middot;&nbsp;
+    <a href="systems-cloud.html"><font color="#8b949e">Systems &amp; Cloud</font></a>
+  </font>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="1000" align="center" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<font face="Helvetica, Arial, sans-serif">
+
+<h1><font color="#e6edf3" size="6">Scripting &amp; Linux</font></h1>
+<p><font size="3" color="#8b949e">23 questions &mdash; AFT-priority tagged (&#128994; high / &#128993; medium / &#9898; low). This is the <b>single highest-value page</b> for System Development Engineer, AFT Support.</font></p>
+
+<br>
+
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#127919; WHY THIS PAGE MATTERS MOST FOR AFT SUPPORT</b></font>
+<br><br>
+<font size="3">The JD lists: "<b>Linux/Unix</b>... troubleshooting production software issues... automating daily operational activities... performing software maintenance and configuration." This page IS the job description. Drill every &#128994; here until you can do them cold.</font>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- Python idioms for ops -->
+<table width="100%" bgcolor="#241b2e" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>&#128013; PYTHON IDIOMS FOR OPS WORK</b></font>
+<br><br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import subprocess, shlex, os, sys, signal, logging, time, pathlib
+from collections import Counter, defaultdict, deque
+from contextlib import contextmanager
+
+# Running shell commands safely (never use shell=True with user input)
+r = subprocess.run(["ls", "-la", "/tmp"], capture_output=True, text=True, check=True)
+print(r.stdout)
+
+# Streaming output from a long-running subprocess
+proc = subprocess.Popen(["tail", "-F", "/var/log/app.log"],
+                        stdout=subprocess.PIPE, text=True)
+for line in proc.stdout:
+    handle(line.rstrip())
+
+# Graceful shutdown on SIGTERM (for long-running ops scripts)
+stop = False
+def _on_signal(*_): global stop; stop = True
+signal.signal(signal.SIGTERM, _on_signal)
+signal.signal(signal.SIGINT,  _on_signal)
+
+# Idempotent file ops
+pathlib.Path("/opt/myapp/run").mkdir(parents=True, exist_ok=True)
+
+# Read large file without loading into memory
+with open("/var/log/huge.log") as f:
+    for line in f:
+        process(line)
+
+# Logging (NOT print) so ops people can filter / route output
+logging.basicConfig(level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger("myscript")
+log.info("started")
+
+# Context manager for timing a block
+@contextmanager
+def timed(label):
+    t0 = time.monotonic()
+    try: yield
+    finally: log.info("%s took %.3fs", label, time.monotonic() - t0)
+</font></pre>
+</td></tr>
+</table>
+</td></tr>
+</table>
+
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787">Contents</font></h3>
+<font size="3">
+<ol>
+  <li><a href="#scripting"><font color="#58a6ff">Scripting &amp; Automation</font></a> &nbsp;<font color="#8b949e">&mdash; 8 questions</font></li><br>
+  <li><a href="#linux"><font color="#58a6ff">Linux Fundamentals</font></a> &nbsp;<font color="#8b949e">&mdash; 10 questions</font></li><br>
+  <li><a href="#config-mgmt"><font color="#58a6ff">Configuration Management</font></a> &nbsp;<font color="#8b949e">&mdash; 3 questions</font></li><br>
+  <li><a href="#storage"><font color="#58a6ff">Storage &amp; Backup</font></a> &nbsp;<font color="#8b949e">&mdash; 2 questions</font></li>
+</ol>
+</font>
+</td></tr>
+</table>
+
+<br><br><br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="scripting"><font color="#58a6ff" size="6">1. Scripting &amp; Automation</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+<!-- SECTIONS_START -->
+
+
+<!-- ============ Q1 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q1 &middot; Find Top 10 Largest Files/Directories</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; One-liner to find the top 10 largest files or directories under <code>/home/</code>.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Top 10 with numeric kilobyte sizes
+du -sk /home/* | sort -n -r | head -n 10
+
+# Human-readable
+du -sh /home/* | sort -hr | head -n 10
+
+# Only files
+find /home -type f -exec du -sh {} + | sort -hr | head -n 10
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHAT EACH PIECE IS DOING</b></font>
+<br><br>
+<font size="3"><b><code>du</code> (disk usage)</b> traverses a directory tree and sums the block sizes of every file. The <b><code>-s</code> (summary)</b> flag tells it to print only the total for each argument rather than recursing into every subfolder. Without it, you'd get one line per file and the pipe would choke on a large tree. <b><code>-k</code></b> forces output in <b>kilobytes</b> (consistent units, parseable by <code>sort -n</code>); <b><code>-h</code></b> prints human-readable (KB/MB/GB) &mdash; looks nicer but you <b>must</b> pair it with <code>sort -h</code> (human-numeric sort) or the sort will be alphabetical ("10K" &lt; "2M" lexically).
+<br><br>
+<b><code>sort -n -r</code></b>: numeric, reverse. <code>sort -hr</code> is the human-readable variant. Forgetting <code>-n</code> is the classic beginner trap &mdash; string sort puts "100" before "99".
+<br><br>
+<b><code>du</code> vs <code>df</code> discrepancy</b> (Raises Bar discussion): <code>du</code> walks the filesystem tree and sums file sizes; <code>df</code> asks the kernel how many blocks are actually allocated on the disk. They disagree when a process has a <b>deleted file still open</b> &mdash; the directory entry is gone (du can't see it), but the inode is kept alive until the fd closes (df still counts it). Fix: <code>lsof | grep deleted</code>, then restart the holding process. This is a <b>very common AFT-style "disk full but I can't find the files"</b> debugging scenario.
+<br><br>
+<b>Alternatives worth naming:</b> <code>ncdu</code> (interactive TUI), <code>find /home -size +1G</code> (size-filter at find-time, faster for sparse huge files), <code>du --max-depth=1</code> (like <code>-s</code> but one level deeper for drill-down), and filesystem <b>quotas</b> (<code>quota</code>, <code>repquota</code>) for prevention rather than detection.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot recall <code>du</code> or <code>sort</code>; no working solution.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Uses <code>ls -la</code> (doesn't show directory sizes); partial solution.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Uses <code>du</code> but incorrect flags or sort order.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3"><code>du -sk /home/* | sort -n -r | head -n 10</code>; explains each component.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Discusses <code>-s</code> vs recursive, <code>du -sh</code>, alternatives (<code>find -size</code>, <code>ncdu</code>); <code>du</code> vs <code>df</code> discrepancy (deleted open files); monitoring/quotas.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q2 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q2 &middot; sed and awk</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain the difference between sed and awk. Give examples of when you'd use each.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>EXAMPLES</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># sed -- stream editor (find/replace, line ops)
+sed 's/foo/bar/g' file
+sed -n '5,10p' file
+sed '/pattern/d' file
+sed -i 's/old/new/g' file        # in-place
+
+# awk -- pattern/column processing
+awk '{print $1, $3}' file
+awk -F: '{print $1}' /etc/passwd
+awk '{sum+=$2} END {print sum}' file
+awk '/ERROR/ {c++} END {print c}' app.log
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHEN TO REACH FOR WHICH</b></font>
+<br><br>
+<font size="3"><b>sed (stream editor)</b> is built around <b>line-oriented text transformation</b>. It reads one line at a time into a "pattern space", applies your script, and prints the result. Its sweet spot is <b>substitutions and deletions</b> &mdash; find/replace across a file or stream. It's faster and terser than awk for pure text munging. The most important flags: <code>-i</code> rewrites in place (accept <code>-i.bak</code> for a safety backup, critical on production boxes); <code>-n</code> suppresses automatic printing (pair with the <code>p</code> command for "print only matching lines", like <code>sed -n '5,10p'</code> to extract a range).
+<br><br>
+<b>awk</b> is actually a <b>small programming language</b>, not just a tool. It splits each input line into fields (default: whitespace; override with <code>-F</code>, e.g. <code>-F:</code> for <code>/etc/passwd</code>), and lets you run code per line. Use awk when you need <b>columns</b>, <b>arithmetic</b>, <b>state across lines</b>, or <b>conditional logic</b>. The <code>BEGIN { }</code> and <code>END { }</code> blocks run before and after the input &mdash; ideal for printing headers or running totals. Associative arrays (<code>counts[$1]++</code>) make awk genuinely powerful for log aggregation: <code>awk '{c[$7]++} END {for (k in c) print c[k], k}' access.log | sort -rn | head</code> gives you top-hit URLs in one line.
+<br><br>
+<b>Mental rule:</b> "change text &rarr; sed. extract or aggregate &rarr; awk." For anything more than a simple one-liner, reach for Python &mdash; Python beats awk on maintainability once you have state or error handling. <b>perl -pe</b> sits between sed and awk and is worth mentioning if you want to sound like a seasoned Linux engineer.
+<br><br>
+<b>Common pitfall:</b> using sed with an unescaped <code>/</code> in the pattern (e.g. paths) &mdash; use a different delimiter: <code>sed 's|/old/path|/new/path|g'</code>. Another: forgetting that awk's default field separator collapses multiple whitespace (use <code>-F'\t'</code> for strict TSV).</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never used sed or awk.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows one exists but can't write commands.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Basic sed substitution; limited awk.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3"><b>sed</b>: stream editor for find/replace, line ops; <b>awk</b>: column/pattern processing with calculations; gives examples; knows when to use which.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">sed in-place <code>-i</code>; awk associative arrays; BEGIN/END; combining in pipelines; <code>perl -pe</code>; when to switch to Python; performance.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q3 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q3 &middot; Cron Jobs</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What is cron? How do you schedule a job to run every 15 minutes? How would you troubleshoot a cron job that isn't running?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># crontab format: min hour day month weekday command
+# Every 15 minutes
+*/15 * * * * /path/to/script.sh
+
+# Every day at 02:30
+30 2 * * * /usr/local/bin/backup.sh
+
+# Troubleshooting checklist
+systemctl status cron            # daemon running?
+crontab -l                       # user crontab defined?
+grep CRON /var/log/syslog        # cron logs
+tail /var/log/cron               # RHEL
+# Environment is minimal in cron -- set PATH explicitly
+*/15 * * * * PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin /path/script.sh
+
+# Prevent overlapping runs
+*/5 * * * * /usr/bin/flock -n /tmp/job.lock /path/job.sh
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHY CRON JOBS SILENTLY FAIL</b></font>
+<br><br>
+<font size="3"><b>The crontab format</b> is five time fields followed by the command: <code>min hour day-of-month month day-of-week command</code>. The classic shorthands are <code>*/N</code> (every N units), a comma-separated list (<code>0,15,30,45</code>), a range (<code>9-17</code>), and the special strings <code>@reboot</code>, <code>@daily</code>, <code>@hourly</code>. A subtle trap: <b>day-of-month AND day-of-week are OR'd together</b>, not AND'd &mdash; <code>0 0 13 * 5</code> runs every Friday <b>and</b> on the 13th, not "Friday the 13th".
+<br><br>
+<b>Why cron jobs fail in the real world</b> (this is what interviewers probe):
+<ol>
+  <li><b>Minimal environment.</b> Cron runs with a nearly empty environment &mdash; no <code>.bashrc</code>, no aliases, and <code>$PATH</code> is something like <code>/usr/bin:/bin</code>. Your script's <code>python</code>, <code>aws</code>, or custom binary may work interactively but die in cron. <b>Fix:</b> set <code>PATH=</code> at the top of the crontab, or use absolute paths in your script.</li>
+  <li><b>Different working directory.</b> Cron runs from the user's home. Relative paths (<code>./config.yaml</code>) break. <b>Fix:</b> <code>cd</code> to a known directory, or use absolute paths.</li>
+  <li><b>Output is lost.</b> stdout and stderr are emailed to the user by default (often not received). Redirect: <code>>> /var/log/myjob.log 2>&amp;1</code>. Set <code>MAILTO=""</code> at the top of crontab to silence delivery attempts.</li>
+  <li><b>Overlapping runs.</b> If a 5-minute job takes 7 minutes, two instances run simultaneously, corrupting state. <b>Fix:</b> <code>flock -n /tmp/job.lock cmd</code> &mdash; exits immediately if the lock is held.</li>
+  <li><b>Daylight savings / missed runs.</b> If the machine was off (laptops), regular cron won't make up missed jobs. <b>anacron</b> is the answer &mdash; designed for machines that aren't always on. <b>systemd timers</b> are the modern replacement and offer <code>Persistent=true</code> for the same behavior, plus journald integration.</li>
+</ol>
+<b>User vs system cron:</b> <code>crontab -e</code> edits the calling user's cron; <code>/etc/crontab</code> and files in <code>/etc/cron.d/</code> are system crontabs and include a username column (<code>* * * * * root /bin/foo</code>). For AFT-scale work, systemd timers are increasingly preferred because they log to <code>journalctl</code> and can depend on other units.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of cron; doesn't know how to schedule tasks.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows cron "runs scheduled tasks" but can't write an expression.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Can write a basic expression but can't troubleshoot failures.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Explains crontab format; <code>*/15 * * * *</code>; troubleshooting (daemon, crontab, logs, mail, PATH, permissions, manual test).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">User vs system crontab (<code>/etc/cron.d/</code>); environment differences; anacron; logging within the script; systemd timers as alternative; <code>/etc/cron.allow</code>; job locking with <code>flock</code>.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q4 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q4 &middot; Auth Log Parsing (Basic CLI)</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Parse <code>/var/log/auth.log</code> to find login counts, distinct users, and open sessions.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># How many times has joe logged in?
+grep "session opened for user joe" /var/log/auth.log | wc -l
+
+# How many distinct users have logged in?
+grep "session opened" /var/log/auth.log | awk '{print $NF}' | sort -u | wc -l
+
+# Which sessions are still open?
+awk '/session opened/ {u[$NF]++} /session closed/ {u[$NF]--}
+     END {for (k in u) if (u[k]&gt;0) print k, u[k], "open sessions"}' /var/log/auth.log
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHAT <code>/var/log/auth.log</code> IS ACTUALLY LOGGING</b></font>
+<br><br>
+<font size="3">On Debian/Ubuntu, <code>/var/log/auth.log</code> is where <b>PAM</b> (Pluggable Authentication Modules) and <b>sshd</b> record every login attempt, session, sudo invocation, and authentication failure. On RHEL/CentOS/Amazon Linux, the same content lives in <code>/var/log/secure</code>. Every successful SSH login produces a line like <code>sshd[12345]: session opened for user joe by (uid=0)</code>; a failure produces <code>Failed password for invalid user root from 1.2.3.4 port 22</code>. The <b>session opened</b> / <b>session closed</b> pairing is what lets you compute open sessions &mdash; if you just count <code>session opened</code>, you're counting history, not current state.
+<br><br>
+<b>Why the AWK solution is clean:</b> <code>awk '/pattern/ { code }'</code> runs <code>code</code> only on matching lines. The associative array <code>u[$NF]</code> keys by the last field (<code>$NF</code> is "number of fields" as an index &mdash; i.e. the last one), which is the username. <b>Increment on open, decrement on close, then print non-zero at END</b> gives you currently-open sessions in a single pass. This is the idiomatic awk pattern for "stateful log analysis", and interviewers love seeing it instead of multiple grep pipelines.
+<br><br>
+<b>The subtle traps:</b>
+<ul>
+  <li><b>Log rotation.</b> <code>auth.log</code> rotates (usually weekly, gzipped to <code>auth.log.1</code>, <code>auth.log.2.gz</code>). To search history: <code>zgrep "pattern" /var/log/auth.log*</code> handles both rotated and gzipped files.</li>
+  <li><b>Multi-host reality.</b> <code>auth.log</code> on one host only tells you that host's story. Centralized logging (rsyslog &rarr; ELK, CloudWatch Logs) is what AFT-scale environments use. Say this out loud.</li>
+  <li><b>PID matters for precision.</b> Multiple simultaneous SSH sessions for the same user open and close in interleaved order. If you truly care about pairing, track the PID (<code>sshd[12345]</code>) as the key, not the username.</li>
+  <li><b>Existing tools beat re-inventing:</b> <code>last</code> reads <code>/var/log/wtmp</code> and gives you a pretty login history; <code>lastb</code> reads <code>/var/log/btmp</code> for failed logins; <code>who</code> shows currently-logged-in users (reads <code>/var/run/utmp</code>). Mention these &mdash; an interviewer wants to see you know when <b>not</b> to parse text.</li>
+</ul></font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot use grep/awk/sed; unfamiliar with log file structure.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Answers 1 of 3 sub-questions correctly; uses overly complex approaches.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Answers 2 of 3; commands work but are inefficient.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">All 3 using appropriate CLI tools (grep, awk, sort, uniq, wc); correlates opened vs closed for Q3.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Single-pass awk for all three; edge cases (log rotation, PID tracking); alternatives (<code>last</code>/<code>lastlog</code>); monitoring dashboards.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q5 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q5 &middot; SSH Brute-Force Log Analysis</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Analyze a log file to count failed SSH login attempts per IP address.<br><br>Sample entry: <code>Jan 30 11:08:25 prod-db-01 sshd[30067]: Failed password for hacker from 192.168.1.2 port 43367 ssh2</code></font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH (one-liner)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">grep "Failed password" /var/log/auth.log \
+  | awk '{print $(NF-3)}' \
+  | sort | uniq -c | sort -rn
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import re
+from collections import Counter
+
+def count_failed_logins(log_file):
+    ip_counter = Counter()
+    pattern = r'Failed password.*from (\d+\.\d+\.\d+\.\d+)'
+    with open(log_file) as f:
+        for line in f:
+            m = re.search(pattern, line)
+            if m:
+                ip_counter[m.group(1)] += 1
+    for ip, count in ip_counter.most_common():
+        print(f"{ip}: {count} failed attempts")
+
+count_failed_logins('/var/log/auth.log')
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHY THIS QUESTION GETS ASKED AT AFT</b></font>
+<br><br>
+<font size="3">This is a <b>canonical AFT-style question</b> because it exercises the full "parse text &rarr; aggregate &rarr; act" loop that describes 60% of fulfillment-tech operations work. Understanding <b>why</b> each piece of the pipeline exists beats memorizing the one-liner.
+<br><br>
+<b>The log line dissected:</b> <code>Jan 30 11:08:25 prod-db-01 sshd[30067]: Failed password for hacker from 192.168.1.2 port 43367 ssh2</code>. Fields separated by whitespace: date(3), host(1), process[pid](1), then the message. The IP address is at <b>position <code>NF-3</code></b> (fourth from the end) &mdash; which is the trick in the awk one-liner. Position-based parsing is brittle (a slightly different message format breaks it); that's why the <b>Python regex version is more robust</b> and is what you'd actually deploy.
+<br><br>
+<b>Why the pipeline order matters:</b> <code>grep "Failed password"</code> filters early (fewer lines downstream = faster). <code>awk '{print $(NF-3)}'</code> extracts just the IP (now the pipeline carries small strings, not full lines). <code>sort | uniq -c</code> is the classic "group by and count" in shell &mdash; <code>uniq -c</code> only collapses <i>adjacent</i> duplicates, which is why <code>sort</code> must come first. <code>sort -rn</code> at the end orders by count descending. This four-stage pattern (<b>filter &rarr; extract &rarr; group &rarr; rank</b>) is reusable across almost every log analysis question.
+<br><br>
+<b>When you'd actually use the Python version:</b> when the data is huge (Counter is more memory-efficient than sort-based dedup on 10M lines); when the regex needs to handle IPv6 (<code>grep -oP '(\d+\.\d+\.\d+\.\d+|[0-9a-fA-F:]+)'</code>); when you need to correlate across multiple log files; when the output feeds a downstream alerting system.
+<br><br>
+<b>The interview escalation:</b> once the count is working, expect "what would you <i>do</i> about it?" &mdash; show you understand the response side too:
+<ul>
+  <li><b>fail2ban</b> watches auth.log live and adds temporary iptables bans for IPs over a threshold.</li>
+  <li><b>SSH hardening:</b> disable password auth (<code>PasswordAuthentication no</code> in <code>sshd_config</code>), require keys, run SSH on a non-default port (reduces but doesn't eliminate scanning), use <code>AllowUsers</code> / <code>AllowGroups</code>.</li>
+  <li><b>Defense in depth:</b> security groups / VPC restrictions so SSH isn't exposed to <code>0.0.0.0/0</code> in the first place; IAM / SSM Session Manager to avoid SSH entirely.</li>
+  <li><b>Alerting, not just detection:</b> push the aggregated counts to CloudWatch metrics, alert on &gt;N failures / 5min per source IP.</li>
+</ul>
+Saying any two of these out loud moves you from "parser" to "operator".</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot extract IP from log line; no understanding of regex/text parsing.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Extracts IP but cannot count programmatically; hardcodes values.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Working solution in one language only; doesn't discuss edge cases (malformed lines).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Extracts IPs and counts with regex/awk; correct output; sorted by count.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Both Bash and Python; discusses IPv6, malformed entries, log rotation; proposes automation (cron, alerting, fail2ban).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q6 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q6 &middot; Find Most Repeated Phone Number from a File</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Parse a file containing phone numbers and find the most frequently occurring one.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import re
+from collections import Counter
+
+def find_most_repeated_phone(file_path):
+    phone_pattern = r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'
+    phone_counter = Counter()
+    with open(file_path) as f:
+        for line in f:
+            for phone in re.findall(phone_pattern, line):
+                normalized = re.sub(r'[-.]', '', phone)
+                phone_counter[normalized] += 1
+    return phone_counter.most_common(1)[0] if phone_counter else (None, 0)
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">grep -oP '\d{3}[-.]?\d{3}[-.]?\d{4}' phonefile.txt | \
+  sed 's/[-.]//g' | sort | uniq -c | sort -rn | head -1
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE REAL CHALLENGE IS NORMALIZATION</b></font>
+<br><br>
+<font size="3"><b>This looks like a "Counter problem" but is secretly a "data cleaning problem".</b> Phone numbers arrive in dozens of formats &mdash; <code>555-123-4567</code>, <code>(555) 123-4567</code>, <code>555.123.4567</code>, <code>5551234567</code>, <code>+1 555 123 4567</code> &mdash; all referring to the same physical number. If you count naively, you split one real occurrence across multiple buckets and the "most repeated" answer is wrong. This is the #1 thing interviewers watch for.
+<br><br>
+<b>The regex dissected:</b> <code>\b\d{3}[-.]?\d{3}[-.]?\d{4}\b</code>
+<ul>
+  <li><code>\b</code> is a <b>word boundary</b> &mdash; prevents matching substrings inside longer numbers (<code>12345678901</code> would otherwise produce multiple matches).</li>
+  <li><code>\d{3}</code> means "exactly 3 digits". The <code>{n}</code> quantifier is exact, <code>{n,m}</code> is a range.</li>
+  <li><code>[-.]?</code> is a <b>character class with an optional match</b> &mdash; either hyphen or dot, zero or one time. Inside <code>[ ]</code>, most regex metacharacters (including <code>.</code>) lose their special meaning, so this is literally "dash or period".</li>
+  <li><code>{4}</code> for the last block. Doesn't handle spaces, parentheses, or country codes &mdash; a production version needs a richer regex or the <code>phonenumbers</code> library.</li>
+</ul>
+<b>Normalization: <code>re.sub(r'[-.]', '', phone)</code></b> strips separators so "555-123-4567" and "555.123.4567" collapse to the same key. This is the <b>canonicalize before comparing</b> principle &mdash; it shows up everywhere: URLs (strip trailing slash, normalize case), email addresses (lowercase, strip dots in Gmail), user-agent strings. Mention the principle in the interview.
+<br><br>
+<b>Why <code>Counter.most_common(1)</code> is the right tool:</b> it's O(n) to build (each increment is O(1)) and O(n log k) for top-k retrieval (it's backed by a heap internally). Manually iterating with <code>max(dict, key=dict.get)</code> is also O(n) but less idiomatic. The Bash pipeline <code>sort | uniq -c | sort -rn | head -1</code> is O(n log n) due to the sort; fine for logs up to a few GB.
+<br><br>
+<b>Edge cases to name out loud:</b>
+<ul>
+  <li><b>International numbers</b> (<code>+44 20 7946 0958</code>): the <code>phonenumbers</code> library parses these properly and gives you E.164 canonical form.</li>
+  <li><b>Extensions</b> (<code>555-123-4567 x890</code>): your current regex ignores the extension, which may or may not be correct.</li>
+  <li><b>False positives</b> (dates like <code>2024-01-23</code> could match). The word-boundary helps; stricter: require a character context.</li>
+  <li><b>PII / compliance:</b> you're mining PII. In a real system, say you'd hash before counting if the output leaves the secure boundary, and check data-retention policy.</li>
+</ul></font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot extract phone numbers; unfamiliar with regex.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Extracts but doesn't normalize formats (555-123-4567 vs 5551234567 counted separately).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Working but only one phone format; no edge cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Regex extraction; format normalization; Counter for frequency; correct output.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Multiple formats (dashes, dots, parens, international); Python and Bash; streaming for large files; validation of extracted numbers.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q7 ============ -->
+<!-- (removed) previous Q7 MySQL log, Q8 Host health check, Q9 Terminal sessions -->
+
+<!-- ============ Q7 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q7 &middot; Running Commands Across Thousands of Machines</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; How would you run a command across 1,000 servers simultaneously?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>APPROACHES</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># 1) Ansible ad-hoc
+ansible all -i inventory -m shell -a "uptime" --forks=50
+
+# 2) parallel-ssh (pssh)
+pssh -h hosts.txt -p 50 -t 30 "systemctl status myservice"
+
+# 3) GNU parallel
+cat hosts.txt | parallel -j 50 'ssh {} "df -h /"'
+
+# 4) xargs
+cat hosts.txt | xargs -I{} -P 50 ssh {} "hostname; uptime"
+
+# 5) AWS Systems Manager (for EC2 fleets)
+aws ssm send-command \
+  --targets "Key=tag:Environment,Values=prod" \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=["uptime"]'
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WHICH TOOL, AND WHY IT MATTERS</b></font>
+<br><br>
+<font size="3">At 1,000 hosts, <b>any</b> of these tools works. At 100,000, the choice of tool determines whether your change takes 5 minutes or 5 hours. At AFT-scale (millions of hosts across multiple regions), only purpose-built tooling survives. The interviewer is probing your mental model of each.
+<br><br>
+<b>xargs &amp; GNU parallel:</b> quickest to reach for; zero extra dependencies. Best for <b>ad-hoc, read-only, short-lived</b> commands (<code>uptime</code>, <code>df -h</code>). Failure collection is crude &mdash; you mostly learn "something went wrong on some hosts." Good for exploration, bad for changes.
+<br><br>
+<b>pssh (parallel-ssh):</b> purpose-built for fan-out SSH. Gives you <code>-t</code> timeouts, output collection per-host (<code>-o outdir</code>), and error files. It's SSH under the hood, so it inherits all SSH's operational baggage (key management, <code>known_hosts</code>, connection limits). Good for "I need output from 1k hosts fast."
+<br><br>
+<b>Ansible ad-hoc (<code>ansible all -m shell</code>):</b> still SSH underneath, but you get <b>modules</b> (idempotent primitives like <code>yum</code>, <code>copy</code>, <code>systemd</code> &mdash; safe to re-run), <b>inventories</b> (static or dynamic from EC2 tags), <b>fact gathering</b>, and <b>structured results</b>. The <code>--forks</code> flag controls parallelism; pair with <code>serial:</code> in a playbook to do batches ("10% first, pause, then 50%, then rest") &mdash; this is the key <b>canary deployment</b> pattern.
+<br><br>
+<b>AWS SSM Run Command:</b> <b>not SSH at all.</b> An SSM agent on each instance polls AWS for work; you submit the command to the API. Benefits: <b>no inbound ports</b> (hosts can be in private subnets with no public IP and no SSH open), <b>IAM-based auth</b> (no SSH keys to manage), <b>CloudTrail audit log</b>, <b>targeting by tag</b>, <b>built-in parallelism controls</b> (<code>--max-concurrency</code>, <code>--max-errors</code>). This is <b>the</b> AWS-native answer and almost certainly what AFT uses internally. If you mention nothing else, mention this.
+<br><br>
+<b>The scale trap:</b> "just SSH in parallel" breaks around ~500 concurrent connections because of <b>per-user file descriptor limits</b> (<code>ulimit -n</code>), <b>sshd MaxStartups</b> on the target side, and <b>thundering herd</b> if every host tries to pull a 100MB artifact from a single S3 bucket at the same moment. The fixes are:
+<ul>
+  <li><b>Batching (waves):</b> 1% canary &rarr; verify &rarr; 10% &rarr; verify &rarr; 50% &rarr; 100%. This limits blast radius.</li>
+  <li><b>Jitter:</b> sleep a random 0&ndash;30s per host before starting the real work &mdash; spreads load on shared dependencies.</li>
+  <li><b>Idempotency:</b> the command must be safe to run twice. Retrying "install package X" should be a no-op if already at X.</li>
+  <li><b>Audit and output:</b> structured results (JSON), aggregated to a dashboard. At fleet scale, "did it work?" has to be a query, not scrolling output.</li>
+</ul>
+<b>Interview escalation:</b> "Now the command is a risky config change" &mdash; reach for <b>deploy tooling, not fan-out tooling</b>. That's Terraform/CFN for infrastructure, a deployment pipeline (CodeDeploy, Spinnaker, internal Apollo-style) for applications, and Ansible <code>serial:</code> for stateful edits. Saying "fan-out SSH isn't the right tool for config changes at scale" is a strong senior signal.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"SSH into each one manually" &mdash; no automation at scale.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Bash for-loop but sequential and no error handling.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Parallel with background processes but no proper result collection or error handling.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Multiple approaches (Ansible, pssh, xargs/GNU parallel); collects output; handles failures, timeouts, SSH keys; rate limiting.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Configuration management for idempotency; AWS SSM Run Command; batching (10% first, then proceed); canary for risky commands; audit logging; SSH connection multiplexing.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q11 (removed) Fleet-Wide Software Deployment ============ -->
+
+<!-- ============ Q8 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q8 &middot; Executable File Won't Run</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; You copied an executable file from a production server to your local machine, but it won't execute. What could be wrong?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>DIAGNOSTIC CHECKLIST</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">ls -la ./binary           # permissions (need +x)
+chmod +x ./binary
+
+file ./binary             # architecture (x86 vs ARM, ELF vs Mach-O)
+ldd ./binary              # missing shared libraries (Linux)
+head -n 1 ./binary        # shebang correct? (#!/bin/bash)
+
+mount | grep noexec       # is the fs mounted noexec?
+getenforce                # SELinux enforcing?
+strace ./binary           # where does it fail?
+
+# Library path issues
+LD_LIBRARY_PATH=/custom/lib ./binary
+readelf -d ./binary       # dynamic section / needed libraries
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE LAYERS BETWEEN "./binary" AND ACTUAL EXECUTION</b></font>
+<br><br>
+<font size="3">"Why won't this run?" is really <b>"there are six distinct layers the kernel walks through to execute a binary, and any one of them can fail."</b> Naming the layers in order is the interview-winning answer:
+<br><br>
+<b>1. The executable bit.</b> <code>ls -la</code> shows something like <code>-rw-r--r--</code>. No <code>x</code>, no execution &mdash; the kernel's <code>execve()</code> syscall refuses with <code>EACCES</code>. <code>chmod +x</code> adds it. When you copy a file via <code>scp</code>, the permissions are usually preserved; via an email attachment, HTTPS download, or FAT/exFAT USB stick, they are <b>lost</b>. This is the most common cause.
+<br><br>
+<b>2. The filesystem's <code>noexec</code> flag.</b> <code>mount | grep noexec</code> &mdash; many ops environments mount <code>/tmp</code>, <code>/var</code>, and home directories with <code>noexec</code> as a hardening measure. You can have <code>+x</code> and still be blocked. Workaround: move the binary to a permitted location, or use the loader directly (<code>/lib64/ld-linux-x86-64.so.2 ./binary</code>, which sometimes bypasses noexec because <i>the loader</i> is the thing being executed).
+<br><br>
+<b>3. The architecture.</b> <code>file ./binary</code> tells you "ELF 64-bit LSB executable, x86-64" or "Mach-O 64-bit executable arm64". You copied from production (likely x86-64 Linux) to a local machine that might be an M1/M2 Mac (ARM64, different OS entirely). This is especially common now that Apple Silicon has become standard. The error is typically <code>Exec format error</code>.
+<br><br>
+<b>4. The interpreter (shebang).</b> For scripts, the first line <code>#!/bin/bash</code> or <code>#!/usr/bin/env python3</code> tells the kernel which interpreter to invoke. Common failures: Windows line endings (<code>\r\n</code>) break the shebang because the kernel tries to execute <code>/bin/bash\r</code>; hard-coded path <code>#!/usr/local/bin/python</code> that doesn't exist on the target; or the script has no shebang at all, which on many modern systems now fails with <code>Exec format error</code> rather than falling back to <code>/bin/sh</code>. <code>file</code> and <code>head -1</code> catch these fast.
+<br><br>
+<b>5. Dynamic linking.</b> <code>ldd ./binary</code> lists every shared library (<code>.so</code> file) the binary needs. If any show <code>=&gt; not found</code>, the loader (<code>ld-linux.so</code>) will refuse to run it. Common causes: the binary was built against glibc 2.34 but your system has 2.31 (kernel/libc ABI mismatch); a custom library lives in <code>/opt/myapp/lib</code> but <code>LD_LIBRARY_PATH</code> isn't set. <b>Static binaries</b> (built with <code>-static</code> or Go's default) avoid this entire category; mention them.
+<br><br>
+<b>6. Mandatory access control.</b> <code>getenforce</code> (SELinux) or <code>aa-status</code> (AppArmor) may block even permitted binaries based on policy labels. <code>audit.log</code> or <code>dmesg</code> shows denials. Common on Amazon Linux and RHEL.
+<br><br>
+<b>The strace move:</b> when you've run through the above and it still fails, <code>strace -f ./binary 2&gt;&amp;1 | head -50</code> shows the exact syscall that fails. You'll see things like <code>openat("/lib64/libcrypto.so.1.0.0") = -1 ENOENT</code> &mdash; now you know exactly which library is missing. This is what separates "checklist applier" from "diagnostician".
+<br><br>
+<b>Why this question is popular at AFT:</b> "a binary that worked yesterday doesn't work today" is a real oncall ticket. The diagnostic flow above is exactly what you'd run. Bonus: mention that containerizing the binary (Docker image pinned to a specific OS image) eliminates layers 3, 5, and often 6 &mdash; which is why AFT-style services are deployed in containers even when a static binary would suffice.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">"The file is corrupted" &mdash; no diagnostic approach.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Checks file exists but doesn't consider permissions or architecture.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Checks permissions (<code>chmod +x</code>) but doesn't consider other causes.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Checks permissions, architecture (<code>file</code>), shared libs (<code>ldd</code>), shebang, <code>noexec</code> mount, SELinux/AppArmor.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3"><code>strace</code> to see where it fails; static vs dynamic linking; kernel version; cross-compilation; containers to match prod; <code>LD_LIBRARY_PATH</code>; <code>readelf</code>.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="linux"><font color="#58a6ff" size="6">2. Linux Fundamentals</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q9 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q9 &middot; Linux File Permissions</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What does 755 permission mean? How would you remove executable permission, leaving the rest as-is? If <code>ls</code> is not available/deleted, what alternatives can you use? What is umask?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># 755 breakdown
+# 7 (User) : 4 + 2 + 1 = rwx
+# 5 (Group): 4 + 0 + 1 = r-x
+# 5 (Other): 4 + 0 + 1 = r-x
+
+# Remove executable permission (symbolic)
+chmod a-x myfile          # 755 -&gt; 644
+chmod u-x,g-x,o-x myfile  # same effect
+
+# umask -- default perms for new files
+umask 022                 # new files: 644, dirs: 755
+
+# Alternatives if ls is gone
+echo *                    # shell globbing
+find . -maxdepth 1
+stat -c '%n' *
+dir
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; PERMISSIONS ARE ACTUALLY ABOUT SYSCALLS</b></font>
+<br><br>
+<font size="3">The three permission bits (<b>r</b>ead, <b>w</b>rite, e<b>x</b>ecute) map directly to three categories of <b>syscalls</b> the kernel allows. The three <b>classes</b> (user, group, other) determine <b>which</b> set of bits the kernel checks for the calling process.
+<br><br>
+<b>How the check actually runs:</b> when process with UID <code>U</code> and GIDs <code>G1,G2,&hellip;</code> tries to open a file owned by UID <code>F_U</code> and GID <code>F_G</code> with mode <code>M</code>:
+<ol>
+  <li>If <code>U == 0</code> (root), the check is skipped for most operations (not all &mdash; e.g. executable still requires <code>x</code> on at least one category).</li>
+  <li>If <code>U == F_U</code>, the kernel checks the <b>user</b> bits only. Your group membership doesn't help you here. Counterintuitive consequence: if a file is mode <code>077</code> (<code>---rwxrwx</code>), the owner can't read it, but everyone else can.</li>
+  <li>If <code>F_G</code> is in the process's group list, check the <b>group</b> bits.</li>
+  <li>Otherwise, check <b>other</b> bits.</li>
+</ol>
+This "first match wins" logic explains weird situations like "I'm in the group but still can't read &mdash; the file's owner is me and my user bits say no".
+<br><br>
+<b>Numeric vs symbolic:</b> <code>755</code> is absolute ("set to exactly these bits"); <code>a-x</code>, <code>u+w</code>, <code>g=r</code> are relative ("flip these bits, leave others alone"). Relative mode is safer in scripts that operate on mixed permissions &mdash; you don't accidentally make something world-writable. Numeric is faster to type and less error-prone for setting fresh permissions.
+<br><br>
+<b>Directory permissions are different:</b> <code>r</code> on a directory = "can <code>ls</code>" (read the directory entries). <code>x</code> on a directory = "can <code>cd</code> into it / access a named child". <code>w</code> on a directory = "can create or delete files inside it" (even if you can't write the files themselves &mdash; this is how <code>/tmp</code> works; <code>w</code>+<code>t</code> sticky bit lets anyone create but only owner can delete). The common "I can list it but can't read files" or "I can read the file if I know the name but can't list" situations come from mismatched directory vs file permissions.
+<br><br>
+<b>Special bits (the "4xxx" prefix):</b>
+<ul>
+  <li><b>SUID (4xxx)</b> on an executable = runs as the file's <b>owner</b>, not the caller. This is how <code>passwd</code> works &mdash; owned by root, SUID-set, so any user can edit <code>/etc/shadow</code> indirectly. Huge security footgun; scan your fleet for SUID-root binaries you don't recognize.</li>
+  <li><b>SGID (2xxx)</b> on a directory = new files inherit the directory's group. Useful for shared project folders.</li>
+  <li><b>Sticky bit (1xxx)</b> on a directory = only the owner of a file (or root) can delete it, even if others have <code>w</code> on the directory. <code>/tmp</code> has mode <code>1777</code>.</li>
+</ul>
+<b>umask</b> is the "default deny" mask &mdash; bits set in umask are <b>removed</b> from default permissions on new files (666 for files, 777 for dirs before mask). <code>umask 022</code> gives 644 files and 755 dirs; <code>umask 077</code> gives 600 and 700 (your home files become private even to groupmates).
+<br><br>
+<b>ACLs when regular perms aren't enough:</b> the 9-bit model can't express "user Alice can read but only user Bob can write". <code>setfacl -m u:alice:r--,u:bob:rw-</code> on a file gives you POSIX ACLs; <code>ls -l</code> shows a <code>+</code> after the permission block (<code>-rw-r--r--+</code>) to indicate the file has ACLs and the basic view is incomplete. Use <code>getfacl</code> to see them.
+<br><br>
+<b>The "<code>ls</code> is gone" twist</b> catches people off guard. Valid alternatives &mdash; <code>echo *</code> uses shell globbing and doesn't need any external command; <code>find . -maxdepth 1</code> uses the find binary; <code>stat *</code> uses stat; Busybox systems have <code>dir</code>. It's really a test of "do you understand that shell tools are composable?"</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain numeric permissions; doesn't know <code>chmod</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows 755 = "rwx for owner" but can't explain group/other.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Correctly explains 755; uses 644 to remove execute but can't explain symbolic chmod; names one <code>ls</code> alternative.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">755 breakdown correct; both numeric (644) and symbolic (<code>chmod a-x</code>); multiple <code>ls</code> alternatives (<code>echo *</code>, <code>find</code>, <code>stat</code>); explains umask.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Setuid/setgid/sticky bit; ACLs (<code>setfacl</code>/<code>getfacl</code>); security implications of world-writable; interaction with SELinux/AppArmor; <code>/proc/&lt;pid&gt;/fd</code>.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q10 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q10 &middot; Symbolic Links vs Hard Links</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What is the difference between a symbolic (soft) link and a hard link? When would you use each?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Hard link -- another directory entry for the SAME inode
+ln target hardlink
+# - Same file, different name; deleting one doesn't affect the other
+# - Can't cross filesystems; can't link to directories
+
+# Soft (symbolic) link -- a file containing a path
+ln -s /path/to/target softlink
+# - Can cross filesystems; can link to directories
+# - Breaks if target is deleted (dangling)
+
+# Inspect
+ls -li                    # shows inode number
+readlink softlink
+stat hardlink
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of links.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>ln -s</code> creates a shortcut but can't explain hard links.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Soft links as "shortcuts" but can't articulate inode relationship for hard links.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Hard link = another directory entry for same inode; soft = path reference; cross-fs &amp; directory constraints; use cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Link count in <code>ls -l</code>; space freed only when count=0 AND no open FD; <code>.</code> and <code>..</code> as hard links; <code>readlink</code>; symlink attacks; version management via symlinks.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q11 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q11 &middot; Inodes &amp; File System Internals</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What is an inode? What information does it contain? What happens when you run out of inodes?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Inode stores metadata (NOT filename, NOT data):
+#   file type, permissions, UID/GID, size,
+#   timestamps (atime/mtime/ctime),
+#   link count, pointers to data blocks
+
+# Filename is in the directory entry -&gt; points to inode number
+
+# Inspect
+ls -i myfile              # show inode number
+stat myfile               # all inode details
+df -i /                   # inode usage on filesystem
+
+# Running out of inodes -&gt; "No space left on device"
+# even when `df -h` shows free space.
+# Common cause: millions of tiny files (/var/spool, session data)
+
+# Find files with most inodes per dir
+find / -xdev -type f | cut -d/ -f1-4 | sort | uniq -c | sort -rn | head
+
+# Deleted-but-open files still hold disk space
+lsof +L1 | awk '$5=="REG"'      # files with nlink 0
+lsof | grep deleted
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE INODE MENTAL MODEL</b></font>
+<br><br>
+<font size="3"><b>An inode is the file.</b> The filename is not. This is the single most important idea. A filename is just an entry in a <b>directory</b> (which is itself a special kind of file) that maps <code>"notes.txt" &rarr; inode #148923</code>. The inode stores everything <i>about</i> the file: permissions, owner UID/GID, all three timestamps (atime, mtime, ctime), size in bytes, link count, and &mdash; crucially &mdash; the <b>block pointers</b> that tell the kernel where on disk the actual data lives. Filenames and content are decoupled.
+<br><br>
+<b>Why this matters for hard links vs soft links:</b>
+<ul>
+  <li>A <b>hard link</b> (<code>ln a b</code>) creates a <i>second directory entry pointing to the same inode</i>. Both names are equally "the file"; neither is a "link to" the other. The inode's <b>link count</b> goes from 1 to 2. <code>rm a</code> decrements to 1; <code>b</code> still works. The file's data is freed only when link count hits 0 <b>and</b> no open file descriptors reference it.</li>
+  <li>A <b>soft link</b> (<code>ln -s a b</code>) creates a <i>new, small file whose contents are the string "a"</i>. It has its own inode. When you access <code>b</code>, the kernel reads the target path and follows it. If <code>a</code> is deleted, <code>b</code> becomes a dangling symlink and reads fail with <code>ENOENT</code>. Soft links can cross filesystems and point to directories; hard links cannot.</li>
+</ul>
+<b>Inode exhaustion &mdash; the production incident that baffles juniors:</b> the filesystem runs out of inodes <b>before</b> running out of space. <code>df -h</code> shows <code>50% used</code>; <code>touch newfile</code> fails with <code>No space left on device</code>. You're staring at half-empty disk; what's going on? Check <code>df -i</code> &mdash; the inode table is full. Happens when an app creates millions of small files (mail queues, Puppet caches, crawler downloads, node_modules directories). <b>Fix:</b> delete the small files; or, if the filesystem is ext4 with too few inodes, you're stuck &mdash; inode count is fixed at format time. Reformat with <code>mkfs.ext4 -N 10000000</code> to allocate more, or move to XFS (dynamic inodes).
+<br><br>
+<b>The "<code>du</code> says 10GB free, <code>df</code> says full" mystery revisited:</b> a process opened <code>/var/log/big.log</code>, then someone <code>rm</code>'d it. The directory entry is gone (<code>du</code> can't find the file), but the <b>inode is still alive because the fd is open</b> &mdash; link count is 0 but the reference from the open fd keeps it. Space isn't freed until the process closes or dies. <code>lsof | grep deleted</code> finds these; restarting the holding process (or truncating via <code>&gt; /proc/&lt;pid&gt;/fd/N</code>) releases the space.
+<br><br>
+<b>Why filesystems matter here:</b>
+<ul>
+  <li><b>ext4</b> pre-allocates all inodes at format time (fixed number, typically ~1 per 16KB of disk). Hard to run out unless you have billions of small files. Easy to corrupt diagnosis because "inode count" is a statically allocated resource.</li>
+  <li><b>XFS</b> allocates inodes dynamically from free space &mdash; you won't hit inode exhaustion separately from disk exhaustion. This is why XFS is the default on RHEL / Amazon Linux for large data volumes.</li>
+  <li><b>btrfs / ZFS</b> don't really have "inodes" as a separate quota; the concept is present but abstracted.</li>
+</ul>
+<b>The <code>stat</code> command</b> is how you inspect an inode directly: <code>stat notes.txt</code> shows you inode number, link count, all three timestamps, block count. Two files are the same file iff they have the same inode <b>and</b> the same device (<code>stat -c '%d %i'</code>).</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of inodes.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows inodes are "related to files" but can't explain what they contain.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Explains inode stores file metadata; can't explain exhaustion.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Metadata (perms, owner, timestamps, size, block pointers); filename NOT in inode; <code>df -i</code>; inode exhaustion = can't create files despite free disk; common cause: small files.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Hard links vs soft in relation to inodes; space freed only when link count 0 AND no process has FD; <code>lsof +D</code>; ext4 vs XFS; reformatting for more inodes.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q12 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q12 &middot; Common Linux Troubleshooting Commands</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Name the most common Linux commands for troubleshooting server and network issues. Explain what each is useful for.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>CHEAT SHEET</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Server / OS
+top / htop              CPU, memory, per-process stats
+free -h                 memory usage + swap
+df -h / du -sh          disk capacity / directory size
+ps aux / pstree         processes
+lsof -i / lsof -p PID   open files and sockets
+iostat -x 1             I/O utilization
+vmstat 1                virtual memory, CPU, IO snapshots
+sar                     historical resource usage
+dmesg / journalctl -u   kernel / systemd logs
+strace -p PID           system calls
+ltrace                  library calls
+
+# Network
+ping / mtr              connectivity + path quality
+traceroute              routing path
+dig / nslookup          DNS resolution
+ss -tuna / netstat      sockets, listening ports
+curl -v / wget          HTTP with headers/timing
+tcpdump -i eth0         packet capture
+ip addr / ip route      interfaces, routing table
+iptables -L / nft list  firewall rules
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; USE-THE-RIGHT-TOOL, GROUPED BY THE QUESTION YOU'RE ANSWERING</b></font>
+<br><br>
+<font size="3">An interviewer asking "name the commands" is really asking "have you diagnosed a real issue?" The best answer organizes commands by <b>what question they answer</b>, not by alphabet. Here's the mental mapping:
+<br><br>
+<b>"Is the box healthy?"</b> <code>uptime</code> (load average, which is itself worth explaining &mdash; 1/5/15 minute averages of runnable+uninterruptible tasks; on an 8-core box a load of 8 means fully utilized, 16 means 2x backed up). <code>top</code> / <code>htop</code> for live state; <code>vmstat 1 5</code> for a snapshot of CPU / memory / IO in 5 one-second intervals; <code>sar</code> if you want historical ("was the box healthy at 3am last Tuesday?") &mdash; <code>sar</code> reads data collected by the <b>sysstat</b> service to disk.
+<br><br>
+<b>"Why is it slow?"</b> Decide which resource first: <b>CPU</b> (<code>top</code> &mdash; high <code>%us</code> user, <code>%sy</code> kernel, or <code>%wa</code> iowait?), <b>memory</b> (<code>free -h</code> &mdash; check <b>available</b>, not <b>free</b>, because Linux uses free RAM for cache; <code>available</code> accounts for reclaimable cache), <b>disk</b> (<code>iostat -x 1</code> &mdash; <code>%util</code> and <code>await</code> columns tell you if the disk is saturated), <b>network</b> (<code>ss -s</code> for socket summary, <code>sar -n DEV 1</code> for NIC throughput). <b>High <code>%wa</code></b> = CPU is idle waiting for disk = your bottleneck is storage.
+<br><br>
+<b>"What is this process doing?"</b> <code>ps -ef --forest</code> or <code>pstree</code> shows the process tree (useful when a parent dies and a child becomes an orphan); <code>lsof -p PID</code> lists every file, socket, pipe, and device the process has open; <code>ls -l /proc/PID/fd/</code> is equivalent and doesn't need lsof installed; <code>cat /proc/PID/status</code> shows memory breakdown and thread count; <code>strace -p PID -c</code> attaches and summarizes syscall time (is it stuck in <code>read</code>? <code>futex</code>? <code>poll</code>?). <code>strace</code> has a real performance impact &mdash; don't leave it running on hot production processes.
+<br><br>
+<b>"Can I reach X?"</b> Start at layer 3: <code>ping</code> (ICMP, often blocked by firewalls; absence doesn't mean "can't connect", just "can't ping"). Layer 4: <code>nc -zv host port</code> or <code>ss -tn dst host:port</code> to check TCP reachability. Application layer: <code>curl -v</code> shows the full HTTP request/response including TLS handshake; <code>curl -w '@time.fmt'</code> gives you DNS, connect, TTFB, total times &mdash; tells you <b>which phase</b> is slow. <code>mtr</code> is "ping+traceroute live" and reveals intermittent packet loss along the path that static traces miss.
+<br><br>
+<b>"What's listening, what's connecting?"</b> <code>ss -tnlp</code> (TCP, numeric, listening, processes) replaces <code>netstat -tnlp</code> on modern systems &mdash; ss is faster because it reads kernel data via netlink. Connections by state: <code>ss -tn state established</code>. Lots of <code>TIME_WAIT</code> is normal after heavy client-side traffic; lots of <code>CLOSE_WAIT</code> indicates your app isn't closing sockets promptly &mdash; a bug.
+<br><br>
+<b>"DNS is acting up."</b> <code>dig +short example.com</code> for quick resolution, <code>dig +trace</code> to follow the delegation chain from root servers, <code>dig @1.1.1.1</code> to bypass the local resolver. <code>nslookup</code> is deprecated but still common. Remember: your app might resolve through <code>getaddrinfo</code>, which consults <code>/etc/nsswitch.conf</code> &rarr; <code>/etc/hosts</code> first, then DNS &mdash; a stale <code>/etc/hosts</code> entry can make "dig says X but my code says Y" behavior.
+<br><br>
+<b>"I need the raw packets."</b> <code>tcpdump -i any -nn -w /tmp/cap.pcap port 443</code> captures to a file; pull the file locally and open in Wireshark for real analysis. Use <code>-n</code> to skip reverse DNS (faster, predictable), <code>-s 0</code> to capture full packet. This is a privileged operation and leaves traces &mdash; not a first resort.
+<br><br>
+<b>"Where did that log line come from?"</b> <code>journalctl -u servicename -f</code> for live tail; <code>journalctl -u servicename --since "2 hours ago"</code> for recent; <code>dmesg -T</code> for kernel ring buffer with timestamps (OOM kills, disk errors, NIC resets all land here). Text-based logs: <code>grep -r</code>, or better, <code>rg</code> (ripgrep) if installed.
+<br><br>
+<b>The one-liner you should have memorized</b> (AFT-style warm-up check): <code>uptime; free -h; df -h; ps aux --sort=-%mem | head</code> &mdash; load, memory pressure, disk capacity, memory hogs, in five seconds.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot name more than 1-2 commands.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Names 3-4 but can't explain when to use each.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">5-6 commands; misses server OR network category.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Both categories with 8-10 commands covered: top/htop, df/du, free, ps, journalctl; ping, traceroute, ss/netstat, dig, curl, tcpdump.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Adds <code>iostat</code>, <code>vmstat</code>, <code>sar</code>, <code>lsof</code>, <code>strace</code>, <code>ip</code>, <code>iptables</code>, <code>mtr</code>; USE method (Utilization, Saturation, Errors); <code>du</code> vs <code>df</code> discrepancy.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q13 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q13 &middot; Linux Boot Process</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Describe the Linux boot process in detail.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>EXPECTED FLOW</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">1. BIOS / UEFI
+   - POST, hardware init, finds boot device
+
+2. Bootloader (GRUB2)
+   - Loads kernel + initramfs; passes kernel cmdline
+
+3. Kernel
+   - Decompresses, initializes core drivers
+   - Mounts initramfs as temporary root
+   - Mounts real root filesystem
+
+4. init / systemd (PID 1)
+   - Starts services per target (multi-user, graphical, ...)
+   - systemd-journald, network, sshd, etc.
+
+5. Login (getty / display manager)
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot describe any boot stages.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows BIOS and "something loads the OS"; confuses bootloader with kernel.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">3 of 5 stages with gaps or incorrect ordering.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">BIOS/UEFI &rarr; Bootloader (GRUB) &rarr; Kernel &rarr; init/systemd &rarr; Login; purpose of each stage.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">initramfs and why it's needed; runlevels vs systemd targets; fs-mount failure (emergency mode); UEFI vs legacy; kernel parameters and module loading.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q14 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q14 &middot; Linux Signals</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What are Linux signals? Explain the difference between SIGTERM, SIGKILL, and SIGHUP. How does <code>kill</code> work?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">SIGTERM (15)  Default for `kill`. Polite; catchable. Graceful shutdown.
+SIGKILL (9)   Forceful. Cannot be caught/ignored. Last resort.
+SIGHUP  (1)   Terminal hangup. Often repurposed: reload config (nginx, etc.)
+SIGINT  (2)   Ctrl+C
+SIGSTOP/SIGCONT   Pause / resume a process
+SIGUSR1/SIGUSR2   User-defined (app-specific)
+
+# Examples
+kill PID                # SIGTERM
+kill -9 PID             # SIGKILL
+kill -HUP PID           # reload
+kill -- -PGID           # send to process group
+trap 'cleanup' SIGTERM  # bash: handle signal
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; SIGNALS ARE INTERRUPTS, NOT MESSAGES</b></font>
+<br><br>
+<font size="3"><b>A signal is a one-bit interrupt delivered by the kernel to a process.</b> Unlike messages, signals carry almost no payload (just the signal number and, optionally, siginfo structure) &mdash; they're closer in spirit to hardware interrupts than to IPC. When a signal arrives, the kernel <b>suspends</b> the process at the next safe kernel-to-userspace boundary and invokes either the default action, the installed handler, or nothing (if masked).
+<br><br>
+<b>The signal lifecycle has three outcomes</b> for any given signal:
+<ol>
+  <li><b>Default action</b> (if the process hasn't registered a handler): terminate, core-dump, stop, or ignore &mdash; varies by signal.</li>
+  <li><b>User-installed handler</b>: process registered one via <code>signal()</code>/<code>sigaction()</code>; the kernel jumps to that function before returning to normal execution. This is how graceful shutdown works.</li>
+  <li><b>Masked / blocked</b>: process is currently ignoring it; the signal is queued (for standard signals, at most one pending; for real-time signals <code>SIGRTMIN</code>&ndash;<code>SIGRTMAX</code>, a queue).</li>
+</ol>
+<b>The critical distinction: SIGTERM vs SIGKILL.</b>
+<ul>
+  <li><b>SIGTERM (15)</b> is <b>polite</b>. The process sees it, runs any cleanup handler (flush buffers, close connections, write a last log line), and exits. This is what <code>kill PID</code> sends by default. What systemd sends on <code>systemctl stop</code>. What Kubernetes sends before killing a pod. You should <b>always try TERM first</b>.</li>
+  <li><b>SIGKILL (9)</b> is <b>fatal and uncatchable</b>. The kernel never delivers it to the process &mdash; it just dequeues, deallocates, and moves on. That's why SIGKILL can't be trapped, handled, ignored, or survived: the process never runs a single instruction after the signal is delivered. This is why "<code>kill -9</code> as first resort" is bad practice &mdash; you lose all chance of graceful cleanup (open transactions left dangling, temp files left around, child processes orphaned mid-operation).</li>
+</ul>
+<b>The less-obvious signals worth knowing:</b>
+<ul>
+  <li><b>SIGHUP (1)</b>: historically sent when a terminal hung up; now <b>by convention</b> used as "reload your config without restarting" (nginx, haproxy, sshd all do this). The name <code>nohup</code> comes from "don't die when the controlling terminal hangs up".</li>
+  <li><b>SIGINT (2)</b>: what Ctrl-C sends. Polite request to stop at a natural boundary.</li>
+  <li><b>SIGQUIT (3)</b>: what Ctrl-\ sends; usually produces a core dump.</li>
+  <li><b>SIGSTOP (19)</b> / <b>SIGCONT (18)</b>: pause and resume a process. SIGSTOP is like SIGKILL in that it can't be caught or blocked &mdash; the kernel just freezes the process. <code>Ctrl-Z</code> is the catchable variant (<code>SIGTSTP</code>).</li>
+  <li><b>SIGUSR1 / SIGUSR2 (10, 12)</b>: reserved for application-specific use. nginx uses SIGUSR1 for "reopen log files" after rotation.</li>
+  <li><b>SIGPIPE (13)</b>: sent when you write to a closed pipe &mdash; default action is to terminate. This is why "<code>... | head -1</code>" sometimes produces <code>Broken pipe</code> errors from the upstream command after head closes.</li>
+  <li><b>SIGCHLD (17)</b>: sent to a parent when a child exits. Handling it properly (by calling <code>wait()</code>) is how you avoid zombies &mdash; see next question.</li>
+</ul>
+<b>Signal-safe handlers are restrictive.</b> Inside a handler you can only call <b>async-signal-safe</b> functions (a short list that excludes <code>printf</code>, <code>malloc</code>, most of libc). The usual pattern is to set a flag in the handler and do the real work in the main loop:
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2">stop = False
+def _on_term(signum, frame):
+    global stop
+    stop = True
+signal.signal(signal.SIGTERM, _on_term)
+while not stop:
+    do_work()
+cleanup()</font></pre>
+<b>The AFT context:</b> any long-running process you write (oncall automation, queue consumers, batch jobs) should handle SIGTERM gracefully &mdash; because that's what systemd, Kubernetes, and AWS ECS will send during rolling restarts. "Does your code <code>trap SIGTERM</code>?" is a real production quality gate. In bash: <code>trap 'cleanup; exit 0' SIGTERM SIGINT</code> at the top of the script.
+<br><br>
+<b>Process groups and negative PIDs:</b> <code>kill -TERM -- -1234</code> sends SIGTERM to every process in process group 1234, not just PID 1234. Useful when a shell job has spawned children and you want to terminate the whole tree. The <code>--</code> prevents <code>-1234</code> from being interpreted as a flag.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain what signals are.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>kill</code> stops processes but doesn't understand different signals.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Knows SIGKILL "force kills" but can't explain SIGTERM or SIGHUP.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">SIGTERM (catchable, graceful), SIGKILL (uncatchable, forceful), SIGHUP (reload config); try TERM before KILL.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">SIGINT, SIGSTOP/SIGCONT, SIGUSR1/2; signal handlers in code; zombies and <code>wait()</code>; orphan processes; bash <code>trap</code>; <code>nohup</code> &amp; SIGHUP; process groups with negative PID.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q15 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q15 &middot; Zombie and Orphan Processes</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What is a zombie process? What is an orphan process? How do you identify and handle them?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">Zombie  Child has finished, exit status not yet read by parent (wait()).
+        State 'Z' in ps. Cannot be killed -- already dead.
+        Fix: kill the parent, or fix the parent to reap children.
+
+Orphan  Parent died first. init (PID 1) adopts and reaps the child.
+        Harmless; systemd handles it.
+
+# Identify
+ps auxf | awk '$8 ~ /Z/ {print}'    # zombies
+ps -o pid,ppid,stat,cmd -a
+
+# Avoid zombies
+#   Parent calls wait() / waitpid()
+#   OR ignore SIGCHLD (signal(SIGCHLD, SIG_IGN))
+#   OR double-fork technique for daemons
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE LIFECYCLE THAT CREATES ZOMBIES</b></font>
+<br><br>
+<font size="3"><b>Every UNIX child process leaves a zombie when it exits.</b> The zombie is not a bug &mdash; it's the design. When a child calls <code>exit()</code>, the kernel releases the child's memory and file descriptors but keeps a tiny "termination record" (PID, exit status, resource usage) in the process table. The child is now in state <b>Z</b> ("zombie" / "defunct"), waiting for its parent to collect the exit status via <code>wait()</code> or <code>waitpid()</code>. Once the parent calls <code>wait()</code>, the termination record is freed and the PID is reclaimed. That's <b>reaping</b>.
+<br><br>
+<b>The problem starts when the parent doesn't reap.</b> Every unreaped child stays in the process table forever. Individually, this is harmless (a zombie uses essentially no resources). <b>In bulk</b> &mdash; a web server that forks per request and forgets to wait, a script in a loop that spawns children &mdash; you can exhaust the system-wide PID space (default 32768 on Linux; check <code>/proc/sys/kernel/pid_max</code>). When that happens, <code>fork()</code> starts failing with <code>EAGAIN</code> and the whole machine can't spawn new processes. That's a zombie apocalypse in production.
+<br><br>
+<b>Three ways the parent can reap correctly:</b>
+<ol>
+  <li><b>Call <code>wait()</code> explicitly</b> for each child you spawn. In bash: <code>wait $!</code>. In Python: <code>subprocess.run</code> does this automatically; <code>subprocess.Popen</code> requires you to call <code>.wait()</code> or <code>.poll()</code>.</li>
+  <li><b>Install a <code>SIGCHLD</code> handler</b> that calls <code>waitpid(-1, &amp;status, WNOHANG)</code> in a loop until no children are reapable. This is how event-driven servers do it.</li>
+  <li><b>Set <code>signal(SIGCHLD, SIG_IGN)</code></b> &mdash; on Linux, this tells the kernel to auto-reap children and skip generating the SIGCHLD. Simple, but you lose the exit status. Fine for "fire and forget" daemons.</li>
+</ol>
+<b>Orphans are the opposite problem and mostly benign.</b> If the <b>parent</b> dies before the child, the child becomes an orphan. The kernel re-parents it to <b>PID 1</b> (historically <code>init</code>, now <code>systemd</code> on most distros). PID 1 is built to reap children in a tight loop &mdash; it's the whole reason the "<code>init</code>" process exists. So orphans are automatically cleaned up when they eventually exit. The child keeps running; it just has a new parent. This is actually the foundation of the classic <b>double-fork daemonization</b> technique: fork once, fork again, have the first fork exit &mdash; the grandchild becomes orphaned and adopted by init, detached from the original shell.
+<br><br>
+<b>The "zombie problem in containers" twist</b> is interview gold. In a Docker container, the process you start is PID 1 <b>inside</b> the container. If your PID 1 is a regular application (Python, Node, your binary) that wasn't written to reap children, and your app spawns child processes (a subprocess.Popen, a forked worker), <b>those children's zombies have nowhere to go</b>. Normal systems reap via systemd; in a container, there is no systemd. Zombies accumulate. Fix: use an init-shim like <b>tini</b> (<code>docker run --init</code> uses it automatically), or set your container entrypoint to <code>dumb-init</code>, or run your app under <code>supervisord</code>. AFT engineers will expect you to know this.
+<br><br>
+<b>How to actually inspect the state:</b>
+<ul>
+  <li><code>ps axf</code> (forest view) &mdash; shows parent/child relationships.</li>
+  <li><code>ps -eo pid,ppid,state,comm | awk '$3=="Z"'</code> &mdash; lists current zombies.</li>
+  <li><code>cat /proc/&lt;zombie_pid&gt;/status</code> &mdash; the zombie's stats; <code>PPid</code> tells you who should have reaped it. <code>kill</code> the parent if it's the bug.</li>
+  <li><b>You cannot kill a zombie directly.</b> It's already dead. The entry is freed only when the parent reaps it, or the parent dies (transferring it to init, which reaps).</li>
+</ul>
+<b>In practice:</b> a handful of zombies momentarily is normal &mdash; they exist in the microseconds between exit and reap. A <b>growing count of zombies</b> over minutes/hours is a parent-process bug. Set an alert on "zombies &gt; N".</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of zombie or orphan processes.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows "zombie" is a state but can't explain how it occurs or how to fix.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Zombie is "dead process" but doesn't understand parent-child relationship or <code>wait()</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Zombie = finished but not reaped (Z state); orphan = parent gone, adopted by init; fix: kill parent or make it call wait(); <code>ps auxf</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">PID space exhaustion; SIGCHLD; double-fork technique; <code>/proc/PID/status</code>; supervisors (systemd, supervisord) handle reaping; transient vs accumulating zombies.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q16 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q16 &middot; Swap Space &amp; Memory Management</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What is swap space? When is it used? How do you troubleshoot a system that is heavily swapping?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>TROUBLESHOOTING</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">free -h                     # overall memory + swap
+swapon -s                   # swap devices
+vmstat 1                    # si/so columns = swap in/out
+sar -W                      # historical swapping
+cat /proc/meminfo           # detailed memory
+
+# Find memory-hungry processes
+ps aux --sort=-%mem | head
+top -o %MEM
+
+# Tune swappiness (default 60; lower = avoid swap)
+sysctl vm.swappiness=10
+
+# OOM killer events
+dmesg | grep -i 'killed process'
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain what swap is.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows swap is "extra memory on disk" but can't troubleshoot.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Swap used when RAM full; knows <code>free</code>; limited troubleshooting.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Disk as virtual memory; <code>free -h</code>/<code>swapon -s</code>/<code>vmstat</code>; heavy swap = thrashing; find memory hogs; swappiness.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">OOM killer and scoring; <code>/proc/meminfo</code>; cgroups limits; swap usage vs activity (I/O); <code>sar -W</code>; when to disable (Kubernetes); zswap/zram.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q17 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q17 &middot; Systemd &amp; Service Management</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What is systemd? How do you manage services? How would you create a new systemd service?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>UNIT FILE EXAMPLE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># /etc/systemd/system/myapp.service
+[Unit]
+Description=My Application
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/myapp --config /etc/myapp.yaml
+Restart=on-failure
+RestartSec=5
+User=myapp
+WorkingDirectory=/var/lib/myapp
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+# Apply changes
+systemctl daemon-reload
+systemctl enable --now myapp.service
+systemctl status myapp
+journalctl -u myapp -f
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; SYSTEMD IS A PROCESS SUPERVISOR WITH OPINIONS</b></font>
+<br><br>
+<font size="3"><b>Systemd is what runs as PID 1 on essentially every modern Linux distro.</b> It replaced <b>SysV init</b> (shell scripts in <code>/etc/init.d/</code> and runlevels 0&ndash;6) starting around 2011&ndash;2015. Systemd's job is to <b>bring the system up</b>, supervise services (restart them on crash), track their dependencies, collect their logs, and tear them down at shutdown. It does all this with a unified, declarative format: <b>unit files</b>.
+<br><br>
+<b>Everything is a unit.</b> The unit types you'll actually see:
+<ul>
+  <li><code>.service</code> &mdash; a long-running process (daemon, web server, your app).</li>
+  <li><code>.socket</code> &mdash; a listening socket; enables <b>socket activation</b> (start the service only when a connection arrives).</li>
+  <li><code>.timer</code> &mdash; a scheduled trigger for another unit (cron replacement).</li>
+  <li><code>.target</code> &mdash; a grouping; the equivalent of a SysV runlevel. <code>multi-user.target</code> = traditional runlevel 3 (text-mode multi-user); <code>graphical.target</code> = runlevel 5; <code>default.target</code> is a symlink that points to whichever you boot into.</li>
+  <li><code>.mount</code>, <code>.device</code>, <code>.path</code> &mdash; less common.</li>
+</ul>
+<b>The unit file sections:</b>
+<ul>
+  <li><code>[Unit]</code> &mdash; metadata and <b>dependencies</b>. <code>After=</code> = ordering (start this after X); <code>Requires=</code> = hard dep (if X fails, I fail); <code>Wants=</code> = soft dep (try to start X, but I start regardless).</li>
+  <li><code>[Service]</code> &mdash; how to run it. <code>Type=simple</code> (default; systemd considers the service started as soon as ExecStart runs); <code>Type=forking</code> (classic daemon that double-forks; you need <code>PIDFile=</code>); <code>Type=notify</code> (service uses <code>sd_notify()</code> to tell systemd "I'm ready" &mdash; cleanest, used by nginx, postfix); <code>Type=oneshot</code> (runs to completion, no persistent process). <code>Restart=on-failure</code>, <code>RestartSec=5</code> give you automatic recovery with backoff. <code>User=</code>, <code>Group=</code>, <code>WorkingDirectory=</code> for identity; <code>LimitNOFILE=</code>, <code>LimitNPROC=</code>, <code>MemoryMax=</code>, <code>CPUQuota=</code> for resource control (backed by cgroups).</li>
+  <li><code>[Install]</code> &mdash; what happens on <code>systemctl enable</code>. <code>WantedBy=multi-user.target</code> means "when boot reaches multi-user target, pull me in". The enable step creates a symlink in <code>/etc/systemd/system/multi-user.target.wants/</code>.</li>
+</ul>
+<b>The daily-use commands:</b>
+<ul>
+  <li><code>systemctl start/stop/restart NAME</code> &mdash; one-time actions.</li>
+  <li><code>systemctl enable/disable NAME</code> &mdash; start on boot or not.</li>
+  <li><code>systemctl enable --now NAME</code> &mdash; enable and start immediately. Common shortcut.</li>
+  <li><code>systemctl status NAME</code> &mdash; last few log lines + current state. First stop when something is wrong.</li>
+  <li><code>journalctl -u NAME</code> &mdash; all logs; <code>-f</code> to follow, <code>--since "1h ago"</code> for time-filtered, <code>-p err</code> for errors only.</li>
+  <li><code>systemctl daemon-reload</code> &mdash; <b>always run after editing a unit file</b>. Systemd caches parsed units; without this, your changes don't take effect.</li>
+  <li><code>systemctl cat NAME</code> &mdash; show the effective unit file (with drop-ins merged).</li>
+  <li><code>systemctl edit NAME</code> &mdash; create a <b>drop-in override</b> in <code>/etc/systemd/system/NAME.service.d/override.conf</code> instead of editing the vendor unit (survives package upgrades).</li>
+</ul>
+<b>Systemd timers vs cron</b> &mdash; an increasingly popular comparison:
+<ul>
+  <li>Logs go to journald, grep-able with <code>journalctl -u my.timer</code>.</li>
+  <li><code>Persistent=true</code> catches missed runs for machines that weren't on (anacron replacement).</li>
+  <li>Can depend on other units (run after database is up, not at a fixed time).</li>
+  <li>Accurate <code>OnCalendar=</code> expressions (<code>Mon *-*-* 03:00:00</code>).</li>
+  <li>Runs under full systemd resource controls (CPU/memory limits, user namespaces).</li>
+</ul>
+<b>Why <code>journalctl</code> is the log story:</b> systemd collects stdout/stderr of every managed service into a binary journal at <code>/var/log/journal/</code>. Advantages: structured (you can query by time, unit, user, priority); tamper-resistant (FSS seals); automatic rotation. Downside: binary format, so you <b>need journalctl</b> to read it &mdash; <code>cat /var/log/...</code> doesn't work. On systems where text logs are still preferred (rsyslog), journald typically forwards there too.
+<br><br>
+<b>Diagnostic moves for a service that won't start:</b> <code>systemctl status</code> &rarr; red failure with exit code. <code>journalctl -xeu my.service</code> &rarr; full logs + "hints" about what might be wrong. <code>systemctl list-dependencies my.service</code> &rarr; is a required unit down? <code>systemd-analyze verify my.service</code> &rarr; syntax check. <code>systemd-analyze blame</code> &rarr; which units are slow at boot.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of systemd.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>systemctl start/stop</code> but can't explain systemd's role or create a service.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Can manage existing services but can't create a unit file.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">systemctl commands; journalctl; unit file with [Unit]/[Service]/[Install]; ExecStart/Restart/User; <code>systemctl daemon-reload</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Targets vs SysV runlevels; Type=simple/forking/oneshot/notify; socket activation; dependency ordering (After/Requires/Wants); resource limits; systemd timers vs cron; <code>systemd-analyze</code>; systemd-tmpfiles.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q18 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q18 &middot; Investigating a Misbehaving Process</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; An application admin reports that an application isn't starting properly and points to a running process that appears to be at fault. How do you find out what that process is doing?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SYSTEMATIC INVESTIGATION</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">ps auxf                        # identify PID, parent, CPU, mem
+top -p PID                     # live resource usage
+cat /proc/PID/cmdline          # what was it started with
+cat /proc/PID/status           # state, threads, UID, etc.
+ls -l /proc/PID/cwd            # working dir
+ls -l /proc/PID/fd             # open file descriptors
+cat /proc/PID/maps             # memory mappings
+
+strace -p PID -f               # system calls (attach, -f for threads)
+ltrace -p PID                  # library calls
+lsof -p PID                    # open files, sockets, TCP conns
+ss -tnp | grep PID             # network connections
+gdb -p PID                     # deep debugging
+
+journalctl -u &lt;unit&gt;           # service logs
+dmesg | tail                   # kernel (OOM, segfaults)
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; WALKING THE <code>/proc</code> TREE IS THE WHOLE ANSWER</b></font>
+<br><br>
+<font size="3"><b>Every answer to this question flows through <code>/proc/PID/</code>.</b> The kernel exposes the full state of every process as a directory of virtual files; most of the standard tools (<code>ps</code>, <code>lsof</code>, <code>top</code>) are really just pretty front-ends for <code>/proc</code> lookups. Knowing the tree directly is what separates "remembers the command" from "can improvise when the tool is missing".
+<br><br>
+<b>The systematic flow &mdash; what to check and in what order:</b>
+<br><br>
+<b>Step 1: What is this process?</b>
+<ul>
+  <li><code>cat /proc/PID/cmdline | tr '\0' ' '</code> &mdash; the exact argv it was started with (arguments are null-separated on disk).</li>
+  <li><code>cat /proc/PID/status</code> &mdash; State (R/S/D/T/Z), parent PID (PPid), UID/GID, thread count, detailed memory stats (VmRSS, VmSize, VmData), signals pending/blocked. The first thing to read.</li>
+  <li><code>ls -l /proc/PID/exe</code> &mdash; the actual binary (symlink to the file on disk). Sometimes the running binary is a different version than what's installed right now.</li>
+  <li><code>ls -l /proc/PID/cwd</code> &mdash; current working directory. Often surprising; a daemon started from <code>/</code> vs from someone's home has different behavior for relative paths.</li>
+  <li><code>cat /proc/PID/environ | tr '\0' '\n'</code> &mdash; the environment it was started with. Critical for "works from my shell, not from systemd" debugging (different PATH, missing exports).</li>
+</ul>
+<b>Step 2: What state is it in?</b> The state letter in <code>/proc/PID/status</code> is the first triage:
+<ul>
+  <li><b>R (running)</b> or <b>S (sleeping)</b> &mdash; normal. R means on the CPU right now; S means idle waiting for an event (poll, sleep, IO).</li>
+  <li><b>D (uninterruptible sleep)</b> &mdash; <b>stuck in kernel</b>, usually waiting for IO. Can't be killed (not even by SIGKILL) until the kernel op completes. Persistent D-state indicates a hardware / NFS problem.</li>
+  <li><b>T (stopped)</b> &mdash; paused via SIGSTOP/SIGTSTP. Send SIGCONT to resume.</li>
+  <li><b>Z (zombie)</b> &mdash; dead, waiting for the parent to reap (see Q19).</li>
+</ul>
+<b>Step 3: What's it using?</b>
+<ul>
+  <li><code>ls /proc/PID/fd/</code> &mdash; every open file descriptor, as a symlink to its target. Sockets show as <code>socket:[12345]</code>, pipes as <code>pipe:[...]</code>, regular files as the full path. Counting <code>ls /proc/PID/fd | wc -l</code> shows if the process is leaking fds (compare against <code>cat /proc/PID/limits | grep "Max open files"</code>).</li>
+  <li><code>cat /proc/PID/maps</code> or <code>pmap PID</code> &mdash; the complete memory layout. Each line is a mapped region: the heap, stack, each shared library, memory-mapped files. Useful for "why is memory 10GB?" &mdash; you can see if it's mostly shared libs (normal), heap (leak suspect), or mmapped files.</li>
+  <li><code>cat /proc/PID/limits</code> &mdash; the resource limits the process is running under. A service suddenly failing to open new connections might be hitting <code>Max open files</code>.</li>
+  <li><code>cat /proc/PID/io</code> &mdash; cumulative bytes read/written, syscall counts. Growing <code>wchar</code> but not <code>write_bytes</code> indicates writes going to cache, not disk yet.</li>
+</ul>
+<b>Step 4: What's it DOING right now?</b>
+<ul>
+  <li><code>strace -p PID -f -c</code> &mdash; attach and summarize syscalls for a while, then Ctrl-C to get a count of which syscalls dominated time. "90% of time in <code>futex</code>" &rarr; waiting on a lock. "90% in <code>read</code>" &rarr; waiting on IO or network. "High <code>open</code>/<code>stat</code>" &rarr; lots of filesystem traversal. Be careful: strace slows the process significantly; use briefly, not as a monitor.</li>
+  <li><code>cat /proc/PID/wchan</code> &mdash; the kernel function name the process is currently blocked in. One line, but highly diagnostic: <code>poll_schedule_timeout</code> = waiting on events; <code>sk_wait_data</code> = waiting for network data; <code>do_sys_poll</code> = select/poll loop.</li>
+  <li><code>cat /proc/PID/stack</code> &mdash; kernel stack trace, if <code>CONFIG_STACKTRACE</code> is on. Shows where in the kernel it's blocked.</li>
+  <li><code>ls /proc/PID/task/</code> &mdash; one directory per thread; each thread has its own <code>/proc/PID/task/TID/</code> subtree. <code>ps -eLf</code> or <code>top -H -p PID</code> shows threads.</li>
+</ul>
+<b>Step 5: What's outside the process?</b>
+<ul>
+  <li><code>journalctl -u NAME -n 200</code> &mdash; if it's a systemd service, this is where the logs live.</li>
+  <li><code>dmesg -T | tail -50</code> &mdash; kernel ring buffer. OOM kills, segfaults, NIC issues, disk errors all land here with timestamps (<code>-T</code> formats them human-readable).</li>
+  <li><code>ss -tnp | grep pid=PID</code> &mdash; network connections owned by the process.</li>
+  <li><code>pidstat -u -r -d -p PID 1</code> &mdash; per-PID CPU, memory, IO per second. Shows <i>trends</i>, not just current state.</li>
+</ul>
+<b>Step 6: Going deeper (only when needed).</b>
+<ul>
+  <li><code>gdb -p PID</code> attaches and gives you a full debugger &mdash; backtrace (<code>bt</code>) of every thread (<code>thread apply all bt</code>) tells you exactly where execution is stuck. Detach with <code>detach</code> or <code>quit</code>. Very high impact, very disruptive to the target &mdash; use in emergencies.</li>
+  <li><code>perf record -p PID / perf top -p PID</code> for CPU profiling &mdash; shows <i>which functions</i> are hot.</li>
+  <li><code>core</code> dump via <code>gcore PID</code> &mdash; write a snapshot to disk that you can analyze later offline.</li>
+</ul>
+<b>The "application admin points to the wrong process" trap:</b> always verify the PID they handed you is actually the problem. <code>ps auxf</code> and walk the process tree; the real problem might be the <b>parent</b> that spawned this process, or a sibling competing for the same resource. This is a common AFT-flavor answer: don't trust the reporter's diagnosis without checking.</font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Suggests only "kill it and restart."</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>ps</code> but can't investigate further.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Uses <code>ps</code> and <code>top</code>; mentions logs; limited toolset.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3"><code>ps aux</code>, <code>strace -p</code>, <code>lsof -p</code>, <code>/proc/PID/</code>, logs, process state checks, <code>netstat</code>/<code>ss</code>; explains what each reveals.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3"><code>ltrace</code>, <code>gdb attach</code>, <code>/proc/PID/fd|maps</code>, thread analysis (<code>ps -eLf</code>); core dumps; zombie checks; <code>dmesg</code>; resource limits (<code>ulimit</code>); monitoring to prevent recurrence.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="config-mgmt"><font color="#58a6ff" size="6">3. Configuration Management</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q19 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q19 &middot; Ansible vs Chef vs Puppet</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What configuration management tools are you familiar with? Explain the main components and how you would use one to manage infrastructure.</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>COMPARISON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">Ansible   Agentless, push model, SSH-based
+          YAML playbooks, inventory files, roles
+          Idempotent by design
+          Easy to start; less suited for 10k+ nodes pull mode
+
+Chef      Agent-based, pull model, Ruby DSL
+          Cookbooks + recipes; Chef Server orchestrates
+          Strong ecosystem; steeper learning curve
+
+Puppet    Agent-based, pull model, Puppet DSL
+          Declarative; Puppet Master catalogs
+          Mature; good for compliance-heavy envs
+
+# Ansible ad-hoc
+ansible webservers -m apt -a "name=nginx state=latest"
+ansible-playbook site.yml --check --diff
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of config management; manages manually.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Names one tool but can't explain components or workflow.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Basic concept of one; knows it automates server config; limited on architecture.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Explains at least one in depth (e.g., Ansible: agentless, SSH, YAML playbooks, inventory, roles, idempotent); push vs pull; why config management matters (consistency, IaC).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Compares multiple tools; Ansible Vault for secrets; Galaxy; testing (Molecule, kitchen-ci); CI/CD integration; IaC principles; version control for configs.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q20 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q20 &middot; Package Management</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain how package management works in Linux. Compare apt (Debian/Ubuntu) and yum/dnf (RHEL/CentOS).</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>QUICK REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Debian / Ubuntu (.deb)
+apt update                        # refresh indexes
+apt install nginx
+apt remove nginx
+apt upgrade / apt full-upgrade
+apt-cache search keyword
+dpkg -l | grep nginx              # low-level
+apt-mark hold nginx               # pin version
+add-apt-repository ppa:user/repo
+
+# RHEL / CentOS / Fedora (.rpm)
+yum install nginx                 # or dnf on newer
+yum update
+yum remove nginx
+yum search keyword
+rpm -qa | grep nginx              # low-level
+yum versionlock add nginx
+yum-config-manager --add-repo ...
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot install software on Linux.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>apt install</code> but can't explain repositories, dependencies, or compare with yum.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Can install packages but doesn't understand dependency resolution or repo management.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Both families; install/remove/upgrade; repos; pinning; listing; searching; adding third-party repos.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3"><code>dpkg</code> vs <code>apt</code> (low/high-level); GPG verification; local/private repos; <code>apt-mark hold</code>, <code>yum versionlock</code>; Ansible for fleet-wide management; containerization alternative; snap/flatpak.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q21 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q21 &middot; Environment Variables</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; What are environment variables? How do you set them? What's the difference between <code>.bashrc</code>, <code>.bash_profile</code>, and <code>/etc/environment</code>?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>REFERENCE</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Set for current shell + children
+export FOO=bar
+
+# View
+env; printenv; echo $FOO
+
+# Scope files
+~/.bashrc           interactive non-login shells
+~/.bash_profile     login shells (falls back to ~/.profile)
+/etc/environment    system-wide (read by PAM)
+/etc/profile.d/*    system-wide scripts
+
+# systemd services
+# EnvironmentFile=/etc/default/myapp
+# Environment="FOO=bar"
+
+# Security
+# Don't put secrets in env vars (leaks via /proc/PID/environ)
+# Use secrets managers: Vault, AWS SSM Parameter Store, SecretsManager
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#3fb950"><b>&#128269; DEEP DIVE &mdash; THE ENV IS PROCESS-LOCAL AND INHERITED</b></font>
+<br><br>
+<font size="3"><b>An environment variable is a key=value string attached to a process, automatically copied to every child the process creates.</b> That inheritance model is the whole point. When you <code>export FOO=bar</code> in a shell, the shell stores it in its own process env; when you run a command (say <code>python</code>), the shell <code>fork()</code>s and the child inherits the entire env; <code>python</code> then inherits it to anything <i>it</i> spawns. The env is visible to the process via <code>/proc/PID/environ</code> (on Linux) and accessed in code via <code>os.environ</code> (Python), <code>getenv()</code> (C).
+<br><br>
+<b>The <code>export</code> distinction catches people off guard.</b> In bash, <code>FOO=bar</code> sets a <b>shell variable</b> &mdash; visible to the current shell but <b>not</b> to child processes. <code>export FOO=bar</code> promotes it to an <b>environment variable</b>, which the shell will include in the env of future children. So:
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2">FOO=bar          # shell-local
+python -c 'import os; print(os.environ.get("FOO"))'   # None
+
+export FOO=bar   # environment
+python -c 'import os; print(os.environ.get("FOO"))'   # bar</font></pre>
+<b>Why there are so many "profile" files &mdash; shell type matters:</b> bash distinguishes between <b>login</b> shells (SSH, console login, <code>bash -l</code>) and <b>non-login interactive</b> shells (opening a terminal inside a GUI, running <code>bash</code>). Each type sources different files:
+<ul>
+  <li><b>Login shell:</b> <code>/etc/profile</code> &rarr; first of <code>~/.bash_profile</code>, <code>~/.bash_login</code>, <code>~/.profile</code> that exists. <code>~/.bash_profile</code> conventionally sources <code>~/.bashrc</code>.</li>
+  <li><b>Non-login interactive shell:</b> <code>/etc/bash.bashrc</code> then <code>~/.bashrc</code>.</li>
+  <li><b>Non-interactive (scripts):</b> neither &mdash; scripts inherit env from their parent and don't source anything automatically. This is the source of "works in my terminal, fails in cron" problems.</li>
+</ul>
+<b>The usual convention:</b> put your interactive tweaks (aliases, prompt) in <code>~/.bashrc</code>; put the things that should set up your environment (PATH, important exports) in <code>~/.bash_profile</code>; and have <code>~/.bash_profile</code> source <code>~/.bashrc</code> at the end so both shell types see both. That's what most distros ship with.
+<br><br>
+<b><code>/etc/environment</code> is special.</b> It's <b>not</b> a shell script &mdash; it's read by PAM (the pluggable authentication module system) when a user logs in. Syntax is <code>KEY=value</code>, one per line, no <code>export</code>, no shell substitutions. Because PAM reads it before any shell runs, values set here are visible to <b>login methods that bypass shell profiles entirely</b> &mdash; graphical logins, SSH non-shell exec, systemd user services. If you need a variable to be visible everywhere, this is where it goes. <code>/etc/profile.d/*.sh</code> is the system-wide equivalent for shell-specific setup.
+<br><br>
+<b>Systemd services and env vars:</b> systemd-managed services <b>do not source any shell profile</b>. This trips up a lot of people. You have three options:
+<ul>
+  <li><code>Environment="FOO=bar"</code> inline in the unit file.</li>
+  <li><code>EnvironmentFile=/etc/default/myapp</code> &mdash; a simple <code>KEY=value</code> file, good for deployable config.</li>
+  <li><code>ExecStart=/bin/bash -c 'source /etc/myapp.env &amp;&amp; exec /usr/bin/myapp'</code> &mdash; if you really need shell semantics (substitutions, conditionals).</li>
+</ul>
+<b>The security angle</b> (Raises Bar):
+<ul>
+  <li><b>Any process on the system can read <code>/proc/&lt;your_pid&gt;/environ</code> if it shares your UID</b> (or is root). That means any command you run as yourself can harvest all your env vars. Secrets in env vars are shared with every child process, every library you link, and visible to anyone who can run <code>ps eww PID</code>. This is why the <b>12-factor-app</b> guidance to "put config in env" needs to be qualified: <b>non-secret</b> config, yes; <b>secrets</b>, prefer a secrets manager and have your app fetch them at startup.</li>
+  <li><b>The env is copied into every child.</b> If you export <code>AWS_SECRET_ACCESS_KEY</code> and then run <code>npm install</code>, every post-install script has access to your credentials. Be surgical &mdash; pass via the command line or use <code>AWS_PROFILE=</code> pointing to a file-backed profile.</li>
+  <li><b>Command-line arguments are worse than env &mdash; visible in <code>ps</code> to everyone.</b> <code>mysql -u root -pHUNTER2</code> shows <code>HUNTER2</code> to any process that runs <code>ps</code>. Use the interactive prompt, <code>-p</code> without value, or <code>~/.my.cnf</code>.</li>
+</ul>
+<b>Common "my variable isn't set" debugging flow:</b>
+<ol>
+  <li><code>echo $FOO</code> &mdash; is it set in my current shell?</li>
+  <li><code>env | grep FOO</code> &mdash; is it in the exported environment?</li>
+  <li><code>cat /proc/$$/environ | tr '\0' '\n' | grep FOO</code> &mdash; confirm it's really attached.</li>
+  <li>If it's set in my shell but not in a subprocess: I forgot <code>export</code>.</li>
+  <li>If it's not set despite <code>~/.bashrc</code>: am I in a non-login shell? Is the file even being sourced? Add <code>echo "bashrc ran"</code> at the top and open a new terminal to check.</li>
+  <li>If it's set interactively but not in cron/systemd: those contexts don't source profiles &mdash; set it in the systemd <code>EnvironmentFile</code> or cron line directly.</li>
+</ol></font>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain environment variables.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>export</code> but doesn't understand scope or persistence.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Can set variables but doesn't distinguish login/non-login shells or system-wide vs user.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">key=value pairs available to processes; <code>export</code> + inheritance; <code>.bashrc</code> (non-login), <code>.bash_profile</code> (login), <code>/etc/environment</code> (system-wide via PAM).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3"><code>/etc/profile.d/</code>; <code>su</code> vs <code>su -</code>; <code>env -i</code> for clean env; systemd <code>EnvironmentFile</code>; secrets managers; <code>source</code> vs execute for variable scope.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="storage"><font color="#58a6ff" size="6">4. Storage &amp; Backup</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q22 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q22 &middot; Linux File Permissions (detailed)</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain Linux file permissions. What does 755 mean? How would you change permissions? What is umask?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain file permissions.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows <code>chmod</code> but can't explain numeric notation.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Explains 755 but doesn't understand umask or special perms.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">User/Group/Other; Read(4)/Write(2)/Execute(1); <code>chmod</code>/<code>chown</code>; <code>umask</code> affects defaults (022 =&gt; 644/755); numeric vs symbolic.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">SUID/SGID/Sticky bit; ACLs (<code>setfacl</code>/<code>getfacl</code>); world-writable risks; SELinux/AppArmor interactions; <code>/proc/PID/fd</code>.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q23 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q23 &middot; RAID Levels</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain RAID. What are the common RAID levels and when would you use each?</font></td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>LEVEL SUMMARY</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">RAID 0   Striping, no redundancy, max performance
+         Any disk fails =&gt; total loss
+RAID 1   Mirroring, 50% capacity, survives 1 disk loss
+RAID 5   Striping + distributed parity, survives 1
+         Write penalty from parity; bad for rebuild times
+RAID 6   Striping + double parity, survives 2
+RAID 10  Mirror + stripe; best perf with redundancy
+
+# Software RAID (Linux)
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc
+cat /proc/mdstat
+mdadm --detail /dev/md0
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Has never heard of RAID.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows RAID is for "disk redundancy" but can't explain any levels.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Explains RAID 1 but limited on other levels.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">RAID 0/1/5/6/10 with redundancy and performance tradeoffs; use cases for each.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Rebuild times and vulnerability window; hot spares; hardware vs software RAID (<code>mdadm</code>); RAID 5 write hole; RAID &ne; backup; JBOD; ZFS/Ceph/cloud storage alternatives; SMART monitoring.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q28 (removed) Backup Strategies ============ -->
+
+</font>
+</td></tr>
+</table>
+
+</body>
+</html>
