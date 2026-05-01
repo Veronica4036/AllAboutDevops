@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SysDE L4 Prep — Coding &amp; Algorithms</title>
+</head>
+<body bgcolor="#0d1117" text="#e6edf3" link="#58a6ff" vlink="#bc8cff" alink="#ffa657">
+
+<table width="100%" bgcolor="#161b22" cellpadding="14" cellspacing="0" border="0">
+<tr><td>
+  <font face="Helvetica, Arial, sans-serif" size="4" color="#e6edf3"><b>SysDE L4 Prep</b></font>
+  &nbsp;&nbsp;|&nbsp;&nbsp;
+  <font face="Helvetica, Arial, sans-serif" size="3">
+    <a href="index.html"><font color="#8b949e">Home</font></a> &nbsp;&middot;&nbsp;
+    <a href="patterns.html"><font color="#8b949e">Patterns</font></a> &nbsp;&middot;&nbsp;
+    <a href="coding.html"><font color="#58a6ff"><b>Coding &amp; Algorithms</b></font></a> &nbsp;&middot;&nbsp;
+    <a href="scripting-linux.html"><font color="#8b949e">Scripting &amp; Linux</font></a> &nbsp;&middot;&nbsp;
+    <a href="networking-security.html"><font color="#8b949e">Networking &amp; Security</font></a> &nbsp;&middot;&nbsp;
+    <a href="troubleshooting-ops.html"><font color="#8b949e">Troubleshooting &amp; Ops</font></a> &nbsp;&middot;&nbsp;
+    <a href="systems-cloud.html"><font color="#8b949e">Systems &amp; Cloud</font></a>
+  </font>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="1000" align="center" cellpadding="0" cellspacing="0" border="0">
+<tr><td>
+<font face="Helvetica, Arial, sans-serif">
+
+<h1><font color="#e6edf3" size="6">Coding &amp; Algorithms</font></h1>
+<p><font size="3" color="#8b949e">22 questions &mdash; each tagged with AFT Support priority (&#128994; high / &#128993; medium / &#9898; low). See <a href="index.html">Home</a> for the 5-day plan.</font></p>
+
+<br>
+
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#127919; AFT SUPPORT FOCUS</b></font>
+<br><br>
+<font size="3">For <b>System Development Engineer, AFT Support</b>, the highest-signal questions are those that reflect <b>real ops work</b>: log parsing, automation scripts, production-resilience patterns (retry, idempotency, graceful shutdown), and OOP design. Pure-algorithmic puzzles are the lowest signal for this role.</font>
+</td></tr>
+</table>
+
+<br>
+
+<!-- ========= 5-DAY STUDY PLAN ========= -->
+<table width="100%" bgcolor="#1c2430" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#ffa657"><b>&#9200; 5-DAY CRAM PLAN</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr>
+  <td width="15%" valign="top"><font color="#7ee787"><b>Day 1</b></font></td>
+  <td valign="top"><font size="3"><b>Patterns &amp; Easy wins.</b> Skim the Pattern Cheat Sheet below. Solve Q1&ndash;Q4 (Anagram, Vending, Rotated Search, Connected Cells). Focus on verbalizing approach before coding.</font></td>
+</tr>
+<tr>
+  <td valign="top"><font color="#7ee787"><b>Day 2</b></font></td>
+  <td valign="top"><font size="3"><b>Stack/Queue + String patterns.</b> Q7 (Movies / monotonic stack), Q15 (Min Stack), Q16 (Balanced Brackets), Q8 (Stock V1/V2), Q9 (Phone Numbers).</font></td>
+</tr>
+<tr>
+  <td valign="top"><font color="#7ee787"><b>Day 3</b></font></td>
+  <td valign="top"><font size="3"><b>Graph/Tree + System-y coding.</b> Q17 (BFS shortest path), Q18 (Serialize tree), Q12 (LRU), Q13 (Producer-Consumer), Q10 (Rate Limiter), Q11 (Retry).</font></td>
+</tr>
+<tr>
+  <td valign="top"><font color="#7ee787"><b>Day 4</b></font></td>
+  <td valign="top"><font size="3"><b>OOP design day (biggest signal).</b> Q14 (Pizza Builder) &mdash; the one detailed OOP question. Practice verbalizing abstractions, enums, composition over inheritance, testability. Also review your Python idioms from Home.</font></td>
+</tr>
+<tr>
+  <td valign="top"><font color="#7ee787"><b>Day 5</b></font></td>
+  <td valign="top"><font size="3"><b>Regex/CLI + mock runs.</b> Q19&ndash;Q22 (du, awk, regex, sed). Then re-solve 4 random questions under a timer, talking out loud.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+
+<br><br>
+
+<!-- ========= PATTERN RECOGNITION CHEAT SHEET ========= -->
+<table width="100%" bgcolor="#1c2430" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#ffa657"><b>&#128269; PATTERN RECOGNITION &mdash; IF YOU HEAR THIS, REACH FOR THAT</b></font>
+<br><br>
+<table width="100%" bgcolor="#161b22" cellpadding="10" cellspacing="1" border="0">
+<tr bgcolor="#1c2430">
+  <th align="left" width="42%"><font color="#58a6ff" size="2">PROBLEM SIGNAL</font></th>
+  <th align="left"><font color="#58a6ff" size="2">PATTERN TO REACH FOR</font></th>
+</tr>
+<tr bgcolor="#161b22"><td><font size="3">"Sorted array", "pair with target", "two numbers..."</font></td><td><font size="3"><b>Two pointers</b> &mdash; O(n)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Longest/shortest substring", "window of size k"</font></td><td><font size="3"><b>Sliding window</b> &mdash; O(n)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Subarray sum equals k", "range sum queries"</font></td><td><font size="3"><b>Prefix sum</b> + hashmap &mdash; O(n)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"First unique", "two sum", "count occurrences"</font></td><td><font size="3"><b>Hash map / Counter</b> &mdash; O(n)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Matching brackets", "next greater/smaller"</font></td><td><font size="3"><b>Stack</b> (monotonic for next-greater)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Shortest path in unweighted graph", "min hops"</font></td><td><font size="3"><b>BFS</b> + visited set &mdash; O(V+E)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"All paths", "connected region", "flood fill"</font></td><td><font size="3"><b>DFS</b> (recursion or stack) + visited</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Sorted array, find element"</font></td><td><font size="3"><b>Binary search</b> &mdash; O(log n)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Top K", "K most frequent", "K closest"</font></td><td><font size="3"><b>Min/max heap</b> of size K &mdash; O(n log K)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"O(1) get + min/max", "LRU", "evict oldest"</font></td><td><font size="3"><b>Hash map + linked list</b> (or auxiliary stack)</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Retry", "eventually consistent", "unreliable"</font></td><td><font size="3"><b>Exponential backoff + jitter</b>, distinguish retryable vs not</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Throttle", "N per minute per user"</font></td><td><font size="3"><b>Token bucket / sliding window</b></font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Parse logs", "extract IP/email/phone"</font></td><td><font size="3"><b>Regex + Counter</b>, or awk in Bash</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="3">"Design a system with several kinds of X"</font></td><td><font size="3"><b>Enums + abstract classes/interfaces</b>, compose over inherit</font></td></tr>
+</table>
+<br>
+<font size="2" color="#8b949e"><i>When stuck: ask clarifying questions about input size, duplicates, and mutability. If brute force is O(n<sup>2</sup>), ask: <b>"Can I use a HashMap to get O(n)?"</b></i></font>
+</td></tr>
+</table>
+
+<br><br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787">Contents</font></h3>
+<font size="3">
+<ol>
+  <li><a href="#problem-solving"><font color="#58a6ff">Problem Solving</font></a> &nbsp;<font color="#8b949e">&mdash; 13 questions</font></li><br>
+  <li><a href="#logical-maintainable"><font color="#58a6ff">Logical &amp; Maintainable (OOP)</font></a> &nbsp;<font color="#8b949e">&mdash; 1 question</font></li><br>
+  <li><a href="#data-structures"><font color="#58a6ff">Data Structures</font></a> &nbsp;<font color="#8b949e">&mdash; 4 questions</font></li><br>
+  <li><a href="#regex-text"><font color="#58a6ff">Regex &amp; Text Processing</font></a> &nbsp;<font color="#8b949e">&mdash; 4 questions</font></li>
+</ol>
+</font>
+</td></tr>
+</table>
+
+<br><br><br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="problem-solving"><font color="#58a6ff" size="6">1. Problem Solving</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+<!-- PROBLEM_SOLVING_START -->
+
+
+<!-- ============ Q1 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q1 &middot; Identify Anagram Without Sorting</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given two strings, determine if they are anagrams of each other &mdash; without using sorting.<br><br>
+<b><font color="#bc8cff">Typical clarifying questions:</font></b>
+<ul>
+  <li>Case-sensitive? (<code>"Listen"</code> vs <code>"Silent"</code>)</li>
+  <li>Are whitespace / punctuation significant? (<code>"astronomer"</code> vs <code>"moon starer"</code>)</li>
+  <li>Unicode or ASCII only? (diacritics, emoji)</li>
+  <li>What should empty-string inputs return?</li>
+</ul>
+<b><font color="#8b949e">Why the interviewer bans sorting:</font></b> they want to see if you can identify that <b>two strings are anagrams iff they have the same character frequencies</b> &mdash; an O(n) observation rather than an O(n log n) sort.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Anagrams = same multiset of characters. Build a <b>frequency map</b> for each and compare, or use one map with <b>increment for string A, decrement for string B</b> &mdash; finish only if all counts land at zero.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Length mismatch early-exit</b> is the #1 optimization &mdash; skip if lengths differ. Don't assume ASCII: Unicode code points may combine (<code>é</code> can be <code>e + ́</code>). If case/whitespace matters, <b>clarify before coding</b>; don't silently normalize.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"The sort-based approach is O(n log n); with a frequency map I get O(n). I'll use <code>Counter</code> for clarity, but I can also do it in a single pass: increment for A, decrement for B, and check all zeros at the end &mdash; same complexity with half the memory."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(n) &middot; Space: O(k) alphabet size</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (three approaches, pick the one they ask for)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from collections import Counter
+
+# -- Approach 1: Counter (most idiomatic) ------------------------------
+def is_anagram(a: str, b: str) -&gt; bool:
+    if len(a) != len(b):
+        return False
+    return Counter(a) == Counter(b)
+
+# -- Approach 2: Manual frequency dict (shows you understand it) -------
+def is_anagram_manual(a: str, b: str) -&gt; bool:
+    if len(a) != len(b):
+        return False
+    counts = {}
+    for ch in a:
+        counts[ch] = counts.get(ch, 0) + 1
+    for ch in b:
+        if counts.get(ch, 0) == 0:
+            return False
+        counts[ch] -= 1
+    return True                               # lengths equal =&gt; all zero
+
+# -- Approach 3: Single-pass with signed increments (most space-efficient)
+def is_anagram_onepass(a: str, b: str) -&gt; bool:
+    if len(a) != len(b):
+        return False
+    delta = {}
+    for x, y in zip(a, b):
+        delta[x] = delta.get(x, 0) + 1
+        delta[y] = delta.get(y, 0) - 1
+    return all(v == 0 for v in delta.values())
+
+# -- Baseline (what the interviewer said NOT to use) -------------------
+# def is_anagram_sort(a, b): return sorted(a) == sorted(b)   # O(n log n)
+
+# Sanity checks
+assert is_anagram("listen", "silent")
+assert is_anagram("anagram", "nagaram")
+assert not is_anagram("hello", "world")
+assert not is_anagram("a", "ab")
+assert is_anagram("", "")
+# With normalization (clarify first!):
+# assert is_anagram("Astronomer".lower().replace(" ", ""),
+#                   "moon starer".lower().replace(" ", ""))
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UPS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Group all anagrams from a list"</b></font></td>
+<td><font size="3">Use a canonical key per word: <code>tuple(sorted(w))</code> or <code>frozenset(Counter(w).items())</code>. Bucket into a <code>defaultdict(list)</code>.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Case-insensitive, ignore whitespace"</b></font></td>
+<td><font size="3">Normalize inputs: <code>a = ''.join(a.lower().split())</code>. <b>Clarify first</b> &mdash; some interviewers want "astronomer / moon starer" to count, others don't.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Unicode correctness"</b></font></td>
+<td><font size="3"><code>unicodedata.normalize('NFC', s)</code> to collapse combining characters. ASCII-only? <code>s.isascii()</code> guard. For emoji: code-point counting may split graphemes &mdash; use a grapheme library if required.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Millions of short strings"</b></font></td>
+<td><font size="3">For strings of length k over an alphabet of 26: use a 26-int array, not a dict. 10-20&times; faster.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot think of any approach beyond sorting; no working code; doesn't handle length mismatch.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Proposes sorting despite the constraint; or frequency counting with implementation bugs.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Works for basic cases but misses edge cases (case, whitespace, empty strings).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Counter or manual dict; O(n) time; length-mismatch early exit; clarifies case/whitespace up front.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Single-pass signed-increment variant; discusses Unicode NFC normalization; 26-int array for small alphabets; extends to "group all anagrams" (dict of canonical key &rarr; list).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q2 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q2 &middot; Vending Machine (Greedy)</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given an amount, return the fewest coins (quarters, dimes, nickels). <br><br><b><font color="#bc8cff">Follow-up:</font></b> &nbsp; Handle limited coin availability.<br><br>
+<b><font color="#8b949e">Skim note:</font></b> classic greedy warm-up. Know the 3-line solution and the "greedy fails for arbitrary denominations" answer. Don't spend more than 10 minutes on this.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Greedy works for US denominations because each coin is a multiple of the smaller ones. Always take as many of the biggest coin as possible, then recurse.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Greedy breaks for arbitrary denominations (e.g., coins [1,3,4], target 6) &mdash; mention this. With limits, you may not be able to make exact change; return None.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Since US coins are canonical, greedy gives optimum. If denominations were arbitrary I'd switch to DP."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(#denominations) &middot; Space: O(1)</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from enum import Enum
+
+class Coin(Enum):
+    QUARTER = 25
+    DIME = 10
+    NICKEL = 5
+
+def make_change(amount_cents):
+    """Return fewest coins for the given amount in cents."""
+    result = {}
+    remaining = amount_cents
+    for coin in Coin:
+        count = remaining // coin.value
+        if count &gt; 0:
+            result[coin.name] = count
+            remaining -= count * coin.value
+    return result
+
+# $1.25 = 125 cents -&gt; QUARTER: 4, DIME: 2, NICKEL: 1
+
+# Follow-up: limited coin availability
+def make_change_limited(amount_cents, available_coins):
+    result = {}
+    remaining = amount_cents
+    for coin in Coin:
+        available = available_coins.get(coin, 0)
+        count = min(remaining // coin.value, available)
+        if count &gt; 0:
+            result[coin.name] = count
+            remaining -= count * coin.value
+    if remaining &gt; 0:
+        return None  # Cannot make exact change
+    return result
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot articulate a greedy approach; no working code; makes incorrect assumptions about coin values.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Describes approach verbally but cannot translate to code; solution has logical errors.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Basic solution works for simple cases but fails on edge cases (e.g., 0 cents, amounts not divisible by 5).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Codes basic greedy solution correctly; handles standard cases; describes limited-coin approach verbally.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Implements limited-coin logic with clean code; uses enums/constants for coin values; discusses when greedy fails (arbitrary denominations needing DP); proposes thorough test cases.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q3 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q3 &middot; Search in Rotated Sorted Array</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Search for a target in a sorted array that has been rotated at some pivot. O(log n).<br><br>
+<b><font color="#8b949e">Skim note:</font></b> pure-algorithmic puzzle; unlikely to appear in an AFT Support loop. If asked, the key line to say is <b>"at every midpoint, one half is always sorted"</b> and commit the four-case binary search to muscle memory.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">At every midpoint, <em>one half is always sorted</em>. Check which half, then decide if target is in that sorted half &mdash; go there or the other.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Use <code>&lt;=</code> (not <code>&lt;</code>) when checking "left sorted" to handle 2-element subarrays. Off-by-ones on the in-range check. Duplicates degrade to O(n).</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Rotation doesn't kill binary search &mdash; at each step one half is still sorted, and I can check my target against its bounds."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(log n), O(n) with dups &middot; Space: O(1)</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def search_rotated(nums, target):
+    """Binary search in a rotated sorted array. O(log n)."""
+    left, right = 0, len(nums) - 1
+    while left &lt;= right:
+        mid = (left + right) // 2
+        if nums[mid] == target:
+            return mid
+        # Left half is sorted
+        if nums[left] &lt;= nums[mid]:
+            if nums[left] &lt;= target &lt; nums[mid]:
+                right = mid - 1
+            else:
+                left = mid + 1
+        # Right half is sorted
+        else:
+            if nums[mid] &lt; target &lt;= nums[right]:
+                left = mid + 1
+            else:
+                right = mid - 1
+    return -1
+
+arr = [4, 5, 6, 7, 0, 1, 2]
+print(search_rotated(arr, 0))   # 4
+print(search_rotated(arr, 3))   # -1
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot identify binary search as the approach; proposes linear scan; doesn't understand the rotation concept.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Identifies binary search but cannot handle the rotation; standard binary search fails on rotated input.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Partially correct modified binary search; handles some cases but has off-by-one errors or incorrect boundary conditions.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Correctly identifies which half is sorted at each step; working O(log n) solution; handles basic test cases; may need minor hints on boundaries.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Clean O(log n) with correct boundary handling; discusses edge cases (not rotated, single element, duplicates); follow-up: duplicates allowed (O(n) worst case).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q4 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q4 &middot; Connected Cell in a Grid (BFS/DFS)</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given a matrix of 0s and 1s, find the largest connected region of 1s (connected horizontally, vertically, or diagonally).<br><br>
+<b><font color="#8b949e">Skim note:</font></b> classic flood-fill. If it comes up, the signals are: (1) "graph traversal problem", (2) <b>8 directions, not 4</b>, (3) visited set to prevent cycles. For very large grids, mention iterative BFS over recursive DFS to dodge stack overflow.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Graph flood-fill: iterate every cell; when you find an unvisited 1, DFS/BFS all 8 neighbors counting the region size, tracking visited to avoid cycles.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Forgetting diagonals (8 directions, not 4). Missing visited tracking =&gt; infinite loop. Deep recursion =&gt; stack overflow; use iterative BFS for big grids.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"This is a graph traversal &mdash; each cell is a node, neighbors are the 8 surrounding cells. I'll DFS from each unvisited 1."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(n&times;m) &middot; Space: O(n&times;m) visited + recursion</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def largest_connected_region(grid):
+    if not grid:
+        return 0
+    rows, cols = len(grid), len(grid[0])
+    visited = set()
+    max_region = 0
+
+    def dfs(r, c):
+        if (r &lt; 0 or r &gt;= rows or c &lt; 0 or c &gt;= cols
+            or (r, c) in visited or grid[r][c] == 0):
+            return 0
+        visited.add((r, c))
+        size = 1
+        # Check all 8 directions (including diagonals)
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                if dr == 0 and dc == 0:
+                    continue
+                size += dfs(r + dr, c + dc)
+        return size
+
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 1 and (r, c) not in visited:
+                max_region = max(max_region, dfs(r, c))
+    return max_region
+
+grid = [[1,1,0,0], [0,1,1,0], [0,0,1,0], [1,0,0,0]]
+print(largest_connected_region(grid))  # 5
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot articulate any traversal approach; unfamiliar with DFS/BFS concepts; makes assumptions about grid structure without clarifying.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Describes DFS/BFS verbally but cannot translate into code; only handles 4-directional connectivity (misses diagonals).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Partially working; handles some directions but not all 8; may have bugs in visited tracking leading to infinite loops.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Identifies DFS/BFS; handles all 8 directions; working solution; discusses time complexity O(n&times;m).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Clean recursive or iterative solution; all edge cases (empty grid, all 0s/1s, single cell); discusses DFS vs BFS tradeoffs; iterative DFS to avoid stack overflow; test cases.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q5 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q5 &middot; Flatten Nested Data Structure</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given a deeply nested data structure (nested lists/dicts of arbitrary depth), flatten it into a single-level sequence of leaf values. The input format is <b>intentionally ambiguous</b> &mdash; the interviewer wants you to ask clarifying questions before coding.<br><br>
+<b><font color="#bc8cff">Typical clarifying questions to ask:</font></b>
+<ul>
+  <li>What types count as "containers"? (list, tuple, set, dict, custom iterables?)</li>
+  <li>Are <b>strings</b> containers or leaves? (Almost always: leaves.)</li>
+  <li>For <b>dicts</b>, do keys appear in the output or only values?</li>
+  <li>Should <b>None</b> be preserved as a leaf, or filtered out?</li>
+  <li>Can the input contain <b>cycles</b> (self-references)?</li>
+  <li>Is the input small enough to fit in memory, or should it stream?</li>
+</ul>
+</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Recurse into containers, yield leaves. A generator is ideal &mdash; it composes, streams, and keeps memory flat.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Strings are iterable &mdash; forgetting this turns <code>"hi"</code> into <code>['h', 'i']</code>. Bytes too. Deep nesting hits Python's recursion limit (~1000). Cycles =&gt; infinite loop without a <code>seen</code> set (compare by <code>id()</code>, not equality).</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Before coding, let me clarify what counts as a container, whether strings are leaves, and whether I should filter None. I'll use a generator so it streams; recursive is clearer but I'll mention an iterative version for very deep nesting."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(total items) &middot; Space: O(depth) for recursion, O(1) streaming</font></td>
+</tr>
+</table>
+<br>
+
+<!-- SOLUTION -->
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (generator, handles all the common asks)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from collections.abc import Iterable
+
+def flatten(x, include_keys: bool = False, seen: set | None = None):
+    """Yield leaves from arbitrarily nested lists/tuples/sets/dicts.
+    - strings &amp; bytes are treated as leaves (never recursed into)
+    - optional include_keys: yield dict keys alongside values
+    - handles cycles via id() tracking"""
+    if seen is None:
+        seen = set()
+
+    # Cycle guard &mdash; only for containers
+    if isinstance(x, (list, tuple, set, dict)):
+        if id(x) in seen:
+            return                            # already visited
+        seen.add(id(x))
+
+    if isinstance(x, dict):
+        for k, v in x.items():
+            if include_keys:
+                yield k
+            yield from flatten(v, include_keys, seen)
+    elif isinstance(x, Iterable) and not isinstance(x, (str, bytes)):
+        for item in x:
+            yield from flatten(item, include_keys, seen)
+    else:
+        yield x                                # leaf
+
+# Iterative (no recursion limit) -- use for very deep inputs
+def flatten_iter(x):
+    stack = [x]
+    seen  = set()
+    while stack:
+        cur = stack.pop()
+        if isinstance(cur, (list, tuple, set, dict)):
+            if id(cur) in seen: continue
+            seen.add(id(cur))
+        if isinstance(cur, dict):
+            stack.extend(reversed(list(cur.values())))
+        elif isinstance(cur, Iterable) and not isinstance(cur, (str, bytes)):
+            stack.extend(reversed(list(cur)))
+        else:
+            yield cur
+
+# Sanity check
+data = [1, [2, [3, 4], {"k": [5, 6]}], "hi", {"a": {"b": 7}}]
+print(list(flatten(data)))      # [1, 2, 3, 4, 5, 6, 'hi', 7]
+
+# Cycle test
+a = [1, 2]
+a.append(a)
+print(list(flatten(a)))         # [1, 2] -- no infinite loop
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UP HANDLING -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"What if the input is huge (GB of JSON)?"</b></font></td>
+<td><font size="3">The generator already streams. Consumer pulls one leaf at a time; nothing is materialized. Combine with <code>ijson</code> for streaming JSON parsing.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"What about depth 10,000?"</b></font></td>
+<td><font size="3">Switch to <code>flatten_iter</code> &mdash; stack-based, no recursion limit. Or raise <code>sys.setrecursionlimit()</code> as a last resort.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Include full dot-path keys?"</b></font></td>
+<td><font size="3">Change signature to yield <code>(path, value)</code> and pass <code>path</code> along: <code>yield from flatten(v, f"{path}.{k}" if path else k)</code>.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Filter None / empty strings?"</b></font></td>
+<td><font size="3">Wrap the consumer: <code>(x for x in flatten(data) if x is not None)</code>. Keep the flatten function pure.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Doesn't ask any clarifying questions; cannot handle recursion; code doesn't work for simple cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Asks minimal questions; handles one level only; doesn't consider mixed types.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Recursive solution works for lists but not dicts or mixed structures; needs hints for edge cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Asks good clarifying questions; clean recursive solution; handles dicts, strings-as-leaves; mentions generator.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Cycle detection via <code>id()</code>; iterative variant for deep nesting; streaming generator for memory; discusses dot-path keys and filtering as composable follow-ups.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q6 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q6 &middot; IP Address Validator and Converter</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Write functions to: (1) validate if a string is a valid IPv4 address, (2) convert an IPv4 address to its 32-bit integer representation and back.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Extend to IPv6.</li>
+  <li>Parse CIDR notation (<code>10.0.0.0/24</code>) and test if an IP is in a subnet.</li>
+  <li>What if input comes from logs with trailing whitespace or port suffix?</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> log parsing, ACL/firewall rules, identifying hosts in incident diagnostics.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Split on <code>.</code> &rarr; must get exactly 4 parts, each digit-only and 0-255, with <b>no leading zeros</b> (except "0" itself). Conversion uses bit-shifting: <code>(a&lt;&lt;24)|(b&lt;&lt;16)|(c&lt;&lt;8)|d</code>.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><code>"01"</code> is invalid (leading zero) but <code>int("01")</code> silently succeeds &mdash; check the string, not just the int. Negative numbers (<code>"-1"</code>) pass naive digit checks. <code>"1.2.3.4.5"</code> and <code>"1.2.3"</code> must fail. Don't strip whitespace without saying so.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"For production I'd use Python's <code>ipaddress</code> module &mdash; it's RFC-correct and handles IPv6. For interview I'll write the manual version to show I understand the validation rules, then mention the stdlib as the real answer."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(1) &middot; Space: O(1)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def is_valid_ipv4(s: str) -&gt; bool:
+    if not isinstance(s, str):
+        return False
+    parts = s.split('.')
+    if len(parts) != 4:
+        return False
+    for p in parts:
+        if not p.isdigit():             # rejects '', '+1', '-1', '1a'
+            return False
+        if len(p) &gt; 1 and p[0] == '0':  # no leading zeros (except '0')
+            return False
+        if int(p) &gt; 255:
+            return False
+    return True
+
+def ip_to_int(s: str) -&gt; int:
+    if not is_valid_ipv4(s):
+        raise ValueError(f"invalid IPv4: {s!r}")
+    a, b, c, d = (int(p) for p in s.split('.'))
+    return (a &lt;&lt; 24) | (b &lt;&lt; 16) | (c &lt;&lt; 8) | d
+
+def int_to_ip(n: int) -&gt; str:
+    if not (0 &lt;= n &lt; 2**32):
+        raise ValueError(f"out of IPv4 range: {n}")
+    return f"{(n &gt;&gt; 24) &amp; 255}.{(n &gt;&gt; 16) &amp; 255}.{(n &gt;&gt; 8) &amp; 255}.{n &amp; 255}"
+
+# Sanity checks
+assert is_valid_ipv4("192.168.1.1")
+assert not is_valid_ipv4("01.2.3.4")      # leading zero
+assert not is_valid_ipv4("256.0.0.1")     # &gt; 255
+assert not is_valid_ipv4("1.2.3")          # too few parts
+assert not is_valid_ipv4("1.2.3.4.5")      # too many parts
+assert ip_to_int("192.168.1.1") == 3232235777
+assert int_to_ip(3232235777) == "192.168.1.1"
+
+# Production: use stdlib
+# import ipaddress
+# ipaddress.IPv4Address("192.168.1.1")              # raises on invalid
+# int(ipaddress.IPv4Address("192.168.1.1"))         # 3232235777
+# ipaddress.IPv4Address("192.168.1.5") in ipaddress.IPv4Network("192.168.1.0/24")
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain IPv4 format; no working code.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Basic string splitting but doesn't validate ranges or edge cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Validates format but misses edge cases (leading zeros, empty octets, values &gt; 255).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Validates 4 octets 0-255 + no leading zeros; bit-shift conversion both directions; clean error handling.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Mentions <code>ipaddress</code> stdlib as production choice; discusses IPv6; CIDR / subnet membership; comprehensive tests including boundary values.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q7 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q7 &middot; Next Higher Rated Movie (Stack-based O(n))</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; For each movie in a list, find the first movie to its right with a higher rating.<br><br>
+<b><font color="#8b949e">Skim note:</font></b> "next greater element" &mdash; the canonical monotonic stack problem. O(n&sup2;) brute force is acceptable if you can't remember the stack trick. The phrase to name-drop is <b>"monotonic decreasing stack"</b>.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2"><b>Monotonic decreasing stack</b>, scanning right-to-left. While top of stack is &le; current, pop it &mdash; then top is either the answer or None.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Use <code>&gt;=</code> not <code>&gt;</code> when popping if duplicates should look further right. <code>result.insert(0, ...)</code> is O(n); prefer appending then reversing, or iterate left-to-right tracking indices.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Brute force is O(n&sup2;). A monotonic stack keeps candidates for next-greater and amortizes to O(n) since each element is pushed/popped once."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(n) &middot; Space: O(n) stack + output</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">class Movie:
+    def __init__(self, name, rating):
+        self.name = name
+        self.rating = rating
+
+def next_greater_element(movies):
+    """Monotonic stack, scanning right-to-left. O(n) time."""
+    result = []
+    stack = []
+    for idx in range(len(movies) - 1, -1, -1):
+        current = movies[idx]
+        while stack and current.rating &gt;= stack[-1].rating:
+            stack.pop()
+        nxt = stack[-1].name if stack else "None"
+        result.insert(0, f"{current.name} -&gt; {nxt}")
+        stack.append(current)
+    return result
+
+movies = [Movie('Toy Story 3', 13), Movie('Cars 2', 7),
+          Movie('Finding Nemo', 6), Movie('Shrek', 12)]
+for line in next_greater_element(movies):
+    print(line)
+# Toy Story 3 -&gt; None
+# Cars 2 -&gt; Shrek
+# Finding Nemo -&gt; Shrek
+# Shrek -&gt; None
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot articulate any approach; no working code.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Proposes O(n&sup2;) brute force but cannot implement correctly.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Implements O(n&sup2;) correctly; recognizes suboptimal but cannot improve.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Solves with brute force; with hints evolves toward stack-based O(n); discusses time complexity.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Directly to O(n) monotonic stack; explains why the stack works; clean code with class design; discusses space complexity.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q8 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q8 &middot; Best Time to Buy and Sell Stock</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given an array of stock prices, find the maximum profit. <br><br><b>V1:</b> single transaction. &nbsp; <b>V2:</b> multiple transactions. &nbsp; <b>V3:</b> at most 2 transactions.<br><br>
+<b><font color="#8b949e">Skim note:</font></b> DP warm-up. Commit V1 (track min, track max profit) to muscle memory &mdash; that alone usually ends the question. V2 (sum positive diffs) and V3 (forward/backward DP) are bonuses.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2"><b>V1:</b> track running min, update max profit = price - min. <b>V2:</b> sum every up-step (greedy works). <b>V3:</b> two DP passes &mdash; best-so-far from left, best-to-come from right; combine.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Can't sell before you buy. Empty array =&gt; profit 0. V2 is NOT "buy at min, sell at max" &mdash; sum all up-steps. V3 don't double-count: the split point <code>i</code> is included in both halves.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"For V2 the greedy insight: any valid sequence of multiple transactions can be decomposed into daily up-steps, so summing them is optimal."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">V1/V2: O(n), O(1) &middot; V3: O(n), O(n)</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (3 VERSIONS)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># V1: At most one transaction
+def max_profit_single(prices):
+    if not prices: return 0
+    min_price = float('inf')
+    max_profit = 0
+    for price in prices:
+        min_price = min(min_price, price)
+        max_profit = max(max_profit, price - min_price)
+    return max_profit
+
+# V2: Unlimited transactions
+def max_profit_multiple(prices):
+    profit = 0
+    for i in range(1, len(prices)):
+        if prices[i] &gt; prices[i - 1]:
+            profit += prices[i] - prices[i - 1]
+    return profit
+
+# V3: At most 2 transactions &mdash; forward + backward DP
+def max_profit_two_transactions(prices):
+    if not prices: return 0
+    n = len(prices)
+
+    left_profits = [0] * n
+    min_price = prices[0]
+    for i in range(1, n):
+        min_price = min(min_price, prices[i])
+        left_profits[i] = max(left_profits[i-1], prices[i] - min_price)
+
+    right_profits = [0] * n
+    max_price = prices[-1]
+    for i in range(n - 2, -1, -1):
+        max_price = max(max_price, prices[i])
+        right_profits[i] = max(right_profits[i+1], max_price - prices[i])
+
+    return max(left_profits[i] + right_profits[i] for i in range(n))
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot articulate approach; O(n&sup2;) brute force but cannot implement; doesn't understand buy-before-sell constraint.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Implements O(n&sup2;) brute force correctly but cannot optimize; doesn't recognize the greedy pattern.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Solves V1 with O(n) but struggles with modifications; code works but is messy.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Solves V1 cleanly with O(n)/O(1); explains min-price tracking; describes how approach changes for multiple transactions.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Solves both V1 and V2; discusses greedy insight; mentions DP for at-most-k transactions; all edge cases tested (descending, single, empty).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q9 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q9 &middot; Find Most Repeated Phone Number from a File</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Parse a file containing phone numbers (potentially in mixed formats) and find the most frequently occurring one.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Handle multiple formats: <code>555-123-4567</code>, <code>(555) 123-4567</code>, <code>555.123.4567</code>, <code>5551234567</code>, <code>+1-555-123-4567</code>.</li>
+  <li>Top-K most common (not just #1).</li>
+  <li>Streaming: file is too large to fit in memory.</li>
+  <li>What if a line has text + a number (a log line)? Extract all numbers per line.</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> this is the shape of ~every log-parsing task &mdash; regex extract, normalize, count.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Three-stage pipeline: <b>regex extract &rarr; normalize to a canonical form &rarr; Counter</b>. <code>most_common(1)</code> gives the top entry. Streaming (line-by-line) keeps memory flat regardless of file size.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><code>"555-123-4567"</code> and <code>"5551234567"</code> must count as the same &mdash; <b>always normalize before counting</b>. Don't use <code>f.read().splitlines()</code> on a big file (OOM risk). Don't anchor regex with <code>^/$</code> &mdash; numbers can appear mid-line.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Let me first clarify: are phone numbers always US 10-digit, or should I handle international? Is the file big enough that I need to stream? I'll extract with regex, strip separators to canonical 10-digit form, and use <code>Counter.most_common(1)</code>."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(total chars) &middot; Space: O(distinct numbers)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (streaming, handles common formats)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import re
+from collections import Counter
+from typing import Iterable
+
+# Matches:  555-123-4567  (555) 123-4567  555.123.4567  5551234567
+#           optional +1 country code
+PHONE_RE = re.compile(
+    r'(?:\+?1[-. ]?)?'       # optional country code
+    r'\(?\d{3}\)?'           # area code (maybe parens)
+    r'[-. ]?'                # separator
+    r'\d{3}'
+    r'[-. ]?'
+    r'\d{4}'
+)
+
+NON_DIGITS = re.compile(r'\D')
+
+def normalize(raw: str) -&gt; str:
+    """Canonical 10-digit form. Strip country code '1' prefix if present."""
+    digits = NON_DIGITS.sub('', raw)
+    if len(digits) == 11 and digits.startswith('1'):
+        digits = digits[1:]
+    return digits
+
+def count_phones(lines: Iterable[str]) -&gt; Counter:
+    """Stream lines -&gt; Counter of normalized phone numbers."""
+    c = Counter()
+    for line in lines:
+        for match in PHONE_RE.findall(line):
+            c[normalize(match)] += 1
+    return c
+
+def most_repeated(path: str) -&gt; tuple[str, int] | tuple[None, int]:
+    with open(path) as f:
+        c = count_phones(f)
+    if not c:
+        return None, 0
+    return c.most_common(1)[0]
+
+# Sanity check
+sample = [
+    "Call 555-123-4567 for support",
+    "(555) 123-4567 left a voicemail",
+    "5551234567 again",
+    "Another number: 415.867.5309",
+]
+c = count_phones(sample)
+print(c.most_common())            # [('5551234567', 3), ('4158675309', 1)]
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH (for quick CLI work)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">grep -oE '(\+?1[-. ]?)?\(?[0-9]{3}\)?[-. ]?[0-9]{3}[-. ]?[0-9]{4}' phonefile.txt \
+  | tr -d ' ().+-' \
+  | sort | uniq -c | sort -rn | head -5
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Top K numbers, not just #1"</b></font></td>
+<td><font size="3"><code>c.most_common(k)</code> &mdash; Counter already does this in O(n log k).</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"File is 50 GB"</b></font></td>
+<td><font size="3">Already streams line-by-line; memory is O(distinct numbers). If DISTINCT count explodes too, use <b>count-min sketch</b> or <b>approximate top-K</b> (SpaceSaving).</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"International formats"</b></font></td>
+<td><font size="3">Use the <code>phonenumbers</code> library (Google's libphonenumber port) &mdash; correct parsing for any country code. Interview-safe: mention the library, show the manual regex for US, ask which is expected.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Validate numbers are real"</b></font></td>
+<td><font size="3">Regex only matches shape. Real validation needs a directory or API. Mention that you'd flag obvious fakes like <code>000-000-0000</code>.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot extract phone numbers from text; unfamiliar with regex or text parsing.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Extracts but doesn't normalize formats &mdash; counts <code>555-123-4567</code> and <code>5551234567</code> separately.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Working pipeline but only one format; loads whole file into memory; no edge cases.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Regex extract + normalize + Counter; streams line-by-line; correct output on mixed formats.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Multi-format regex (parens, dots, country code); Python and Bash one-liner; mentions <code>phonenumbers</code> library for international; approximate top-K for truly massive distinct counts; top-K via <code>most_common(k)</code>.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q10 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q10 &middot; Rate Limiter</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Design and implement a rate limiter that allows at most N requests per time window (e.g., 100/minute) for a given user or API key. Each request returns <code>True</code> (allowed) or <code>False</code> (denied).<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>How would you make it work across multiple server instances (distributed)?</li>
+  <li>Support tiers: free = 100/min, premium = 10,000/min.</li>
+  <li>Allow short bursts above steady rate &mdash; token bucket.</li>
+  <li>What happens on the <b>boundary</b> of a fixed window? Why is sliding window better?</li>
+  <li>How do you protect the limiter itself from becoming a bottleneck?</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> internal tools that call downstream services must throttle themselves or risk cascading failures. This is production hygiene.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Four main algorithms &mdash; know all four by name:<br>
+&nbsp;&bull; <b>Fixed window</b>: count per clock window. Simple but has boundary bursts.<br>
+&nbsp;&bull; <b>Sliding window log</b>: deque of timestamps; drop old ones. Accurate.<br>
+&nbsp;&bull; <b>Sliding window counter</b>: interpolate between two windows. Approximate but cheap.<br>
+&nbsp;&bull; <b>Token bucket</b>: tokens refill at rate; burst capacity = bucket size. Allows bursts.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Fixed-window <b>boundary bug</b>: 100 requests in 59s + 100 in next 1s =&gt; 200 in 1 real second. Single-node dicts don't work in distributed deployments. Using wall-clock (<code>time.time()</code>) instead of <code>time.monotonic()</code> breaks on clock skew. Forgetting thread-safety =&gt; race between check and increment.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Let me clarify: single-node or distributed? Steady rate or should we allow bursts? What's the granularity &mdash; per user, per API key, per IP? I'll implement sliding-window log for accuracy, then mention token bucket for bursts, and Redis for distributed."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(1) amortized &middot; Space: O(users &times; N) for log, O(users) for bucket</font></td>
+</tr>
+</table>
+<br>
+
+<!-- ALGORITHM COMPARISON -->
+<table width="100%" bgcolor="#1c2430" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128200; ALGORITHM COMPARISON</b></font>
+<br><br>
+<table width="100%" bgcolor="#161b22" cellpadding="8" cellspacing="1" border="0">
+<tr bgcolor="#1c2430">
+<th align="left"><font color="#58a6ff" size="2">ALGORITHM</font></th>
+<th align="left"><font color="#58a6ff" size="2">ACCURACY</font></th>
+<th align="left"><font color="#58a6ff" size="2">MEMORY</font></th>
+<th align="left"><font color="#58a6ff" size="2">BURST ALLOWED?</font></th>
+<th align="left"><font color="#58a6ff" size="2">BEST FOR</font></th>
+</tr>
+<tr bgcolor="#161b22"><td><font size="2">Fixed Window</font></td><td><font size="2">Low (boundary bug)</font></td><td><font size="2">O(1) per user</font></td><td><font size="2">No (hard cap)</font></td><td><font size="2">Quick &amp; dirty internal tools</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="2">Sliding Window Log</font></td><td><font size="2">Perfect</font></td><td><font size="2">O(N) per user</font></td><td><font size="2">No (hard cap)</font></td><td><font size="2">Low-traffic APIs where accuracy matters</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="2">Sliding Window Counter</font></td><td><font size="2">Approximate (&lt;1% error)</font></td><td><font size="2">O(1) per user</font></td><td><font size="2">No</font></td><td><font size="2">High-traffic with memory pressure</font></td></tr>
+<tr bgcolor="#161b22"><td><font size="2">Token Bucket</font></td><td><font size="2">Perfect</font></td><td><font size="2">O(1) per user</font></td><td><font size="2"><b>Yes</b> (up to bucket size)</font></td><td><font size="2">User-facing APIs (allow short bursts)</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (sliding-window log + token bucket, thread-safe)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import time
+import threading
+from collections import deque, defaultdict
+
+class SlidingWindowLimiter:
+    """At most `limit` requests per `window` seconds, per key. Accurate."""
+    def __init__(self, limit: int, window: float):
+        self.limit  = limit
+        self.window = window
+        self.hits: dict[str, deque] = defaultdict(deque)
+        self.lock   = threading.Lock()
+
+    def allow(self, key: str) -&gt; bool:
+        now = time.monotonic()
+        with self.lock:
+            q = self.hits[key]
+            cutoff = now - self.window
+            while q and q[0] &lt;= cutoff:     # drop old timestamps
+                q.popleft()
+            if len(q) &lt; self.limit:
+                q.append(now)
+                return True
+            return False
+
+
+class TokenBucket:
+    """Allow steady `rate` req/sec with burst up to `burst`. Per key."""
+    def __init__(self, rate: float, burst: int):
+        self.rate   = rate
+        self.burst  = burst
+        self.state: dict[str, tuple[float, float]] = {}   # key -&gt; (tokens, last_refill)
+        self.lock   = threading.Lock()
+
+    def allow(self, key: str, cost: int = 1) -&gt; bool:
+        now = time.monotonic()
+        with self.lock:
+            tokens, last = self.state.get(key, (self.burst, now))
+            tokens = min(self.burst, tokens + (now - last) * self.rate)
+            if tokens &gt;= cost:
+                self.state[key] = (tokens - cost, now)
+                return True
+            self.state[key] = (tokens, now)
+            return False
+
+
+# Sanity check
+rl = SlidingWindowLimiter(limit=3, window=1.0)
+print([rl.allow("alice") for _ in range(5)])    # [True, True, True, False, False]
+time.sleep(1.1)
+print(rl.allow("alice"))                        # True (window rolled)
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UP HANDLING -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Make it distributed"</b></font></td>
+<td><font size="3">Use <b>Redis</b> as shared state. Fixed window: <code>INCR key; EXPIRE key window</code>. For atomic sliding window, use a <b>Lua script</b> or <code>ZADD + ZREMRANGEBYSCORE + ZCARD</code> on a sorted set. Tradeoff: each limit check is now a network hop.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Support tiers (free/premium)"</b></font></td>
+<td><font size="3">Keep per-tier config: <code>TIERS = {"free": (100, 60), "premium": (10000, 60)}</code>. On each request, look up the tier and instantiate / pick the right limiter. Same algorithm, different knobs.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"What if Redis is down?"</b></font></td>
+<td><font size="3"><b>Fail open</b> (allow traffic, log metric) is usually safer than fail closed (deny everyone). Depends on business: financial APIs may prefer fail closed. Circuit break the Redis client.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Memory leak for millions of keys"</b></font></td>
+<td><font size="3">Expire / GC inactive keys. Redis <code>EXPIRE</code> does this for free. In-memory: periodic sweep, or bound the dict with an LRU (see Q12).</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Which algorithm would you ship?"</b></font></td>
+<td><font size="3">Production default = <b>token bucket</b> (allows bursts, O(1) memory, well understood). Reach for sliding-window log only if strict cap matters more than burst tolerance.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot conceptualize; no understanding of time windows; code doesn't work.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Simple counter without windows; doesn't handle concurrency.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Fixed window but doesn't catch boundary bug; needs hinting for sliding window.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Sliding-window log OR token bucket; per-key dict; thread-safe; discusses clarifying questions up front.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Compares all four algorithms with tradeoffs; Redis for distributed; tier-based config; fail-open vs fail-closed; memory/GC discussion for large key space.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q11 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q11 &middot; Retry with Exponential Backoff</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Implement a retry mechanism with exponential backoff and jitter for making HTTP requests (or any unreliable operation) to a flaky dependency.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Which errors should you retry? Which must you NOT retry?</li>
+  <li>What jitter strategy? (Equal / Full / Decorrelated)</li>
+  <li>What's the relationship with <b>idempotency</b>?</li>
+  <li>How does this interact with a <b>circuit breaker</b>?</li>
+  <li>Async version? Dead-letter queue for permanently failing items?</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> absolutely core to support work. Every external call your automation makes (to internal services, databases, SSH targets) can fail transiently. Knowing how to retry safely is table-stakes.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Delay = <code>base * 2^attempt</code>, capped at <code>max_delay</code>, PLUS <b>random jitter</b> to prevent thundering herd. Retry only <b>retryable</b> errors (5xx, timeouts, connection refused); never retry 4xx (client's fault). Cap attempts AND total wall time.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Retrying non-idempotent POSTs</b> can double-charge users. Retrying 4xx is wasteful and may block legitimate operations. <b>Unbounded retries amplify outages</b> &mdash; every client hammering a struggling service. Missing jitter =&gt; all clients retry at the same moment. No timeout on the inner call =&gt; retry loop hangs forever.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Jitter matters: without it, every client retries at the same moment after an outage, creating a thundering herd that re-kills the service. Also, I only retry idempotent operations; otherwise I need request IDs to make the operation safe to repeat."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; BUDGET</b></font><br><font size="2">Up to <code>max_attempts</code> calls; total wait &le; sum of capped delays. Enforce a total-time budget, too.</font></td>
+</tr>
+</table>
+<br>
+
+<!-- JITTER STRATEGIES -->
+<table width="100%" bgcolor="#1c2430" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128200; JITTER STRATEGIES (AWS architecture blog reference)</b></font>
+<br><br>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">No jitter          delay = base * 2^attempt                  # thundering herd
+Equal jitter       delay = base*2^attempt / 2 + random(0, base*2^attempt / 2)
+Full jitter        delay = random(0, base * 2^attempt)        # &lt;-- default pick
+Decorrelated       delay = random(base, prev_delay * 3)       # best for long outages
+</font></pre>
+<br>
+<font size="3"><b>Rule of thumb:</b> pick <b>full jitter</b> unless you have a specific reason not to. It spreads retries across the full interval and is simple to reason about.</font>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (decorator, full jitter, retryable classification)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import random, time, functools, logging
+from typing import Callable, Iterable
+
+log = logging.getLogger("retry")
+
+# Which HTTP statuses are safe to retry
+RETRYABLE_STATUS = {408, 425, 429, 500, 502, 503, 504}
+
+class RetryableError(Exception):
+    """Raised by the caller to signal 'try again'."""
+
+def retry(
+    max_attempts: int = 5,
+    base: float    = 0.5,
+    cap: float     = 30.0,
+    total_budget: float = 120.0,
+    retryable: Iterable[type] = (RetryableError,),
+):
+    """Exponential backoff with FULL JITTER. Bounded attempts + total budget."""
+    def deco(fn: Callable):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            deadline = time.monotonic() + total_budget
+            last_exc = None
+            for attempt in range(max_attempts):
+                try:
+                    return fn(*args, **kwargs)
+                except tuple(retryable) as e:
+                    last_exc = e
+                    if attempt == max_attempts - 1:
+                        break
+                    delay = min(cap, base * (2 ** attempt))
+                    sleep_for = random.uniform(0, delay)    # full jitter
+                    remaining = deadline - time.monotonic()
+                    if remaining &lt;= 0:
+                        log.warning("retry budget exhausted")
+                        break
+                    sleep_for = min(sleep_for, remaining)
+                    log.info("attempt %d failed (%s); sleeping %.2fs",
+                             attempt + 1, e, sleep_for)
+                    time.sleep(sleep_for)
+            raise last_exc
+        return wrapper
+    return deco
+
+# Usage
+@retry(max_attempts=5, base=0.5)
+def call_api():
+    import requests
+    r = requests.get("https://example.com/api", timeout=5)
+    if r.status_code in RETRYABLE_STATUS:
+        raise RetryableError(f"status {r.status_code}")
+    r.raise_for_status()
+    return r.json()
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UPS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Which errors are retryable?"</b></font></td>
+<td><font size="3"><b>5xx</b>, <b>408 Request Timeout</b>, <b>429 Too Many Requests</b>, <b>503 Service Unavailable</b>, socket timeouts, connection refused, DNS resolution failures. <b>NEVER retry 4xx</b> other than 408/425/429.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Is this request safe to retry?"</b></font></td>
+<td><font size="3">Safe = <b>idempotent</b>. GET/PUT/DELETE usually safe. POST usually NOT &mdash; use <b>idempotency keys</b> (client-generated UUID, server dedupes) to make POST retry-safe.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"What about repeated failures?"</b></font></td>
+<td><font size="3">Layer a <b>circuit breaker</b> in front of retry. After N failures open the circuit for cooldown; during cooldown, fail fast without hitting the dependency.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"For async / high-throughput"</b></font></td>
+<td><font size="3">Use <code>asyncio.sleep</code> instead of <code>time.sleep</code> so the event loop isn't blocked. For message queues, use visibility timeout + max receive count, then move to DLQ.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Production library?"</b></font></td>
+<td><font size="3">Use <code>tenacity</code> (Python) &mdash; battle-tested; just mention it. Don't reinvent in prod.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Doesn't understand why retries are needed; no concept of backoff.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Simple loop with fixed delay; no backoff or jitter; retries every error.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Exponential backoff but no jitter; doesn't distinguish retryable errors.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Configurable max attempts; exponential backoff + jitter; retryable vs non-retryable distinction; logs attempts.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Total-time budget cap; full-jitter formula; <b>idempotency keys</b> for POST; <b>circuit breaker</b> integration; async version; <code>tenacity</code> for production; DLQ for permanent failures.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q12 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q12 &middot; LRU Cache Implementation</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Implement a Least Recently Used (LRU) cache with O(1) <code>get</code> and <code>put</code> operations.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Add TTL (time-to-live) &mdash; expire entries after N seconds.</li>
+  <li>Make it thread-safe.</li>
+  <li>Implement from scratch without <code>OrderedDict</code> &mdash; show you understand the DS.</li>
+  <li>When would you choose LFU (Least Frequently Used) instead?</li>
+</ul>
+<b><font color="#8b949e">Why this matters:</font></b> it's a classic "can you combine two data structures" question, and the pattern shows up everywhere &mdash; DB query caches, CDN edge, session stores, function memoization.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Neither data structure alone can do both operations in O(1):<br>
+&nbsp;&bull; <b>Hash map</b> &rarr; O(1) lookup, but no ordering.<br>
+&nbsp;&bull; <b>Linked list</b> &rarr; O(1) insert/remove/reorder, but O(n) lookup.<br>
+<b>Combine them:</b> hash map maps <i>key &rarr; node in the list</i>. Front of list = most recently used, back = LRU. Evict from the back.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Forgetting to update recency on <code>get</code></b> (not just <code>put</code>) is the #1 bug. On update of an existing key, remove the old node before inserting. Singly linked list gives O(n) removal &mdash; must be <b>doubly linked</b>. Python: <code>dict</code> alone would need reinsertion for ordering (slow).</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"A dict gives O(1) lookup but can't track recency; a linked list tracks recency but has O(n) lookup. I combine them: dict maps keys to nodes in a doubly linked list. Head is most recent, tail is LRU. I'll show both the idiomatic Python solution using <code>OrderedDict</code>, and the from-scratch version to prove I understand the data structure."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(1) <code>get</code> + <code>put</code> &middot; Space: O(capacity)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION 1 &middot; PYTHON (idiomatic, OrderedDict)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.cap = capacity
+        self.d   = OrderedDict()
+
+    def get(self, key):
+        if key not in self.d:
+            return -1
+        self.d.move_to_end(key)            # mark as most recent
+        return self.d[key]
+
+    def put(self, key, value):
+        if key in self.d:
+            self.d.move_to_end(key)        # update recency
+        self.d[key] = value
+        if len(self.d) &gt; self.cap:
+            self.d.popitem(last=False)     # evict LRU (front)
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION 2 &middot; PYTHON (from scratch &mdash; dict + doubly linked list)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">class _Node:
+    __slots__ = ("k", "v", "prev", "next")
+    def __init__(self, k=None, v=None):
+        self.k = k; self.v = v; self.prev = None; self.next = None
+
+class LRUFromScratch:
+    def __init__(self, capacity: int):
+        self.cap = capacity
+        self.map: dict = {}
+        # Sentinel head and tail simplify edge cases
+        self.head = _Node(); self.tail = _Node()
+        self.head.next = self.tail; self.tail.prev = self.head
+
+    def _remove(self, node):
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+    def _add_front(self, node):
+        node.next = self.head.next
+        node.prev = self.head
+        self.head.next.prev = node
+        self.head.next = node
+
+    def get(self, key):
+        if key not in self.map:
+            return -1
+        n = self.map[key]
+        self._remove(n); self._add_front(n)
+        return n.v
+
+    def put(self, key, value):
+        if key in self.map:
+            n = self.map[key]; n.v = value
+            self._remove(n); self._add_front(n); return
+        if len(self.map) == self.cap:
+            lru = self.tail.prev
+            self._remove(lru); del self.map[lru.k]
+        n = _Node(key, value)
+        self.map[key] = n
+        self._add_front(n)
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UPS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Add TTL (time-to-live)"</b></font></td>
+<td><font size="3">Store <code>(value, expires_at)</code>. On <code>get</code>: if expired, evict and return miss. For aggressive cleanup, a small periodic sweep or lazy eviction works. <code>functools.lru_cache</code> does NOT support TTL &mdash; use <code>cachetools.TTLCache</code> in prod.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Thread safety"</b></font></td>
+<td><font size="3">Wrap <code>get</code>/<code>put</code> with <code>threading.Lock</code> (or <code>RLock</code> if methods call each other). For high contention, shard by key hash into N sub-caches, each with its own lock.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"LRU vs LFU?"</b></font></td>
+<td><font size="3"><b>LRU</b>: discards what was used least recently. Good when recent access predicts future access (web pages).<br><b>LFU</b>: discards the least frequently used. Good when some items are "hot forever" (popular articles). More complex (need frequency counts + tie-breaking).</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Memoize a function"</b></font></td>
+<td><font size="3"><code>@functools.lru_cache(maxsize=1024)</code> on a pure function &mdash; built-in, thread-safe, free.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain what an LRU cache is.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Understands concept but proposes O(n) solution (scanning for LRU).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Proposes using a dict but can't achieve O(1) for both get and eviction.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Hash map + doubly linked list OR <code>OrderedDict</code>; correct recency updates on both get and put; evicts on overflow.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Implements from scratch cleanly; sentinel nodes to avoid edge cases; discusses TTL, thread safety, LRU vs LFU; mentions <code>functools.lru_cache</code> for simpler cases; real-world use cases (CDN, DB query cache).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q13 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q13 &middot; Producer-Consumer Queue</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Implement a thread-safe producer-consumer queue. Multiple producers add items; multiple consumers process them. Support a bounded capacity (backpressure) and a graceful shutdown.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>How do you <b>signal shutdown</b> cleanly?</li>
+  <li>What if a consumer crashes while holding an item? (at-most-once vs at-least-once)</li>
+  <li>Async version with <code>asyncio</code>.</li>
+  <li>Sharing across processes, not just threads.</li>
+  <li>When do you reach for Kafka / SQS instead of an in-process queue?</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> almost every production script that processes a stream of work (log events, deploys, health checks) is a producer-consumer under the hood.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Use <code>queue.Queue</code> (already thread-safe + blocking) with a bounded <code>maxsize</code> for backpressure. Signal shutdown with a <b>poison pill</b> (one sentinel per consumer) or a shared <code>threading.Event</code>.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Busy-waiting</b> (<code>while q.empty(): pass</code>) pegs a CPU core &mdash; always use blocking <code>get()</code>. <b>Unbounded queue</b> grows to OOM under backpressure. <b>One poison pill</b> = only one consumer exits; need one per consumer. <b>Forgetting <code>task_done()</code></b> breaks <code>q.join()</code>. Killing a thread mid-process leaks the item (use at-least-once + idempotent processing).</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"In-process, I'd use <code>queue.Queue</code> with a bounded capacity for backpressure. For shutdown, one poison pill per consumer is simple and correct. If an item must not be lost on crash, the consumer needs to only <code>task_done()</code> after successful processing, and processing should be idempotent so a retry is safe."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(1) put/get &middot; Space: O(capacity)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION 1 &middot; PYTHON (queue.Queue + poison pill)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import queue, threading, time, logging
+
+log = logging.getLogger("pc")
+POISON = object()
+
+def producer(q, n, pid):
+    for i in range(n):
+        q.put((pid, i))        # blocks if queue full =&gt; backpressure
+        time.sleep(0.01)
+
+def consumer(q, cid):
+    while True:
+        item = q.get()
+        try:
+            if item is POISON:
+                return
+            pid, i = item
+            log.info("consumer %d got (%d, %d)", cid, pid, i)
+            # process here...
+        finally:
+            q.task_done()      # always mark done, even on error
+
+def run(num_producers=2, num_consumers=3, per_producer=5, capacity=10):
+    q = queue.Queue(maxsize=capacity)
+    prods = [threading.Thread(target=producer, args=(q, per_producer, p), daemon=True)
+             for p in range(num_producers)]
+    cons = [threading.Thread(target=consumer, args=(q, c), daemon=True)
+            for c in range(num_consumers)]
+    for t in prods + cons: t.start()
+    for t in prods: t.join()          # wait for producers to finish
+    for _ in cons: q.put(POISON)      # one pill per consumer
+    for t in cons: t.join()
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION 2 &middot; PYTHON (manual with Condition &mdash; shows you understand it)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from collections import deque
+import threading
+
+class BoundedQueue:
+    def __init__(self, capacity: int):
+        self.cap = capacity
+        self.buf = deque()
+        self.cv  = threading.Condition()
+
+    def put(self, item):
+        with self.cv:
+            while len(self.buf) &gt;= self.cap:
+                self.cv.wait()                # blocks until notified
+            self.buf.append(item)
+            self.cv.notify_all()
+
+    def get(self):
+        with self.cv:
+            while not self.buf:
+                self.cv.wait()
+            item = self.buf.popleft()
+            self.cv.notify_all()
+            return item
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION 3 &middot; PYTHON (async version)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import asyncio
+
+async def producer(q: asyncio.Queue, n: int, pid: int):
+    for i in range(n):
+        await q.put((pid, i))
+
+async def consumer(q: asyncio.Queue, cid: int):
+    while True:
+        item = await q.get()
+        if item is None:
+            q.task_done(); return
+        # process
+        q.task_done()
+
+async def main():
+    q = asyncio.Queue(maxsize=10)
+    prods = [asyncio.create_task(producer(q, 5, p)) for p in range(2)]
+    cons  = [asyncio.create_task(consumer(q, c)) for c in range(3)]
+    await asyncio.gather(*prods)
+    for _ in cons: await q.put(None)
+    await asyncio.gather(*cons)
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UPS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Consumer crashes mid-item"</b></font></td>
+<td><font size="3">In-process: items are lost. To be crash-safe, ack after processing and make processing <b>idempotent</b> (retrying the same item gives same result). At that point, you really want a durable queue (Kafka, SQS, Redis streams).</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Across processes"</b></font></td>
+<td><font size="3"><code>multiprocessing.Queue</code> works but serializes items. For durable cross-host queues, reach for <b>SQS</b>, <b>Kafka</b>, or <b>Redis streams</b>. The interface is the same; durability, scaling, and replay differ.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"When to use async?"</b></font></td>
+<td><font size="3">When tasks are <b>I/O-bound</b> (HTTP calls, DB, files). For CPU-bound work, use <code>multiprocessing</code> instead &mdash; Python's GIL stops threads from truly parallel CPU work.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Priority queue?"</b></font></td>
+<td><font size="3"><code>queue.PriorityQueue</code> &mdash; same API, items are <code>(priority, item)</code> tuples; lower priority = higher importance. Internally a heap.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot explain the pattern or concurrency basics.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Understands the concept but doesn't handle thread safety; race conditions.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Uses a lock but busy-waits or doesn't handle empty/full correctly.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3"><code>queue.Queue</code> or <code>threading.Condition</code>; bounded capacity; poison-pill shutdown; always calls <code>task_done()</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Condition variables from scratch; at-least-once semantics + idempotent processing; async version with <code>asyncio.Queue</code>; knows when to switch to Kafka/SQS; priority queue; GIL awareness (when to use <code>multiprocessing</code>).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="logical-maintainable"><font color="#58a6ff" size="6">2. Logical &amp; Maintainable (OOP)</font></h2>
+<p><font size="2" color="#8b949e">One deep question &mdash; drill this until you can design it cold.</font></p>
+<br>
+
+<!-- ============ Q14 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q14 &middot; Pizza Builder (OOP Design)</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH &middot; THE OOP QUESTION TO MASTER</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Design and implement a system to order and customize pizzas. Each pizza has a size (Small/Medium/Large), a base (Thin/Thick/Stuffed), and any number of toppings. Customers can place an order containing multiple pizzas. The system must compute the total price.<br><br><b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Add a discount (e.g., 10% off orders over $50).</li>
+  <li>Apply tax (configurable per region).</li>
+  <li>Add a new topping to the catalog &mdash; without touching Pizza or Order code.</li>
+  <li>Support a "Build your own" interactive flow vs preset combos.</li>
+  <li>Make it testable: unit-test pricing in isolation from ordering.</li>
+</ul></font></td></tr>
+</table>
+<br>
+
+<!-- CORE INSIGHTS -->
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Separate <b>data</b> (what a pizza IS) from <b>catalog</b> (prices of options) from <b>pricing logic</b> (how totals are computed). Enums for fixed sets. Prefer <b>composition</b> (pizza HAS toppings) over inheritance (PepperoniPizza extends Pizza).</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; COMMON PITFALLS</b></font><br><font size="2">God-class Pizza that knows all prices. Inheritance explosion (<code>VeggiePizza</code>, <code>MeatLoversPizza</code>). Hardcoding toppings in Pizza. Forgetting Order &mdash; interviewer wants to see multi-pizza totals. Strings like <code>"large"</code> instead of an enum.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Let me clarify a few things first: is the topping catalog fixed or dynamic? Does pricing change by region? Do we need persistence or is in-memory fine for now? I'll model the domain entities with enums, separate pricing into a strategy class, and keep Order as the aggregate. That way adding a promotion or tax is a one-file change."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#128221; WHAT THE INTERVIEWER GRADES</b></font><br><font size="2">Naming (clear intent), enums over magic strings, separation of concerns, testability (<code>price()</code> doesn't call anything external), extensibility (new topping = one dict entry), inheritance vs composition opinion, dataclasses/type hints.</font></td>
+</tr>
+</table>
+<br>
+
+<!-- MENTAL MODEL BEFORE CODE -->
+<table width="100%" bgcolor="#1c2430" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128466; THE MENTAL MODEL &mdash; DRAW THIS BEFORE CODING</b></font>
+<br><br>
+<font size="3">Ask yourself three questions and write the answer <em>before</em> any <code>class</code> keyword:</font>
+<ol>
+  <li><font size="3"><b>What are the entities?</b> &rarr; Pizza, Topping, Order, Customer (optional).</font></li>
+  <li><font size="3"><b>What does each own?</b> &rarr; Pizza has size + base + toppings. Order has a list of pizzas.</font></li>
+  <li><font size="3"><b>Where does change live?</b> &rarr; Prices change more often than entities &mdash; so prices live in a <b>catalog</b>, not baked into the class.</font></li>
+</ol>
+<br>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">  Order  ------&gt;*  Pizza  ------&gt;*  Topping
+                      |
+                      +-- size : Size (enum)
+                      +-- base : Base (enum)
+
+  Catalog (module-level dicts)
+      SIZE_PRICES,  BASE_PRICES,  TOPPINGS
+
+  PricingStrategy (optional Strategy pattern)
+      default, promotional, with-tax, ...
+</font></pre>
+<font size="3">Now the class code writes itself.</font>
+</td></tr>
+</table>
+<br>
+
+<!-- SOLUTION -->
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON (idiomatic, extensible, tested)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from dataclasses import dataclass, field
+from enum import Enum
+from typing import List, Dict, Protocol
+
+# ---------- 1. Enums: fixed sets, type-safe ----------
+class Size(Enum):
+    SMALL  = "Small"
+    MEDIUM = "Medium"
+    LARGE  = "Large"
+
+class Base(Enum):
+    THIN    = "Thin Crust"
+    THICK   = "Thick Crust"
+    STUFFED = "Stuffed Crust"
+
+# ---------- 2. Value objects (immutable data) ----------
+@dataclass(frozen=True)
+class Topping:
+    name:  str
+    price: float
+
+# ---------- 3. Catalog: prices live here, not in entities ----------
+TOPPINGS: Dict[str, Topping] = {
+    "pepperoni":    Topping("Pepperoni",    1.50),
+    "mushrooms":    Topping("Mushrooms",    1.00),
+    "olives":       Topping("Olives",       0.75),
+    "extra_cheese": Topping("Extra Cheese", 1.25),
+    "onions":       Topping("Onions",       0.75),
+}
+
+SIZE_PRICES: Dict[Size, float] = {
+    Size.SMALL:  8.00, Size.MEDIUM: 10.00, Size.LARGE: 12.00,
+}
+
+BASE_PRICES: Dict[Base, float] = {
+    Base.THIN:    0.00, Base.THICK:  1.00, Base.STUFFED: 2.00,
+}
+
+# ---------- 4. Domain entities ----------
+@dataclass
+class Pizza:
+    size:     Size
+    base:     Base
+    toppings: List[Topping] = field(default_factory=list)
+
+    def add_topping(self, name: str) -&gt; "Pizza":
+        """Fluent method: pizza.add_topping('pepperoni').add_topping('olives')"""
+        if name not in TOPPINGS:
+            raise ValueError(f"unknown topping: {name}")
+        self.toppings.append(TOPPINGS[name])
+        return self        # enables chaining (mini-Builder)
+
+    def base_price(self) -&gt; float:
+        return (SIZE_PRICES[self.size]
+                + BASE_PRICES[self.base]
+                + sum(t.price for t in self.toppings))
+
+@dataclass
+class Order:
+    pizzas: List[Pizza] = field(default_factory=list)
+
+    def add(self, pizza: Pizza) -&gt; "Order":
+        self.pizzas.append(pizza); return self
+
+    def subtotal(self) -&gt; float:
+        return sum(p.base_price() for p in self.pizzas)
+
+# ---------- 5. Pricing strategy (Strategy pattern) ----------
+class PricingStrategy(Protocol):
+    def total(self, order: Order) -&gt; float: ...
+
+class DefaultPricing:
+    def total(self, order: Order) -&gt; float:
+        return round(order.subtotal(), 2)
+
+class TenPercentOffOver50:
+    """Extension example: no change to Pizza/Order to add a promo."""
+    def total(self, order: Order) -&gt; float:
+        sub = order.subtotal()
+        if sub &gt; 50.00:
+            sub *= 0.90
+        return round(sub, 2)
+
+class WithTax:
+    def __init__(self, rate: float): self.rate = rate
+    def total(self, order: Order) -&gt; float:
+        return round(order.subtotal() * (1 + self.rate), 2)
+
+# ---------- 6. Usage ----------
+if __name__ == "__main__":
+    p1 = (Pizza(Size.LARGE, Base.STUFFED)
+          .add_topping("pepperoni")
+          .add_topping("extra_cheese"))
+    p2 = Pizza(Size.SMALL, Base.THIN).add_topping("olives")
+
+    order = Order().add(p1).add(p2)
+    print(order.subtotal())                               # 25.50
+    print(DefaultPricing().total(order))                  # 25.50
+    print(TenPercentOffOver50().total(order))             # 25.50 (&le; 50)
+    print(WithTax(rate=0.08).total(order))                # 27.54
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- TEST EXAMPLES -->
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>TEST CASES (mention these even if you don't write them all)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def test_empty_order_is_free():
+    assert Order().subtotal() == 0
+
+def test_single_pizza_no_toppings():
+    p = Pizza(Size.SMALL, Base.THIN)
+    assert p.base_price() == 8.00
+
+def test_toppings_additive():
+    p = Pizza(Size.MEDIUM, Base.THIN).add_topping("pepperoni")
+    assert p.base_price() == 10.00 + 1.50
+
+def test_unknown_topping_raises():
+    with pytest.raises(ValueError):
+        Pizza(Size.SMALL, Base.THIN).add_topping("pineapple_with_anchovies")
+
+def test_promo_applies_when_over_threshold():
+    order = Order()
+    for _ in range(6):   # 6 large stuffed = 6 * (12 + 2) = 84
+        order.add(Pizza(Size.LARGE, Base.STUFFED))
+    assert TenPercentOffOver50().total(order) == round(84 * 0.9, 2)
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UP PATTERNS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS WITHOUT REWRITING</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="30%"><font size="3"><b>"Add promotions"</b></font></td>
+<td><font size="3">New <code>PricingStrategy</code> class. Zero changes to Pizza or Order. This is Strategy pattern in action.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Add tax"</b></font></td>
+<td><font size="3"><code>WithTax(rate)</code> strategy, or wrap any other strategy via a decorator: <code>Taxed(strategy, rate)</code>.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"New topping"</b></font></td>
+<td><font size="3">One line in <code>TOPPINGS</code>. No code change anywhere else.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Builder pattern"</b></font></td>
+<td><font size="3">The fluent <code>add_topping</code> already shows the core of Builder. A dedicated <code>PizzaBuilder</code> class would go further if asked.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Persistence"</b></font></td>
+<td><font size="3">Entities are dataclasses =&gt; easy to serialize. Add a <code>Repository</code> class (<code>save</code>/<code>find</code>) to keep Pizza ignorant of storage.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Interactive flow"</b></font></td>
+<td><font size="3">Wrap entities in a CLI or REPL layer. The domain doesn't know about input/output &mdash; classic <i>Hexagonal / Ports &amp; Adapters</i>.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<!-- SIGNALS YOU'RE DEMONSTRATING -->
+<table width="100%" bgcolor="#11261c" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#7ee787"><b>&#9989; WHAT THIS SOLUTION DEMONSTRATES (announce as you go)</b></font>
+<ul>
+  <li><font size="3"><b>Enums</b> for fixed sets &rarr; no typos, IDE autocomplete, type safety.</font></li>
+  <li><font size="3"><b>Dataclasses</b> for value objects &rarr; free <code>__init__</code>, <code>__repr__</code>, <code>__eq__</code>.</font></li>
+  <li><font size="3"><b>Catalog separated from entities</b> &rarr; prices change without touching Pizza.</font></li>
+  <li><font size="3"><b>Composition over inheritance</b> &rarr; no <code>PepperoniPizza(Pizza)</code>; toppings are added, not inherited.</font></li>
+  <li><font size="3"><b>Fluent API</b> (<code>add_topping returns self</code>) &rarr; hints at Builder without full class.</font></li>
+  <li><font size="3"><b>Strategy pattern</b> for pricing &rarr; open/closed for promotions, tax, currency.</font></li>
+  <li><font size="3"><b>Easy to test</b> &rarr; <code>base_price()</code> and <code>subtotal()</code> are pure; no I/O, no time, no state.</font></li>
+  <li><font size="3"><b>Input validation</b> &rarr; unknown topping raises <code>ValueError</code> at add time, not at price time.</font></li>
+</ul>
+</td></tr>
+</table>
+<br>
+
+<!-- RUBRIC -->
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">No class structure; everything in one function; hardcoded values everywhere; no tests mentioned.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Has some classes but poor separation; toppings and prices baked into Pizza; no enums; can't explain how to extend.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Reasonable class structure but missing one key principle &mdash; either Pizza is a God class, or inheritance hierarchy is too deep, or prices are hardcoded inside classes.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Pizza/Order/Topping separated; enums for fixed sets; catalog separated from entities; opinion on inheritance vs composition; can articulate how to add a new topping.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Strategy pattern for pricing; fluent/Builder API; dataclasses + type hints; proposes test cases; discusses validation (unknown topping) + persistence/serialization path; demonstrably open/closed &mdash; says "to add a promo, I'd add one class, not touch Pizza."</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="data-structures"><font color="#58a6ff" size="6">3. Data Structures</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q20 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q15 &middot; Double Stack / Min Stack</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Implement a stack that supports <code>push</code>, <code>pop</code>, and <code>get_min</code> &mdash; all in <b>O(1)</b> time.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>What if duplicates of the minimum exist? (trap: using <code>&lt;</code> vs <code>&le;</code>)</li>
+  <li>Can you do it with a <b>single stack</b>?</li>
+  <li>Extend to <code>get_max</code> too.</li>
+</ul>
+<b><font color="#8b949e">Why this matters:</font></b> it's a classic "neither data structure alone works &mdash; combine two" problem. Same pattern as LRU. Interviewers love it because the naive <code>min(stack)</code> is O(n) and candidates must see past that.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Alongside the main stack, maintain a <b>min-stack</b> whose top always equals the current minimum.<br>
+&nbsp;&bull; On push: also push to min-stack if <code>val &le; current_min</code>.<br>
+&nbsp;&bull; On pop: also pop from min-stack if the popped value equals min-stack's top.<br><br>
+The <code>&le;</code> (not <code>&lt;</code>) is <b>critical</b> for duplicates: pushing two 3s means min-stack has two 3s, so after two pops min is still known.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Using <code>&lt;</code> instead of <code>&le;</code></b> breaks on duplicates: push 3, 3, pop 3 =&gt; min-stack empty but main stack still has a 3. <b>Forgetting empty-stack guards</b> in <code>get_min</code>/<code>pop</code>. <b>Scanning for min</b> =&gt; O(n), misses the point.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"A dict or sorted structure for <code>min</code> feels right until you realize pop needs to update it too &mdash; O(n) to rebuild. The trick is: <b>every time the min changes, remember the previous min</b>. A second stack does that naturally, because pops reverse the push order."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(1) push / pop / get_min &middot; Space: O(n) worst case (all descending values)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION 1 &middot; PYTHON (two stacks &mdash; the classic)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">class MinStack:
+    def __init__(self):
+        self.stack     = []
+        self.min_stack = []
+
+    def push(self, val):
+        self.stack.append(val)
+        if not self.min_stack or val &lt;= self.min_stack[-1]:  # note: &lt;=, not &lt;
+            self.min_stack.append(val)
+
+    def pop(self):
+        if not self.stack:
+            return None
+        val = self.stack.pop()
+        if self.min_stack and val == self.min_stack[-1]:
+            self.min_stack.pop()
+        return val
+
+    def top(self):
+        return self.stack[-1] if self.stack else None
+
+    def get_min(self):
+        return self.min_stack[-1] if self.min_stack else None
+
+# Sanity check, including duplicates of the min
+s = MinStack()
+for v in [3, 5, 2, 2, 1, 1]:
+    s.push(v)
+assert s.get_min() == 1
+s.pop(); assert s.get_min() == 1            # duplicate still there
+s.pop(); assert s.get_min() == 2
+s.pop(); assert s.get_min() == 2
+s.pop(); assert s.get_min() == 2
+s.pop(); assert s.get_min() == 3
+s.pop(); assert s.get_min() is None         # empty
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION 2 &middot; PYTHON (single stack &mdash; pack (value, min_so_far) tuples)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">class MinStack1:
+    """Each stack entry remembers the min AT THE TIME it was pushed.
+    Uses a tiny bit more per entry but only one stack."""
+    def __init__(self):
+        self.stack = []         # (value, current_min)
+
+    def push(self, val):
+        cur_min = val if not self.stack else min(val, self.stack[-1][1])
+        self.stack.append((val, cur_min))
+
+    def pop(self):
+        return self.stack.pop()[0] if self.stack else None
+
+    def top(self):
+        return self.stack[-1][0] if self.stack else None
+
+    def get_min(self):
+        return self.stack[-1][1] if self.stack else None
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UPS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Both <code>get_min</code> and <code>get_max</code>"</b></font></td>
+<td><font size="3">Add a third stack (max_stack) that mirrors the min_stack logic with <code>&ge;</code>.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Space optimization"</b></font></td>
+<td><font size="3">Store <b>(value &minus; prev_min)</b> as a delta; when popping, if delta is negative, the popped value was the min. Trickier but O(n) with smaller constant.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Min-queue?"</b></font></td>
+<td><font size="3">Similar but harder (FIFO). Use a <b>two-stack queue</b> where each stack is a MinStack, then <code>get_min = min(stack1.get_min(), stack2.get_min())</code>.</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Doesn't identify as stack problem; proposes scanning for min (O(n)).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Identifies stack but proposes hash map / re-sorting; doesn't see O(1) is achievable.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Proposes second stack but implementation has bugs (<code>&lt;</code> instead of <code>&le;</code>; forgotten empty guards).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Two-stack design; correct <code>&le;</code> handling for duplicates; clean <code>push</code>/<code>pop</code>/<code>get_min</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Offers the single-stack packed-tuple alternative; discusses space tradeoff and delta-based optimization; extends to max; mentions min-queue via two-stack queue.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q21 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q16 &middot; Balanced Brackets</font> &nbsp; <font color="#e3b341" size="2"><b>&#128993; MEDIUM</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given a string, validate that all brackets <code>()</code>, <code>[]</code>, <code>{}</code> are correctly balanced and properly nested. Non-bracket characters are ignored.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Why doesn't a simple counter work?</li>
+  <li>Make the bracket pairs <b>configurable</b> (e.g., also <code>&lt;&gt;</code>).</li>
+  <li>Ignore brackets inside string literals or comments.</li>
+  <li>Return the <b>position</b> of the first mismatch, not just True/False.</li>
+</ul>
+<b><font color="#8b949e">Why this matters:</font></b> it's the textbook "LIFO problem" &mdash; the gateway to understanding when you need a stack. Same pattern underpins expression evaluation, parsers, and linters.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Nesting is <b>LIFO</b>: the most recent opener must be the first to close. Push openers onto a stack; on each closer, the top must be its matching opener &mdash; else fail. At end, the stack must be empty.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>A counter is not enough.</b> <code>([)]</code> has equal opens and closes but the types don't match the LIFO order. Forgetting to check <b>stack emptiness before popping</b> crashes on <code>)</code> alone. Forgetting the <b>final emptiness check</b> accepts <code>(((</code> as balanced.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"A counter would count <code>([)]</code> as valid &mdash; but nesting is LIFO, so the type of the most recent opener <b>must</b> match the next closer. A stack captures that naturally: push opens, on a close check the top, pop if it matches, fail otherwise."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(n) &middot; Space: O(n) worst case (all opens)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION 1 &middot; PYTHON (basic &mdash; three bracket types)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def is_balanced(s: str) -&gt; bool:
+    pairs  = {')': '(', ']': '[', '}': '{'}
+    opens  = set(pairs.values())
+    stack  = []
+    for ch in s:
+        if ch in opens:
+            stack.append(ch)
+        elif ch in pairs:
+            if not stack or stack[-1] != pairs[ch]:
+                return False
+            stack.pop()
+    return not stack      # must be empty at end
+
+# Sanity checks
+assert is_balanced("")                               # True  (empty)
+assert is_balanced("()")                             # True
+assert is_balanced("{[()]}")                         # True
+assert is_balanced("hello (world [nested])")         # True (ignores non-brackets)
+assert not is_balanced("(")                          # missing close
+assert not is_balanced(")")                          # lone close
+assert not is_balanced("([)]")                       # wrong nesting
+assert not is_balanced("(((")                        # never closed
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION 2 &middot; PYTHON (configurable pairs + mismatch position)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def check_balanced(s: str, pairs: dict = None):
+    """Return (ok, error_index or None).
+    pairs maps opener -&gt; closer, e.g. {'(': ')', '[': ']', '{': '}', '&lt;': '&gt;'}."""
+    pairs = pairs or {'(': ')', '[': ']', '{': '}'}
+    closer_to_opener = {c: o for o, c in pairs.items()}
+    opens = set(pairs.keys())
+
+    stack = []                   # stack of (opener, index)
+    for i, ch in enumerate(s):
+        if ch in opens:
+            stack.append((ch, i))
+        elif ch in closer_to_opener:
+            if not stack or stack[-1][0] != closer_to_opener[ch]:
+                return False, i
+            stack.pop()
+    if stack:
+        return False, stack[-1][1]    # index of unclosed opener
+    return True, None
+</font></pre>
+<br>
+<font size="2" color="#bc8cff"><b>SOLUTION 3 &middot; PYTHON (skip string literals &mdash; real-world variant)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">def is_balanced_skip_strings(code: str) -&gt; bool:
+    """Ignore brackets inside "..." and '...' literals. Handles \\" escape."""
+    pairs  = {')': '(', ']': '[', '}': '{'}
+    opens  = set(pairs.values())
+    stack  = []
+    in_str = None          # None, '"' or "'"
+    escape = False
+    for ch in code:
+        if in_str:
+            if escape:     escape = False
+            elif ch == '\\': escape = True
+            elif ch == in_str: in_str = None
+            continue
+        if ch in ('"', "'"):
+            in_str = ch
+        elif ch in opens:
+            stack.append(ch)
+        elif ch in pairs:
+            if not stack or stack[-1] != pairs[ch]:
+                return False
+            stack.pop()
+    return not stack and not in_str
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- FOLLOW-UPS -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128736; HANDLING FOLLOW-UPS</b></font>
+<br><br>
+<table width="100%" cellpadding="8" cellspacing="0" border="0">
+<tr valign="top">
+<td width="32%"><font size="3"><b>"Return WHERE it failed"</b></font></td>
+<td><font size="3">Stack holds <code>(opener, index)</code> pairs. On mismatch or leftover, return that index. See Solution 2.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Skip string literals"</b></font></td>
+<td><font size="3">Track an <code>in_string</code> flag with the opening quote; toggle on matching quote; remember <code>\</code> escapes. See Solution 3. For real languages add comment handling (<code>//...</code>, <code>/*...*/</code>).</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"HTML / XML tags"</b></font></td>
+<td><font size="3">Upgrade opener/closer to be multi-char tokens (e.g., <code>&lt;div&gt;</code>/<code>&lt;/div&gt;</code>). Same LIFO matching. Beware self-closing tags (<code>&lt;br/&gt;</code>) and void elements.</font></td>
+</tr>
+<tr valign="top">
+<td><font size="3"><b>"Real-world use"</b></font></td>
+<td><font size="3">Linters, syntax-highlighting editors, JSON/XML validators, SQL parsers, shell quote-matching. The stack idea scales to full parser design (shift-reduce).</font></td>
+</tr>
+</table>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Uses a counter (fails on <code>([)]</code>); doesn't identify stack.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Stack but only one bracket type; mismatched types slip through.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Works for basic cases but misses edge cases (empty string, lone closer, all-opens).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">O(n) stack solution; handles all three bracket types; correct empty-stack guards; final emptiness check.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Configurable pair map; returns <b>position</b> of mismatch; handles string literals and escapes; discusses extension to HTML/XML and comments; names real-world applications (linters, parsers).</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q22 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q17 &middot; Recommendation Distance (Kevin Bacon / BFS)</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Given <code>getRecommendations(product)</code> returning related products, calculate the "recommendation distance" (hops) between two products.<br><br>
+<b><font color="#8b949e">Skim note:</font></b> standard BFS shortest path. Say <b>"unweighted shortest path &rarr; BFS, not DFS"</b> and track a visited set for cycles. Return -1 (or None) if unreachable.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2"><b>BFS finds shortest path</b> in an unweighted graph. Visit by levels; the first time you reach the target, that's the minimum distance.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Using DFS can give a non-shortest path. Forgetting the visited set =&gt; infinite loop on cycles. <code>start == target</code> edge case =&gt; 0. Unreachable =&gt; return -1 or None, don't crash.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Unweighted shortest path =&gt; BFS, not DFS. I'll track visited + distance, return the first time I dequeue the target."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(V + E) &middot; Space: O(V)</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">from collections import deque
+
+def recommendation_distance(start, target, get_recommendations):
+    """Shortest hop count between two products. -1 if unreachable."""
+    if start == target:
+        return 0
+    visited = {start}
+    q = deque([(start, 0)])
+    while q:
+        node, dist = q.popleft()
+        for nxt in get_recommendations(node) or ():
+            if nxt == target:
+                return dist + 1
+            if nxt not in visited:
+                visited.add(nxt)
+                q.append((nxt, dist + 1))
+    return -1
+
+# Follow-up: return the actual path
+def recommendation_path(start, target, get_recommendations):
+    if start == target: return [start]
+    parent = {start: None}
+    q = deque([start])
+    while q:
+        node = q.popleft()
+        for nxt in get_recommendations(node) or ():
+            if nxt in parent: continue
+            parent[nxt] = node
+            if nxt == target:
+                path = []
+                cur = nxt
+                while cur is not None:
+                    path.append(cur); cur = parent[cur]
+                return list(reversed(path))
+            q.append(nxt)
+    return None
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot identify as graph traversal; proposes linear scan; doesn't handle cycles.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Identifies graph traversal but uses DFS without visited tracking (infinite loop); or treats as tree.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Working but uses DFS (may not find shortest); or BFS with distance tracking bugs.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">BFS for shortest path; tracks visited; handles unreachable products; O(V+E).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Clean BFS; edge cases (same product, unreachable); complexity analysis; returns actual path, not just distance.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q23 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q18 &middot; Serialize/Deserialize a Binary Tree</font> &nbsp; <font color="#8b949e" size="2"><b>&#9898; LOW</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Serialize a binary tree to a string and deserialize back to the original structure. Not a BST.<br><br>
+<b><font color="#8b949e">Skim note:</font></b> the trick is <b>null markers</b> in pre-order traversal &mdash; without them, a generic tree can't be uniquely reconstructed. Deserialize with a shared iterator so recursive calls advance position.</font></td></tr>
+</table>
+<br>
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2"><b>Pre-order traversal with null markers.</b> Markers are the trick &mdash; without them you can't reconstruct a non-BST uniquely from a traversal.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2">Without null markers you get ambiguity (many trees produce same preorder). Use an iterator in deserialize so recursive consumption advances position. Handle empty tree.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Pre-order plus null markers uniquely determines the structure. Deserialize consumes tokens with a shared iterator."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Time: O(n) both ops &middot; Space: O(n)</font></td>
+</tr>
+</table>
+<br>
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; PYTHON</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val, self.left, self.right = val, left, right
+
+NULL = "#"
+
+def serialize(root) -&gt; str:
+    """Pre-order with null markers."""
+    out = []
+    def dfs(node):
+        if node is None:
+            out.append(NULL); return
+        out.append(str(node.val))
+        dfs(node.left); dfs(node.right)
+    dfs(root)
+    return ",".join(out)
+
+def deserialize(s: str):
+    tokens = iter(s.split(","))
+    def build():
+        val = next(tokens)
+        if val == NULL:
+            return None
+        node = TreeNode(int(val))
+        node.left = build()
+        node.right = build()
+        return node
+    return build()
+
+# Follow-up: n-ary tree
+# Add the child count before children, or use markers for "end of children".
+</font></pre>
+</td></tr>
+</table>
+<br>
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Unfamiliar with tree traversals; doesn't realize null markers needed.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Can traverse but serialization loses structural info; no null nodes.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Null markers included but deserialization has bugs; or produces different tree.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Pre-order with null markers; both serialize/deserialize correct; handles empty tree and single node; time complexity discussed.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Clean recursive or iterative; tree comparison for verification; discusses n-ary tree follow-up; O(n) time and space.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="regex-text"><font color="#58a6ff" size="6">4. Regex &amp; Text Processing</font></h2>
+<p><font size="2" color="#8b949e">Sorted easy &rarr; hard.</font></p>
+<br>
+
+<!-- ============ Q24 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q19 &middot; Find Top 10 Largest Files/Directories</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; One-liner to find the top 10 largest files or directories under <code>/home/</code>.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Disk usage (<code>du</code>) vs free space (<code>df</code>) disagree &mdash; why?</li>
+  <li>Only files, not directories. Or only files modified in the last 7 days.</li>
+  <li>Stay on one filesystem; don't traverse mount points or symlinks.</li>
+  <li>Alert-friendly output (size in bytes, not "2.3G").</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> disk-full incidents are the most common on-call page. You should type this by muscle memory.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2"><code>du -sh</code> gives per-path size summary; <code>sort -hr</code> sorts by human-readable size descending; <code>head</code> caps output. Pipe them.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><code>ls -la</code> doesn't show directory sizes (only the dir entry itself). <code>du -h | sort</code> without <code>-h</code> sorts lexicographically (1K &gt; 999M wrong). <b><code>du</code> and <code>df</code> disagree</b> when a process holds a deleted file open &mdash; <code>du</code> won't see it but <code>df</code> still counts the space.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"Bread-and-butter: <code>du -sh /home/* | sort -hr | head -10</code>. If <code>df</code> and <code>du</code> don't match, someone's holding a deleted file open &mdash; I'd check with <code>lsof | grep deleted</code>. For interactive debugging, <code>ncdu</code> is beautiful."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">I/O-bound; one pass over paths</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH (variations)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># Top 10 dirs + files directly under /home/ (human readable)
+du -sh /home/* | sort -hr | head -n 10
+
+# Numeric KB (for scripts)
+du -sk /home/* | sort -n -r | head -n 10
+
+# Top 10 FILES only (recursive); -xdev stays on same filesystem
+find /home -xdev -type f -exec du -h {} + | sort -hr | head -n 10
+
+# Ignore symlinks
+find /home -xdev -type f ! -type l -exec du -h {} +
+
+# Recent heavy files (modified last 7 days, &gt; 100 MB)
+find /home -xdev -type f -mtime -7 -size +100M -exec ls -lh {} +
+
+# When df disagrees with du: find deleted-but-open files
+lsof | grep '(deleted)' | awk '{print $2, $7, $9, $10}'
+
+# Interactive exploration
+ncdu /home
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Doesn't know <code>du</code>; cannot check disk usage.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Uses <code>ls -la</code> (doesn't show directory sizes); partial solution.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Uses <code>du</code> but wrong flags (forgets <code>-s</code>) or wrong sort (not <code>-h</code>).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Correct one-liner <code>du -sh /home/* | sort -hr | head -10</code>; explains each component.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Differentiates dirs vs files (<code>find -type f</code>); uses <code>-xdev</code> to stay on one filesystem; explains <code>du</code> vs <code>df</code> discrepancy (deleted-but-open files) and shows <code>lsof | grep deleted</code>; mentions <code>ncdu</code> for interactive use.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q25 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q20 &middot; Auth Log Parsing (CLI)</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Parse <code>/var/log/auth.log</code> to answer:<br>
+&nbsp;&nbsp;(1) How many times has "joe" logged in?<br>
+&nbsp;&nbsp;(2) How many different users have logged in?<br>
+&nbsp;&nbsp;(3) Which sessions are still open? (opened but not yet closed)<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Handle log rotation (sessions spanning multiple files).</li>
+  <li>Handle same user with multiple simultaneous sessions (PID correlation).</li>
+  <li>Do all three in a <b>single pass</b>.</li>
+  <li>Turn the "still open" script into an alert when &gt; N open sessions per user.</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> log-correlation via awk is a daily tool. The "increment on open, decrement on close" pattern generalizes to request tracing, connection counting, and many other pair-matching problems.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Three sub-problems, same toolkit:<br>
+&nbsp;&bull; <b>Count matches</b>: grep | wc -l<br>
+&nbsp;&bull; <b>Distinct values</b>: extract field | sort -u | wc -l<br>
+&nbsp;&bull; <b>Pair-matching</b>: awk with an associative array, increment on open, decrement on close, report non-zero at END.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Log rotation</b> can split an opened session into <code>auth.log.1</code> while the close is in <code>auth.log</code> &mdash; process files in chronological order. Same username with two concurrent sessions needs <b>PID correlation</b>, not just name. <code>grep "joe"</code> also matches <code>"joe2"</code> &mdash; use word boundaries or anchor the field position.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"A single-pass awk with an associative array handles all three at once. For strict correctness with concurrent sessions, I'd match on PID pairs &mdash; sshd lines include the PID in <code>sshd[12345]</code>, and open/close events carry it. For log rotation I'd glob <code>auth.log*</code> in order and cat them to one pipeline."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Single pass &middot; O(lines) time, O(open sessions) space</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION &middot; BASH / AWK (per question, then unified)</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># 1) joe's login count
+grep "session opened for user joe" /var/log/auth.log | wc -l
+
+# 2) Distinct users who logged in
+grep "session opened for user" /var/log/auth.log \
+  | awk '{print $NF}' | sort -u | wc -l
+
+# 3) Still-open sessions (opened but not closed)
+awk '
+  /session opened for user/ { users[$NF]++ }
+  /session closed for user/ { users[$NF]-- }
+  END { for (u in users) if (users[u] &gt; 0) print u, users[u], "open" }
+' /var/log/auth.log
+
+# All-in-one single-pass: count joe, distinct users, open sessions
+awk '
+  /session opened for user/ {
+      u = $NF
+      if (u == "joe") joe_count++
+      distinct[u] = 1
+      open[u]++
+  }
+  /session closed for user/ { open[$NF]-- }
+  END {
+      print "joe logins:", joe_count+0
+      print "distinct users:", length(distinct)
+      print "still open:"
+      for (u in open) if (open[u] &gt; 0) print "  ", u, open[u]
+  }
+' /var/log/auth.log
+
+# Production: respect log rotation order
+zcat -f /var/log/auth.log*.gz /var/log/auth.log.1 /var/log/auth.log 2&gt;/dev/null \
+  | awk -f session_audit.awk
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot parse text from CLI.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Greps for "joe" but can't count or handle multi-part.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Answers part 1; struggles with parts 2 and 3.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">All three with correct tools (grep, awk, sort, uniq, wc); pair-matching via awk associative array for part 3.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Single-pass awk for all three; handles log rotation (globbed files in order); PID correlation for concurrent sessions; alternatives like <code>last</code>/<code>lastlog</code>; proposes an alert on anomalous open-session count.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q26 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q21 &middot; sed and awk</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Explain the difference between <code>sed</code> and <code>awk</code>. Give examples of when you'd use each.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Replace a version string across many files in-place.</li>
+  <li>Sum column 3 where column 1 matches a pattern.</li>
+  <li>When would you NOT use either &mdash; and reach for Python/Perl?</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> fast text surgery and column arithmetic on log lines. Every support engineer reaches for these daily.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2"><b>sed</b> edits text streams line-by-line (substitute / delete / print). <b>awk</b> splits each line into fields and runs a small program per line with optional BEGIN/END blocks.<br><br>
+<b>Rule of thumb:</b><br>
+&nbsp;&bull; Find-and-replace &rarr; <code>sed</code><br>
+&nbsp;&bull; "Process column 3 if column 1 matches X" &rarr; <code>awk</code><br>
+&nbsp;&bull; Logic beyond 5 lines &rarr; Python</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><code>sed -i</code> on macOS needs <code>-i ''</code> (GNU sed doesn't). awk fields are <b>1-indexed</b> (<code>$0</code> = whole line, <code>$1</code> = first field). Default separator is whitespace runs; use <code>-F:</code> or <code>-F','</code> for CSV/passwd files. Greedy regex in sed (<code>.*</code>) can match more than you expect &mdash; use <code>[^"]*</code> or non-greedy PCRE.</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"<code>sed</code> for edits, <code>awk</code> for column-aware processing. Once the logic grows past ~5 lines of awk, I switch to Python &mdash; it's more readable, has data structures, and still runs fast enough for most log sizes."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">Streaming &middot; O(lines)</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>EXAMPLES &mdash; MEMORIZE THESE PATTERNS</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3"># ---------- SED: text surgery ----------
+sed 's/foo/bar/g' file             # replace all occurrences per line
+sed -n '5,10p' file                # print lines 5-10 (no other output)
+sed '/^\s*$/d' file                # delete blank lines
+sed -i 's/old/new/g' file          # in-place (Linux)
+sed -i '' 's/old/new/g' file       # in-place (macOS)
+sed -E 's/[0-9]+/N/g' file         # extended regex
+sed 's|/path/|/other/|g' file      # any delimiter works
+
+# Multi-file in-place version bump
+find . -name '*.py' -exec sed -i 's/VERSION = "1.2.0"/VERSION = "1.3.0"/' {} +
+
+# ---------- AWK: column &amp; logic ----------
+awk '{print $1, $NF}' file                     # first and last field
+awk -F: '{print $1, $3}' /etc/passwd            # user and UID
+awk '$3 &gt; 1000 {print $1}' /etc/passwd          # filter by numeric field
+awk -F, 'NR&gt;1 {sum += $2} END {print sum}' data.csv   # skip header, sum col 2
+awk '/ERROR/ {count[$2]++} END {for (k in count) print count[k], k}' app.log
+awk 'BEGIN {FS=","; OFS="|"} {print $2, $1}' data.csv   # CSV -&gt; pipe-delim
+
+# ---------- COMBINE ----------
+grep ERROR app.log | awk '{print $4}' | sort | uniq -c | sort -rn | head
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Never used either.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Heard of them but can't write commands.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Basic <code>sed 's/../../g'</code> but limited awk knowledge.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Clear mental model (sed = edit, awk = column+logic); writes correct examples of each; knows when to use which.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">sed in-place (<code>-i</code>), extended regex, BEGIN/END, awk associative arrays, custom FS/OFS, combining in pipelines; knows when to switch to Python for maintainability.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<!-- ============ Q27 ============ -->
+<table width="100%" bgcolor="#0f1620" cellpadding="24" cellspacing="0" border="0">
+<tr><td>
+<h3><font color="#7ee787" size="5">Q22 &middot; Regular Expressions</font> &nbsp; <font color="#3fb950" size="2"><b>&#128994; HIGH</b></font></h3>
+<br>
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td><font size="3"><b><font color="#58a6ff">Problem:</font></b> &nbsp; Write a regex to validate an email address. Then write a regex to extract all IP addresses from a log file.<br><br>
+<b><font color="#bc8cff">Typical follow-ups:</font></b>
+<ul>
+  <li>Extract only private IPs (10.x.x.x, 172.16-31.x.x, 192.168.x.x).</li>
+  <li>Parse a multi-line pattern (timestamps spanning lines).</li>
+  <li>Why is <code>(a+)+</code> dangerous? (catastrophic backtracking)</li>
+  <li>When is a regex NOT the right tool?</li>
+</ul>
+<b><font color="#8b949e">Why this matters for AFT:</font></b> ~every log parsing, log alerting, and data cleanup task starts with a regex. Knowing the common patterns and their traps is daily-driver knowledge.</font></td></tr>
+</table>
+<br>
+
+<table width="100%" cellpadding="10" cellspacing="0" border="0">
+<tr valign="top">
+<td width="50%" bgcolor="#11261c"><font size="2" color="#7ee787"><b>&#128161; CORE INSIGHT</b></font><br><font size="2">Anchor to avoid partial matches (<code>^</code>/<code>$</code> for whole string, <code>\b</code> for word boundary). Use <b>character classes</b> for sets; <b>non-capturing groups</b> <code>(?:...)</code> when you don't need the match; <b>raw strings</b> in Python (<code>r'...'</code>) to avoid escaping <code>\</code>.</font></td>
+<td width="50%" bgcolor="#2a1f14"><font size="2" color="#ffa657"><b>&#9888; PITFALLS</b></font><br><font size="2"><b>Catastrophic backtracking</b> with nested quantifiers (<code>(a+)+</code>, <code>(.*)*</code>) on pathological input =&gt; seconds-to-minutes to fail. Greedy <code>.*</code> eats more than you expect &mdash; use <code>.*?</code> (non-greedy) or <code>[^x]*</code>. <b>True RFC-5322 email validation is horrific</b> &mdash; every interview-answer regex is an approximation. Use a library (or send a confirmation email).</font></td>
+</tr>
+<tr valign="top">
+<td bgcolor="#241b2e"><font size="2" color="#bc8cff"><b>&#128172; SAY OUT LOUD</b></font><br><font size="2">"This email regex is a pragmatic approximation &mdash; it catches 99% of real inputs and rejects obvious garbage. Full RFC-5322 is a several-hundred-character regex and even that has corner cases. In prod I'd use a library (like <code>email-validator</code>) or confirm via email."</font></td>
+<td bgcolor="#0a1a2a"><font size="2" color="#58a6ff"><b>&#9200; COMPLEXITY</b></font><br><font size="2">O(n) per line for simple patterns; beware backtracking on adversarial input</font></td>
+</tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#0a0e13" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#bc8cff"><b>SOLUTION</b></font>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">import re
+
+# ---------- EMAIL ----------
+# Pragmatic approximation (not RFC 5322)
+EMAIL_RE = re.compile(
+    r'^[a-zA-Z0-9._%+\-]+'       # local part
+    r'@'
+    r'[a-zA-Z0-9.\-]+'           # domain (no leading/trailing dots enforced elsewhere)
+    r'\.[a-zA-Z]{2,}$'           # TLD (2+ letters)
+)
+assert EMAIL_RE.match("alice.smith+spam@example.co.uk")
+assert not EMAIL_RE.match("no-at-sign.com")
+assert not EMAIL_RE.match("spaces in@email.com")
+
+# ---------- IP ADDRESS ----------
+# Naive -- matches 999.999.999.999 too
+IP_NAIVE = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
+
+# Strict -- each octet 0-255
+OCTET = r'(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)'
+IP_STRICT = re.compile(rf'\b(?:{OCTET}\.){{3}}{OCTET}\b')
+
+# Extract IPs from a log file (streaming)
+def extract_ips(path):
+    ips = []
+    with open(path) as f:
+        for line in f:
+            ips.extend(IP_STRICT.findall(line))
+    return ips
+
+# ---------- USEFUL TRICKS ----------
+# Named groups for readability
+LOG_RE = re.compile(
+    r'(?P&lt;ts&gt;\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+'
+    r'(?P&lt;level&gt;ERROR|WARN|INFO)\s+'
+    r'(?P&lt;msg&gt;.*)'
+)
+m = LOG_RE.match("2024-01-15 11:08:25 ERROR Failed to connect")
+print(m.groupdict())  # {'ts': '...', 'level': 'ERROR', 'msg': '...'}
+
+# Compile once if used in a loop
+_PATTERN = re.compile(r'...')
+
+# ---------- GREP EQUIVALENT ----------
+# grep -oP '\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b' /var/log/auth.log
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<!-- CHEAT SHEET -->
+<table width="100%" bgcolor="#132030" cellpadding="16" cellspacing="0" border="0">
+<tr><td>
+<font size="2" color="#58a6ff"><b>&#128221; REGEX ELEMENTS YOU'LL REACH FOR</b></font>
+<br><br>
+<pre><font face="ui-monospace, Menlo, Consolas, monospace" size="2" color="#e6edf3">Anchors          ^ start,  $ end,  \b word boundary
+Character class  [a-z], [^...] negation, [[:alpha:]] POSIX
+Quantifiers      *  +  ?  {m,n}   (greedy by default)
+Non-greedy       *?  +?  ??       ("match as little as possible")
+Groups           (...) capturing, (?:...) non-capturing,
+                 (?P&lt;name&gt;...) named (Python/PCRE)
+Lookaround       (?=...) positive, (?!...) negative, (?&lt;=...) behind
+Flags            re.IGNORECASE  re.MULTILINE  re.DOTALL  re.VERBOSE
+</font></pre>
+</td></tr>
+</table>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="12" cellspacing="1" border="0">
+<tr bgcolor="#1c2430"><th align="left" width="22%"><font color="#58a6ff" size="2">RATING</font></th><th align="left"><font color="#58a6ff" size="2">L4 CRITERIA</font></th></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ff7b72"><b>Concern</b></font></td><td><font size="3">Cannot write any regex.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#ffa657"><b>Mild Concern</b></font></td><td><font size="3">Knows regex exists but can't write patterns beyond literal matches.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#e3b341"><b>Mixed</b></font></td><td><font size="3">Basic email regex but misses edge cases; IP regex incomplete (doesn't clamp 0-255).</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#7ee787"><b>Meets Bar</b></font></td><td><font size="3">Reasonable email + IP regex; anchors, character classes, quantifiers, escaping; uses with grep/sed/awk; acknowledges limitations of regex for email.</font></td></tr>
+<tr bgcolor="#161b22"><td valign="top"><font color="#3fb950"><b>Raises Bar</b></font></td><td><font size="3">Strict IP regex clamping each octet to 0-255; named capture groups; non-capturing groups; <code>re.VERBOSE</code> for readable big patterns; catastrophic backtracking awareness; <code>grep -oP</code> for Perl-compatible; mentions libraries for full RFC email.</font></td></tr>
+</table>
+</td></tr>
+</table>
+<br><br>
+
+<br>
+<hr color="#30363d" size="1" noshade>
+<br>
+<h2 id="cram"><font color="#58a6ff" size="6">&#127769; Night-Before Cram Sheet</font></h2>
+<p><font size="2" color="#8b949e">One-line "problem &rarr; approach" for every question. Skim this the morning of.</font></p>
+<br>
+
+<table width="100%" bgcolor="#161b22" cellpadding="10" cellspacing="1" border="0">
+<tr bgcolor="#1c2430">
+  <th align="left" width="8%"><font color="#58a6ff" size="2">#</font></th>
+  <th align="left" width="32%"><font color="#58a6ff" size="2">PROBLEM</font></th>
+  <th align="left"><font color="#58a6ff" size="2">APPROACH</font></th>
+</tr>
+<tr bgcolor="#161b22"><td>Q1</td><td>Anagram</td><td><font size="2">Counter, O(n); compare frequency maps; early-exit on length mismatch.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q2</td><td>Vending Machine</td><td><font size="2">Greedy: largest coin first. Greedy fails for arbitrary denominations &rarr; DP.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q3</td><td>Rotated Sorted Search</td><td><font size="2">Modified binary search: one half is always sorted; check if target is in it.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q4</td><td>Connected Cells</td><td><font size="2">Flood fill DFS/BFS with 8 directions + visited set; track region size.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q5</td><td>Flatten Nested</td><td><font size="2">Recursion, yield leaves; strings are leaves; prefer generator / iterative for deep nesting.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q6</td><td>IP Validator/Convert</td><td><font size="2">Split by '.', check 4 parts 0-255 + no leading zeros; bit-shift for int conversion.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q7</td><td>Next Higher Movie</td><td><font size="2">Monotonic stack scanning right-to-left, amortized O(n).</font></td></tr>
+<tr bgcolor="#161b22"><td>Q8</td><td>Stock Profit</td><td><font size="2">V1 track min + max profit; V2 sum positive diffs; V3 fwd/bwd DP.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q9</td><td>Phone Numbers</td><td><font size="2">Regex extract, normalize (strip separators), Counter.most_common(1).</font></td></tr>
+<tr bgcolor="#161b22"><td>Q10</td><td>Rate Limiter</td><td><font size="2">Sliding window log (deque per user) OR token bucket; Redis for distributed.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q11</td><td>Retry + Backoff</td><td><font size="2">Exponential delay + full jitter; retry only 5xx/timeouts; cap attempts + max delay.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q12</td><td>LRU Cache</td><td><font size="2">Hash map + doubly linked list (or OrderedDict.move_to_end) for O(1).</font></td></tr>
+<tr bgcolor="#161b22"><td>Q13</td><td>Producer/Consumer</td><td><font size="2">queue.Queue (blocking) + poison pill shutdown; bounded for memory.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q14</td><td>Pizza Builder (OOP)</td><td><font size="2">Enums for sizes/bases; Topping data class; Order aggregates; price separated from data.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q15</td><td>Min Stack</td><td><font size="2">Second stack with running min (push on <code>&le;</code>); O(1) all ops.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q16</td><td>Balanced Brackets</td><td><font size="2">Stack: push opens, pop on close (verify match); end stack must be empty.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q17</td><td>Recommendation Dist</td><td><font size="2">BFS + visited for shortest path; return -1 if unreachable; follow-up return path.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q18</td><td>Serialize Tree</td><td><font size="2">Pre-order with null markers; deserialize with shared iterator.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q19</td><td>Top 10 Largest</td><td><font size="2"><code>du -sh /home/* | sort -hr | head -10</code>.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q20</td><td>Auth Log Parse</td><td><font size="2">grep+wc; awk $NF | sort -u; awk open/close counter &gt; 0.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q21</td><td>sed vs awk</td><td><font size="2">sed: substitute/delete/print lines. awk: split into fields, BEGIN/END, associative arrays.</font></td></tr>
+<tr bgcolor="#161b22"><td>Q22</td><td>Regex (email/IP)</td><td><font size="2">Anchor with <code>^</code>/<code>$</code>/<code>\b</code>; character classes; library for RFC-correct email.</font></td></tr>
+</table>
+
+<br><br>
+
+<table width="100%" bgcolor="#11261c" cellpadding="20" cellspacing="0" border="0">
+<tr><td>
+<font size="3" color="#7ee787"><b>&#9989; INTERVIEW PLAYBOOK (read 10 min before the call)</b></font>
+<ol>
+  <li><font size="3"><b>Restate the problem</b> in your own words. Ask 2-3 clarifying questions (input size, duplicates, invalid input handling).</font></li>
+  <li><font size="3"><b>Think out loud.</b> "My first thought is O(n&sup2;) with nested loops&hellip; but we can do better with a hash map." Interviewers grade communication as much as code.</font></li>
+  <li><font size="3"><b>Start with a brute-force answer</b>, then optimize. It's worse to freeze silently than to submit brute force and iterate.</font></li>
+  <li><font size="3"><b>Name your pattern.</b> "This is a sliding window / monotonic stack / BFS problem." Interviewers check that you recognize the shape.</font></li>
+  <li><font size="3"><b>Before coding, sketch the data structures</b> and walk through one example end-to-end.</font></li>
+  <li><font size="3"><b>Write small, testable code.</b> Helper functions named clearly beat one giant main().</font></li>
+  <li><font size="3"><b>Call out edge cases</b> you handled: empty input, single element, all same values, overflow.</font></li>
+  <li><font size="3"><b>State time and space complexity</b> when done. If suboptimal, say what you'd improve given more time.</font></li>
+  <li><font size="3"><b>If stuck</b>: say so. Ask for a nudge. Restate what you know. Stepping back 30 seconds beats rabbit-holing 5 minutes.</font></li>
+</ol>
+</td></tr>
+</table>
+
+<br><br>
+
+</font>
+</td></tr>
+</table>
+
+</body>
+</html>
