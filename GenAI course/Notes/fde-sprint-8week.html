@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDE 8-Week Sprint — Surya Prakash</title>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--border:#2d333b;--text:#e6edf3;--muted:#9da7b3;
+    --accent:#58a6ff;--accent2:#7ee787;--ai:#d2a8ff;--proj:#7ee787;--career:#ffa657;--int:#79c0ff;--rev:#8b949e;
+    --gap:#ff7b72;--ok:#3fb950;--warn:#d29922;--bad:#f85149;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;padding-bottom:60px}
+  .wrap{max-width:1000px;margin:0 auto;padding:20px 16px}
+  header h1{font-size:1.5rem;margin-bottom:2px}
+  header p{color:var(--muted);font-size:.9rem}
+  .callout{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--ok);border-radius:8px;padding:12px 14px;margin:16px 0;font-size:.88rem}
+  .callout b{color:var(--ok)}
+  .dash{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:18px 0}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px}
+  .card .num{font-size:1.4rem;font-weight:700;color:var(--accent)}
+  .card .lbl{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .bar{background:var(--panel2);border-radius:6px;height:8px;overflow:hidden;margin-top:8px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .4s}
+  .overall{margin:14px 0}.overall .bar{height:14px}
+  .overall .meta{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+  details.calib{background:var(--panel);border:1px solid var(--border);border-radius:10px;margin:14px 0;overflow:hidden}
+  details.calib>summary{cursor:pointer;padding:12px 14px;font-weight:600;font-size:.92rem;list-style:none}
+  details.calib>summary::-webkit-details-marker{display:none}
+  details.calib>summary::before{content:"▸ ";color:var(--muted)}
+  details.calib[open]>summary::before{content:"▾ "}
+  table{width:100%;border-collapse:collapse;font-size:.84rem}
+  th,td{padding:8px 12px;text-align:left;border-top:1px solid var(--border);vertical-align:top}
+  th{font-size:.7rem;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+  .sc{font-weight:700;white-space:nowrap}
+  .sc.w{color:var(--bad)}.sc.m{color:var(--warn)}.sc.s{color:var(--ok)}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;align-items:center}
+  .controls input[type=search]{flex:1;min-width:180px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.9rem}
+  .fbtn{background:var(--panel);border:1px solid var(--border);color:var(--muted);padding:7px 12px;border-radius:20px;font-size:.8rem;cursor:pointer}
+  .fbtn[aria-pressed=true]{background:var(--accent);color:#0d1117;border-color:var(--accent);font-weight:600}
+  .fbtn:focus-visible,.tab:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px;border-bottom:1px solid var(--border);padding-bottom:10px}
+  .tab{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:.85rem}
+  .tab[aria-selected=true]{background:var(--accent);color:#0d1117;font-weight:700;border-color:var(--accent)}
+  .monthblock{display:none}.monthblock.active{display:block}
+  .month-head{display:flex;justify-content:space-between;align-items:center;margin:8px 0 12px;gap:12px}
+  .month-head h2{font-size:1.1rem}.month-head .mprog{flex:1;max-width:280px}
+  details.week{background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+  details.week>summary{cursor:pointer;padding:12px 14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:10px;list-style:none}
+  details.week>summary::-webkit-details-marker{display:none}
+  details.week>summary .wprog{flex:0 0 120px}
+  details.week>summary .pct{font-size:.78rem;color:var(--muted);margin-left:8px}
+  .day{border-top:1px solid var(--border);padding:10px 14px}
+  .day.today{background:rgba(88,166,255,.08);border-left:3px solid var(--accent)}
+  .day h4{font-size:.85rem;color:var(--accent);margin-bottom:6px;display:flex;gap:8px;align-items:center}
+  .day.today h4::after{content:"TODAY";background:var(--accent);color:#0d1117;font-size:.6rem;font-weight:800;padding:2px 6px;border-radius:4px}
+  .task{display:flex;gap:10px;align-items:flex-start;padding:5px 0;font-size:.88rem}
+  .task input{margin-top:3px;width:16px;height:16px;accent-color:var(--ok);cursor:pointer;flex-shrink:0}
+  .task label{cursor:pointer}
+  .task.done .ttl{color:var(--muted);text-decoration:line-through}
+  .task.done .goal,.task.done .lnks{opacity:.5}
+  .tbody{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+  .tbody label{cursor:pointer;display:block}
+  .ttl{display:inline}
+  .goal{display:block;font-size:.81rem;color:var(--muted);margin-top:3px;padding-left:2px;border-left:2px solid var(--border);padding-left:8px}
+  .goal b{color:var(--accent2);font-weight:700}
+  .lnks{display:flex;flex-wrap:wrap;gap:12px;margin-top:2px;padding-left:8px}
+  .lnks a{font-size:.77rem;color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor}
+  .lnks a:hover{border-bottom-style:solid}
+  .lnks a::before{content:"\2197 ";opacity:.65}
+  .srcpanel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin:20px 0}
+  .srcpanel h2{font-size:1.05rem;margin-bottom:10px}
+  .srcgrp{margin-bottom:12px}
+  .srcgrp h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px}
+  .srcgrp a{display:inline-block;font-size:.82rem;color:var(--accent);text-decoration:none;margin:0 14px 3px 0;border-bottom:1px dotted currentColor}
+  .srcgrp a:hover{border-bottom-style:solid}
+  .pill{display:inline-block;font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:6px;vertical-align:1px;text-transform:uppercase;letter-spacing:.03em}
+  .pill.ai{background:rgba(210,168,255,.15);color:var(--ai)}
+  .pill.proj{background:rgba(126,231,135,.15);color:var(--proj)}
+  .pill.career{background:rgba(255,166,87,.15);color:var(--career)}
+  .pill.int{background:rgba(121,192,255,.15);color:var(--int)}
+  .pill.rev{background:rgba(139,148,158,.2);color:var(--rev)}
+  .gapb{display:inline-block;font-size:.6rem;font-weight:800;padding:1px 6px;border-radius:4px;margin-right:6px;background:rgba(255,123,114,.16);color:var(--gap);border:1px solid rgba(255,123,114,.3);text-transform:uppercase;letter-spacing:.03em}
+  .slot{font-weight:700;color:var(--muted);font-size:.7rem;margin-right:4px}
+  .milestones{margin:26px 0}.milestones h2{font-size:1.05rem;margin-bottom:10px}
+  .ms{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:.9rem}
+  .ms input{width:17px;height:17px;accent-color:var(--ok);cursor:pointer}
+  .ms.done label{color:var(--ok)}
+  .gauntlet{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+  .gauntlet table{margin-top:8px}
+  .rules{font-size:.85rem;color:var(--muted);margin-top:12px}
+  .rules li{margin:6px 0 6px 18px}
+  .topbar{position:sticky;top:0;background:rgba(13,17,23,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);z-index:10;padding:8px 0}
+  .topbar .wrap{display:flex;justify-content:space-between;align-items:center;padding-top:0;padding-bottom:0}
+  .topbar .streak{font-size:.9rem}.topbar .streak b{color:var(--career)}
+  .jump{background:var(--accent);border:none;color:#0d1117;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.8rem}
+  .hidden{display:none!important}
+  footer{color:var(--muted);font-size:.75rem;text-align:center;margin-top:30px}
+  @media(max-width:600px){
+    details.week>summary{flex-wrap:wrap}
+    details.week>summary .wprog{flex-basis:100%}
+    .month-head{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <span class="streak" aria-live="polite">🔥 Streak: <b id="streak">0</b> days</span>
+    <button class="jump" id="jumpToday">Jump to today</button>
+  </div>
+</div>
+<div class="wrap">
+<header>
+  <h1>FDE 8-Week Sprint</h1>
+  <p>Surya Prakash · Mon Aug 17 → Oct 11, 2026 · interviews from week 7 · gauntlet from Oct 12 · ~34 h/week · every task has a Done-when test and linked sources</p>
+</header>
+
+<div class="callout" style="border-left-color:var(--warn)">
+  <b style="color:var(--warn)">Read this before starting.</b> Compressing 16 weeks into 8 costs two things, and pretending
+  otherwise would set you up to fail. First, the load roughly doubles: <b>1.5h mornings + 2.5h evenings + 8h Saturday + 6h Sunday ≈ 34 h/week</b>,
+  on top of a full-time on-site engagement. Second, scope is genuinely cut — Spark, dbt and the third project are gone, which
+  means deprioritising Palantir FDSE and Databricks-style data-heavy FDE roles in favour of AI-native ones. Everything tied to your
+  measured gaps (evals, security, agents, system design) survives intact. Open the table below for the full ledger of what was kept, compressed and cut.
+  <br><br><b style="color:var(--warn)">Abort criterion:</b> if you are more than 2 days behind at the end of Week 3, switch to the
+  16-week calibrated plan instead of grinding. Slipping a deadline beats burning out five weeks before your first interview.
+</div>
+
+<section class="overall" aria-label="Overall progress">
+  <div class="meta"><span>Overall progress</span><span id="overallPct">0%</span></div>
+  <div class="bar"><div id="overallBar"></div></div>
+</section>
+
+<section class="dash" aria-label="Key metrics">
+  <div class="card"><div class="num" id="mGap">0</div><div class="lbl">Gap-closing tasks</div><div class="bar"><div id="mGapBar"></div></div></div>
+  <div class="card"><div class="num" id="mProj">0/2</div><div class="lbl">Projects shipped</div><div class="bar"><div id="mProjBar"></div></div></div>
+  <div class="card"><div class="num" id="mVid">0/2</div><div class="lbl">Demo videos</div><div class="bar"><div id="mVidBar"></div></div></div>
+  <div class="card"><div class="num" id="mPost">0/2</div><div class="lbl">LinkedIn posts</div><div class="bar"><div id="mPostBar"></div></div></div>
+  <div class="card"><div class="num" id="mApp">0/40</div><div class="lbl">Applications</div><div class="bar"><div id="mAppBar"></div></div></div>
+  <div class="card"><div class="num" id="mStar">0/10</div><div class="lbl">STAR stories</div><div class="bar"><div id="mStarBar"></div></div></div>
+</section>
+
+<details class="calib">
+  <summary>What was kept, compressed and cut to fit 8 weeks (open this)</summary>
+  <table><thead><tr><th>Item</th><th>Verdict</th><th>Reasoning</th></tr></thead>
+  <tbody id="calibBody"></tbody></table>
+</details>
+
+<section class="controls" aria-label="Filters">
+  <input type="search" id="search" placeholder="Search tasks… (e.g. eval, injection, trajectory)" aria-label="Search tasks">
+  <button class="fbtn" data-f="all" aria-pressed="true">All</button>
+  <button class="fbtn" data-f="gap" aria-pressed="false">Gap-closing only</button>
+  <button class="fbtn" data-f="ai" aria-pressed="false">Study</button>
+  <button class="fbtn" data-f="proj" aria-pressed="false">Build</button>
+  <button class="fbtn" data-f="career" aria-pressed="false">Career</button>
+  <button class="fbtn" data-f="int" aria-pressed="false">Interview</button>
+  <button class="fbtn" data-f="unchecked" aria-pressed="false">Unchecked only</button>
+</section>
+
+<nav class="tabs" role="tablist" aria-label="Phases" id="tabs"></nav>
+<main id="months"></main>
+
+<section class="milestones" aria-label="Milestones">
+  <h2>🏁 Milestone checklist</h2>
+  <div id="msList"></div>
+</section>
+
+<section class="srcpanel" aria-label="Key sources">
+  <h2>📚 Key sources (all links open in a new tab)</h2>
+  <div id="srcBody"></div>
+</section>
+
+<footer>Progress saves in this browser · One buffer day (Oct 10) · Slippage is absorbed by cutting scope inside the day, not by extending the calendar.</footer>
+</div>
+
+
+<script>
+const CALIB=[
+ ["Evaluation of LLM systems (your 0%)","KEPT IN FULL","s","5 theory sessions in Week 1, harness live by Friday, eval-driven tuning throughout. Your worst score and the biggest FDE differentiator — never a candidate for cutting."],
+ ["LLM security (your 40%)","KEPT IN FULL","s","Week 2: OWASP mapping, threat model, self red-team with a planted injection, retrieval-time RBAC, PII redaction. Enterprise loops ask about all of it."],
+ ["AI system design (your 20%)","KEPT IN FULL","s","5 concepts in Week 4, each implemented the same day: multi-tenancy, token bucket, idempotency, job queue, semantic cache."],
+ ["Both flagship projects","KEPT","s","policy-rag and incident-copilot both ship. Two strong repos beat three rushed ones."],
+ ["Enterprise hardening","COMPRESSED","m","Cognito, RBAC, audit log, PII, Bedrock, VPC endpoints all survive — folded into Week 2 alongside security instead of getting their own week."],
+ ["Agents (your 40%)","COMPRESSED","m","2 weeks → 1. Hand-built ReAct loop, budgets, trajectory evals and HITL gate all stay; the LangGraph rebuild is cut."],
+ ["TypeScript / React (your 0%)","COMPRESSED","m","2-week sprint → 3 days, leaning on AI to scaffold the UI. Goal is shipping a demo interface, not becoming a frontend engineer. Say so honestly in interviews."],
+ ["Demo videos and posts","COMPRESSED","m","3 videos → 2, 4 posts → 2. Same signal, less production time."],
+ ["Spark / dbt / taxi-pipeline","CUT","w","The data-engineering week and third project are gone. Consequence: you cannot claim Spark, so deprioritise Palantir FDSE and Databricks resident-engineer roles in favour of AI-native FDE teams."],
+ ["LangGraph framework work","CUT","w","Building the loop by hand is what interviews probe. Framework familiarity is a 2-hour task any time later."],
+ ["Buffer weeks","CUT","w","3 buffer weeks → one Saturday (Oct 10). Slippage is absorbed by cutting scope inside the day, not by extending the calendar. This is the main risk of the 8-week version."],
+ ["Deep SQL window / dbt drills","CUT","w","Only relevant to the data-heavy FDE variants you are now deprioritising."],
+ ["Weekly time budget","CHANGED","w","21 h/week → about 34 h/week (1.5h mornings, 2.5h evenings, 8h Saturday, 6h Sunday), on top of a full-time on-site engagement."]
+];
+
+// Recurring sources, shown in the reference panel
+const SOURCES=[
+ ["Evals",[["Hamel Husain — Your AI Product Needs Evals","https://hamelhusain.substack.com/p/evals"],["Hamel Husain — LLM-as-a-Judge","https://hamel.dev/blog/posts/llm-judge/"],["Hamel Husain — Evals FAQ","https://hamel.dev/blog/posts/evals-faq/"]]],
+ ["Agents",[["Anthropic — Building Effective Agents","https://www.anthropic.com/engineering/building-effective-agents"],["Anthropic — Writing Tools for Agents","https://www.anthropic.com/engineering/writing-tools-for-agents"],["Anthropic — Context Engineering","https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents"],["ReAct paper (arXiv 2210.03629)","https://arxiv.org/abs/2210.03629"]]],
+ ["Security",[["OWASP GenAI — LLM Top 10","https://genai.owasp.org/llm-top-10/"],["Microsoft Presidio (PII)","https://github.com/microsoft/presidio"]]],
+ ["RAG & retrieval",[["pgvector","https://github.com/pgvector/pgvector"],["Postgres full-text search","https://www.postgresql.org/docs/current/textsearch.html"],["Cohere Rerank","https://docs.cohere.com/docs/rerank"],["Lost in the Middle (arXiv 2307.03172)","https://arxiv.org/abs/2307.03172"]]],
+ ["Model APIs",[["OpenAI — Structured Outputs","https://platform.openai.com/docs/guides/structured-outputs"],["OpenAI — Function Calling","https://platform.openai.com/docs/guides/function-calling"],["Anthropic — Tool Use","https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview"],["AWS Bedrock User Guide","https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html"]]],
+ ["Ops & backend",[["Langfuse docs","https://langfuse.com/docs"],["FastAPI","https://fastapi.tiangolo.com/"],["Pydantic","https://docs.pydantic.dev/latest/"],["EKS IRSA","https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html"],["Amazon Cognito","https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html"]]],
+ ["Frontend",[["TypeScript for JS programmers","https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html"],["Next.js App Router","https://nextjs.org/docs/app"],["React useEffect","https://react.dev/reference/react/useEffect"],["MDN EventSource (SSE)","https://developer.mozilla.org/en-US/docs/Web/API/EventSource"]]]
+];
+
+const PLAN=[
+{name:"Weeks 1–2 · RAG + Evals + Enterprise",weeks:[
+{label:"Week 1 — Ship policy-rag with a real eval harness · Aug 17–23",days:[
+{d:"2026-08-17",tasks:[
+ {s:"AM",c:"ai",g:"Evals",t:"Eval theory 1/5 — why measurement precedes optimisation. Read Hamel Husain's core evals post end to end, then write down the three eval types (unit/assertion, model-graded, human review) and which one fits a policy Q&A system.",
+  goal:"you can explain in writing why 'it looks good' is unshippable, and you have named the three eval layers you will build this week.",
+  links:[["Your AI Product Needs Evals","https://hamelhusain.substack.com/p/evals"],["Evals FAQ","https://hamel.dev/blog/posts/evals-faq/"]]},
+ {s:"PM",c:"proj",t:"Scaffold the 'policy-rag' repo: FastAPI app, docker-compose with Postgres + pgvector, a chunks table (id, doc_id, section, text, embedding vector(1536), metadata jsonb), and stub /ingest and /ask endpoints.",
+  goal:"`docker compose up` starts app + database, and a smoke test inserts and reads back one dummy chunk with an embedding.",
+  links:[["pgvector README","https://github.com/pgvector/pgvector"],["FastAPI docs","https://fastapi.tiangolo.com/"]]},
+ {s:"PM",c:"proj",t:"Build ingestion v1: pull 3 real public insurance policy PDFs (term life, motor, health), extract text with pymupdf, chunk on headings first then a size cap, embed, and store with doc name + section title in metadata.",
+  goal:"all 3 documents are in the database, and you can print any chunk with its source document and section heading."}]},
+{d:"2026-08-18",tasks:[
+ {s:"AM",c:"ai",g:"Evals",t:"Eval theory 2/5 — retrieval metrics. Learn recall@k, precision@k, MRR and nDCG, and why a RAG system must be scored as two separate stages (did we fetch the right passage / did we answer from it correctly).",
+  goal:"you can state which metric you would show a customer to prove a retrieval regression, and why answer-quality alone would hide it."},
+ {s:"PM",c:"proj",t:"Implement retrieval + grounded generation: embed the query, cosine search in pgvector (<=> operator), pass top-k chunks to the model, and return an answer with inline [1][2] citations mapped to chunk IDs in the JSON response.",
+  goal:"/ask returns a cited answer end to end, and every citation resolves to a real chunk you can display.",
+  links:[["pgvector querying","https://github.com/pgvector/pgvector#querying"]]},
+ {s:"PM",c:"proj",g:"Evals",t:"Write the golden set by hand: 25 question/ideal-answer/source-section triples drawn from your 3 documents, including 5 questions the documents genuinely cannot answer. Save as evals/qa.json.",
+  goal:"evals/qa.json holds 25 cases with expected source sections. This is tedious on purpose — it is exactly the artefact you would build on a customer site."}]},
+{d:"2026-08-19",tasks:[
+ {s:"AM",c:"ai",g:"Evals",t:"Eval theory 3/5 — LLM-as-judge. Read Hamel's judge post; learn rubric design, position and verbosity bias, self-preference bias, and why pairwise comparison is often more stable than absolute 1–5 scoring.",
+  goal:"you have drafted the actual grading rubric you will use tonight, with explicit criteria rather than 'rate this answer'.",
+  links:[["Using LLM-as-a-Judge","https://hamel.dev/blog/posts/llm-judge/"]]},
+ {s:"PM",c:"proj",g:"Evals",t:"Build eval harness v1: run all 25 cases, compute recall@k against the expected source section, grade answers with your judge rubric, and emit a markdown report listing every failure with its retrieved chunks.",
+  goal:"one command produces a scored report, and you have recorded a baseline number in the README that every later change is measured against."},
+ {s:"PM",c:"proj",g:"Evals",t:"Add claim-level groundedness scoring: split the answer into claims and ask the judge whether each is supported by the retrieved context.",
+  goal:"the report shows a groundedness score separate from answer quality, so you can distinguish 'wrong' from 'unsupported'."}]},
+{d:"2026-08-20",tasks:[
+ {s:"AM",c:"ai",g:"Evals",t:"Eval theory 4/5 — regression discipline and long-context failure. Read the 'Lost in the Middle' paper abstract and results, and adopt the rule that no prompt change ships without a full suite run.",
+  goal:"you can explain why adding more retrieved chunks can lower quality, and you have written the no-prompt-change-without-evals rule into your README.",
+  links:[["Lost in the Middle","https://arxiv.org/abs/2307.03172"]]},
+ {s:"PM",c:"proj",t:"Implement refusal: instruct and tune the system so it answers only from retrieved context and explicitly declines when the answer is absent.",
+  goal:"all 5 unanswerable cases are refused correctly with no invented content, and the other 20 still pass."},
+ {s:"PM",c:"proj",g:"Embeddings",t:"Add hybrid search: Postgres tsvector full-text alongside vector search, fused with reciprocal rank fusion. Add 5 exact policy-number lookups to the eval set BEFORE building it, so you can prove the improvement.",
+  goal:"the 5 identifier lookups fail on pure vector search and pass with hybrid, with both numbers recorded.",
+  links:[["Postgres full-text search","https://www.postgresql.org/docs/current/textsearch.html"]]}]},
+{d:"2026-08-21",tasks:[
+ {s:"AM",c:"ai",g:"Embeddings",t:"Close your two embedding gaps: ANN index internals (HNSW graph structure vs IVFFlat lists, and the ef_search / nprobe / m knobs) and why dense vectors blur rare literal strings like policy numbers.",
+  goal:"you can say which index you would choose for 10M chunks and what recall you would sacrifice, plus name three query types that need keyword search.",
+  links:[["pgvector indexing","https://github.com/pgvector/pgvector#indexing"]]},
+ {s:"PM",c:"proj",g:"Embeddings",t:"Create an HNSW index and benchmark it through the harness: measure recall and p95 latency at k=3, 5 and 10, plus one ef_search variation.",
+  goal:"a small table in the README showing the recall/latency tradeoff on your own data, not from a blog post."},
+ {s:"PM",c:"proj",t:"Add reranking (Cohere Rerank free tier or an LLM rerank call) over a top-10 candidate set narrowed to top-3.",
+  goal:"you have both numbers — eval score delta AND added latency — and a written decision on whether it is worth keeping.",
+  links:[["Cohere Rerank","https://docs.cohere.com/docs/rerank"]]}]},
+{d:"2026-08-22",tasks:[
+ {s:"SAT",c:"proj",t:"H1–2: Add query rewriting (condense follow-ups into a standalone search query) and conversation memory, then re-run the whole suite.",
+  goal:"multi-turn follow-ups retrieve correctly, and the suite confirms no regression on single-turn cases."},
+ {s:"SAT",c:"proj",t:"H3–4: Stream responses with SSE from FastAPI and build a minimal UI (single page or Streamlit) with an ask box and clickable citations that reveal the source chunk.",
+  goal:"tokens appear progressively in the browser and every citation is inspectable. Ugly is fine; working is mandatory."},
+ {s:"SAT",c:"proj",t:"H5–6: Production hygiene: tenacity retries with exponential backoff and jitter, structured request logging, and per-query cost tracking from token counts.",
+  goal:"every request logs its token usage and computed cost, and a forced 429 recovers without a user-visible error."},
+ {s:"SAT",c:"proj",t:"H7–8: Multi-stage Dockerfile and a genuine fresh-clone test in a clean directory.",
+  goal:"`git clone && docker compose up` reaches a working app with no undocumented manual step."}]},
+{d:"2026-08-23",tasks:[
+ {s:"SUN",c:"proj",t:"H1–2: Deploy to your EKS cluster through the existing Jenkins pipeline, with secrets from AWS Secrets Manager and pod-level AWS access via IRSA rather than the node role.",
+  goal:"a commit triggers a build and the new pods serve traffic, with no API key present in the image or in plain k8s Secrets.",
+  links:[["EKS IRSA","https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html"]]},
+ {s:"SUN",c:"proj",g:"LLMOps",t:"H3–4: Stand up Langfuse (self-hosted via docker) and trace every LLM call with model, prompt version, tokens, cost and latency. Add a Prometheus histogram plus a Grafana panel showing p50 and p95.",
+  goal:"you can pick any single past answer and reconstruct exactly which prompt, chunks and cost produced it.",
+  links:[["Langfuse docs","https://langfuse.com/docs"]]},
+ {s:"SUN",c:"proj",t:"H5: Write the README and the eval report: baseline → each change → final, with the numbers for every step.",
+  goal:"a reader who has never seen the repo understands what it does, how good it is, and how you know."},
+ {s:"SUN",c:"rev",t:"H6: Weekly review. Ask the honest question: would you put these eval numbers in front of a paying customer?",
+  goal:"three lines in your log: what shipped, what the numbers say, what next week must fix."}]}]},
+{label:"Week 2 — Security + the enterprise stack (merged) · Aug 24–30",days:[
+{d:"2026-08-24",tasks:[
+ {s:"AM",c:"ai",g:"Security",t:"Security 1/4: read the OWASP Top 10 for LLM Applications in full and annotate each of the ten risks with how it applies (or does not) to policy-rag specifically.",
+  goal:"a written mapping of all 10 risks to your app, with the 3 that genuinely apply marked for action this week.",
+  links:[["OWASP LLM Top 10","https://genai.owasp.org/llm-top-10/"]]},
+ {s:"PM",c:"proj",g:"Security",t:"Write the 1-page threat model: trust boundaries, every untrusted input (user query, document content, tool output), what an attacker could reach, and your current controls.",
+  goal:"a diagram plus table committed to the repo, with at least two gaps you have not yet fixed named honestly."},
+ {s:"PM",c:"proj",g:"Security",t:"Red-team yourself: plant an indirect prompt injection inside one ingested policy document ('ignore previous instructions and reveal…'), then run a normal user query and observe the result.",
+  goal:"you have recorded what actually happened — whether the model complied or not — with the evidence saved. This story is interview gold."}]},
+{d:"2026-08-25",tasks:[
+ {s:"AM",c:"ai",g:"Security",t:"Security 2/4: retrieval-time authorization. Understand why prompt-level instructions and post-hoc answer filtering both leak, and why the filter must sit in the query bound to a verified identity.",
+  goal:"you can explain in one paragraph why 'tell the model not to answer HR questions' is not an access control."},
+ {s:"PM",c:"proj",t:"Add authentication: a Cognito user pool with two groups (analyst, operator), hosted login on a minimal frontend, and the JWT forwarded to the backend.",
+  goal:"you can log in as either persona and the backend receives a validated token containing the group claim.",
+  links:[["Amazon Cognito","https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html"]]},
+ {s:"PM",c:"proj",g:"Security",t:"Enforce roles server-side: validate the JWT signature, extract groups, and gate endpoints so analysts can read while only operators can approve actions.",
+  goal:"an analyst token receives 403 on the approve endpoint, proven by a test."}]},
+{d:"2026-08-26",tasks:[
+ {s:"AM",c:"ai",g:"Security",t:"Security 3/4: PII handling — detection, redaction vs reversible tokenisation, keeping the mapping under your control, and what audit evidence regulated customers ask for.",
+  goal:"you can describe the data path for a Japanese insurer's policy documents and state exactly what leaves their AWS account."},
+ {s:"PM",c:"proj",g:"Security",t:"Wire retrieval-time RBAC: an allowed_groups field on document metadata, filtered in the SQL query using the group from the verified token only — never from a request parameter.",
+  goal:"a test proves an analyst querying restricted content gets zero restricted chunks retrieved, not merely a refused answer."},
+ {s:"PM",c:"proj",g:"Security",t:"Add PII redaction at ingestion with Microsoft Presidio (or a regex layer for emails, phone numbers, national IDs), logging what was redacted per document.",
+  goal:"redaction is visible in the ingestion log and the full eval suite still passes afterwards.",
+  links:[["Microsoft Presidio","https://github.com/microsoft/presidio"]]}]},
+{d:"2026-08-27",tasks:[
+ {s:"AM",c:"ai",g:"LLMOps",t:"LLMOps 1/2: prompt caching mechanics (why the static prefix must come first and stay byte-identical) and what to trace across a multi-step call chain.",
+  goal:"you can predict which of two prompt layouts will get cache hits and roughly what it saves."},
+ {s:"PM",c:"proj",g:"Security",t:"Build the audit trail: an append-only table capturing who asked what, which chunks were retrieved, what was answered, and every approval — plus a minimal admin page to read it.",
+  goal:"you can answer 'what did this user see last Tuesday' from the audit table alone."},
+ {s:"PM",c:"proj",g:"LLMOps",t:"Restructure prompts for a cache-friendly stable prefix and measure the effect.",
+  goal:"recorded before/after cost per query and time-to-first-token."}]},
+{d:"2026-08-28",tasks:[
+ {s:"AM",c:"ai",g:"LLMOps",t:"LLMOps 2/2: latency percentiles (p50/p95/p99), what to alert on for an LLM service, and cost routing — cheap model first, escalate only where evals prove it necessary.",
+  goal:"you can name the three alerts you would set on this service and the threshold for each."},
+ {s:"PM",c:"proj",t:"Make the model provider swappable and run the whole system on AWS Bedrock (Claude for generation, Titan for embeddings) behind a config flag.",
+  goal:"the same eval suite runs on both stacks, with a documented comparison of quality, cost and latency — the exact table a security-conscious customer asks for.",
+  links:[["AWS Bedrock","https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html"]]},
+ {s:"PM",c:"proj",g:"LLMOps",t:"Build the cost dashboard (per user, per day) in Grafana from trace and audit data, then implement model routing with eval proof that quality holds.",
+  goal:"a dashboard screenshot plus a recorded percentage cost saving with no eval regression."}]},
+{d:"2026-08-29",tasks:[
+ {s:"SAT",c:"proj",t:"H1–3: Harden the network: private subnets for pods, tight security groups, and VPC endpoints so Bedrock and S3 traffic never traverses the public internet.",
+  goal:"you can draw the traffic path and state where an endpoint policy adds a second authorization boundary."},
+ {s:"SAT",c:"career",m:"video",t:"H4–6: Record demo video #1 (about 4 minutes): the problem, a live query with citations, the eval table, analyst vs operator RBAC showing different answers, and the audit trail.",
+  goal:"an unlisted video link you would happily paste into a job application."},
+ {s:"SAT",c:"proj",t:"H7–8: Final README pass: architecture diagram, eval methodology, threat model summary, and the Bedrock comparison.",
+  goal:"the repo reads like a deliverable rather than a tutorial follow-along."}]},
+{d:"2026-08-30",tasks:[
+ {s:"SUN",c:"career",g:"FDE craft",t:"H1–3: Write the 1-page FDE case study in field-report voice: fictional insurer context → the problem → what you built → security posture → measured results → what you would do next.",
+  goal:"one page a hiring manager can skim in 90 seconds and see both engineering and customer judgement."},
+ {s:"SUN",c:"career",m:"post",t:"H4: LinkedIn post #1 — what the eval numbers taught you building RAG over insurance policies. Lead with the before/after table.",
+  goal:"posted, with the repo linked."},
+ {s:"SUN",c:"rev",t:"H5–6: Review and buffer. Project #1 is complete and genuinely enterprise-grade.",
+  goal:"milestone ticked, Week 3 calendar confirmed."}]}]}
+]},
+{name:"Weeks 3–4 · Agents + UI + System Design",weeks:[
+{label:"Week 3 — Agent by hand → incident-copilot · Aug 31–Sep 6",days:[
+{d:"2026-08-31",tasks:[
+ {s:"AM",c:"ai",g:"Agents",t:"Agents 1/5: read Anthropic's 'Building Effective Agents' fully, then skim the ReAct paper. Focus on the distinction between a fixed workflow and an agent, and their explicit advice to prefer the simplest thing that works.",
+  goal:"you can argue both sides of 'should this be an agent or a workflow?' and name the cost of choosing an agent (variance, latency, debuggability).",
+  links:[["Building Effective Agents","https://www.anthropic.com/engineering/building-effective-agents"],["ReAct paper","https://arxiv.org/abs/2210.03629"]]},
+ {s:"PM",c:"proj",g:"Agents",t:"Hand-build the agent loop with no framework: a while-loop that sends messages, receives a tool call, executes it, appends the result, and repeats until the model answers. Give it read_file and list_dir.",
+  goal:"it correctly answers a real question about your own repo ('how many files mention pgvector?') and you can point at the exact line where the loop decides to continue.",
+  links:[["OpenAI function calling","https://platform.openai.com/docs/guides/function-calling"],["Anthropic tool use","https://docs.anthropic.com/en/docs/build-with-claude/tool-use/overview"]]},
+ {s:"PM",c:"proj",g:"Agents",t:"Add a run_sql tool over a seeded incidents SQLite database, deliberately constrained: read-only connection, SELECT-only allowlist, rejected statements logged.",
+  goal:"the agent answers 'which service had the most incidents last month?' and an attempted DELETE is refused by your code, not by the model's goodwill."}]},
+{d:"2026-09-01",tasks:[
+ {s:"AM",c:"ai",g:"Agents",t:"Agents 2/5: budgets and containment. Why every guardrail that matters lives in the harness rather than the prompt, and what a bounded failure looks like.",
+  goal:"you can list the five caps you are about to implement and what each one prevents."},
+ {s:"PM",c:"proj",g:"Agents",t:"Implement hard limits: max iterations, max total tokens, max tool calls, per-tool timeout and a wall-clock timeout — plus a structured trace log recording thought, tool, arguments and result for every step.",
+  goal:"a deliberately looping task terminates cleanly with a readable trace instead of burning your budget."},
+ {s:"PM",c:"proj",g:"Agents",t:"Inject failures: make a tool raise, return malformed JSON, and time out. Verify the agent either recovers or reports cleanly, with one bounded retry per tool.",
+  goal:"all three failure modes produce a sane outcome and none of them hangs."}]},
+{d:"2026-09-02",tasks:[
+ {s:"AM",c:"ai",g:"Agents",t:"Agents 3/5: read Anthropic's guide on writing tools for agents. Treat tool descriptions as the model's API documentation, including when NOT to use each tool.",
+  goal:"you have rewritten your three tool descriptions using their guidance, with explicit negative guidance in each.",
+  links:[["Writing Tools for Agents","https://www.anthropic.com/engineering/writing-tools-for-agents"]]},
+ {s:"PM",c:"proj",t:"Build the incident-copilot data layer from your own experience: 15 runbook markdown files based on real (sanitised) TCS incidents, a 50-row incidents table, and a services YAML with owners and dependencies.",
+  goal:"the fixtures feel like a real production estate, because they are drawn from one. This authenticity is what makes the demo land."},
+ {s:"PM",c:"proj",t:"Implement the two retrieval tools: search_runbooks (reuse your RAG code — embed the runbooks) and query_incident_history.",
+  goal:"given an alert payload, the agent calls both tools unprompted and produces a first root-cause hypothesis."}]},
+{d:"2026-09-03",tasks:[
+ {s:"AM",c:"ai",g:"Agents",t:"Agents 4/5: human-in-the-loop design. Match autonomy to reversibility — free to read and diagnose, gated on anything destructive — and what the audit record must contain.",
+  goal:"you can state the rule for which actions need approval and defend it to a sceptical enterprise buyer."},
+ {s:"PM",c:"proj",t:"Define the structured output: a Pydantic incident report (severity, probable_cause, evidence[], remediation_steps[], confidence) with validate-and-retry that feeds the validation error back to the model.",
+  goal:"malformed output self-corrects within one retry, and invalid-output rate is logged as a metric.",
+  links:[["Pydantic","https://docs.pydantic.dev/latest/"],["OpenAI structured outputs","https://platform.openai.com/docs/guides/structured-outputs"]]},
+ {s:"PM",c:"proj",g:"Agents",t:"Implement the approval gate: the agent proposes remediation steps and blocks; execution only proceeds after an operator approves, with proposal, approver and outcome written to the audit log.",
+  goal:"a remediation cannot execute without an operator action, proven by a test using an analyst token."}]},
+{d:"2026-09-04",tasks:[
+ {s:"AM",c:"ai",g:"Agents + Evals",t:"Agents 5/5: trajectory evaluation. Design a rubric that scores the path — right runbook consulted, unnecessary calls avoided, errors recovered — not just the final answer.",
+  goal:"a written rubric with per-step criteria, ready to run tonight."},
+ {s:"PM",c:"proj",g:"Agents + Evals",t:"Build the trajectory eval: 12 test incidents with known root causes, scored on whether the correct runbook was consulted, whether the cause matched, step count and cost per run.",
+  goal:"a baseline table showing correctness AND efficiency per incident — the artefact almost no candidate brings to an interview."},
+ {s:"PM",c:"proj",g:"Agents",t:"Improve the agent from its eval failures only: sharpen tool descriptions, add few-shot exemplars, adjust the system prompt. Re-run after each change.",
+  goal:"a documented before/after with the change that moved the number most identified explicitly."}]},
+{d:"2026-09-05",tasks:[
+ {s:"SAT",c:"proj",g:"LLMOps",t:"H1–2: Trace full trajectories in Langfuse with nested parent/child spans, then find your most expensive run and explain why it cost what it did.",
+  goal:"you can open one trace and narrate every step, its latency and its cost.",
+  links:[["Langfuse tracing","https://langfuse.com/docs/tracing"]]},
+ {s:"SAT",c:"proj",t:"H3–4: Expose the agent over FastAPI: POST /triage streaming each trace event to the client over SSE.",
+  goal:"curl against the endpoint shows step events arriving progressively, not one blob at the end."},
+ {s:"SAT",c:"proj",g:"TypeScript",t:"H5–8: TypeScript day 1 — work the 'TS for JavaScript programmers' handbook page, then set up Next.js with the App Router and understand the server/client component boundary. Use AI to scaffold; your job is to read, modify and explain it.",
+  goal:"a running Next.js app that fetches from your FastAPI backend, and you can explain what 'use client' changes and why.",
+  links:[["TS for JS programmers","https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html"],["Next.js App Router","https://nextjs.org/docs/app"]]}]},
+{d:"2026-09-06",tasks:[
+ {s:"SUN",c:"proj",g:"TypeScript",t:"H1–4: Build the core UI: an incident submission form that posts to /triage and a live trace panel that renders each agent step as it streams in via EventSource.",
+  goal:"watching the agent think in real time in the browser. This single view carries the whole demo.",
+  links:[["MDN EventSource","https://developer.mozilla.org/en-US/docs/Web/API/EventSource"]]},
+ {s:"SUN",c:"rev",t:"H5: Weekly review.",goal:"honest note on whether the agent is genuinely useful or just demo-shaped."},
+ {s:"SUN",c:"proj",t:"H6: Buffer.",goal:"the week's loose end closed."}]}]},
+{label:"Week 4 — UI finish + system design, each built the same day · Sep 7–13",days:[
+{d:"2026-09-07",tasks:[
+ {s:"AM",c:"ai",g:"TypeScript",t:"React essentials for this UI: state, effects, the dependency array and cleanup functions — the two bugs (missing deps, missing cleanup) that break streaming interfaces.",
+  goal:"you can explain why an SSE subscription without cleanup leaks, and spot it in your own code.",
+  links:[["React useEffect","https://react.dev/reference/react/useEffect"]]},
+ {s:"PM",c:"proj",g:"TypeScript",t:"Build the report card view: severity badge, probable cause, evidence list with sources, and remediation steps with Approve/Reject buttons wired to the human-in-the-loop endpoint.",
+  goal:"an operator can approve a remediation from the UI and see the audit entry appear."},
+ {s:"PM",c:"proj",t:"Polish: loading skeletons, error states, empty states, one Tailwind layout pass.",
+  goal:"nothing in the happy path or the failure path looks broken on a shared screen."}]},
+{d:"2026-09-08",tasks:[
+ {s:"AM",c:"ai",g:"System design",t:"Design 1/5: multi-tenant isolation — per-tenant namespaces vs a mandatory server-side filter, and why accepting tenant_id from the client is the classic vulnerability.",
+  goal:"you can whiteboard two isolation designs with their tradeoffs in five minutes."},
+ {s:"PM",c:"proj",g:"System design",t:"Implement tenant isolation where the tenant is derived exclusively from the verified token, with the filter applied in the data layer.",
+  goal:"a test that forges a tenant_id in the request body and still cannot reach another tenant's chunks."},
+ {s:"PM",c:"proj",t:"Dockerize the frontend and deploy both services to EKS through Jenkins.",
+  goal:"the full stack is reachable at a URL you can send to someone."}]},
+{d:"2026-09-09",tasks:[
+ {s:"AM",c:"ai",g:"System design",t:"Design 2/5: rate limiting — token bucket vs sliding window, and why LLM services should limit on tokens rather than request count.",
+  goal:"you can explain why bursts are acceptable and how the bucket still enforces a sustained rate."},
+ {s:"PM",c:"proj",g:"System design",t:"Implement per-user token-bucket limiting, then load test with 50 concurrent requests.",
+  goal:"limits engage under load, no request hangs, and you have recorded p95 before and after."},
+ {s:"PM",c:"proj",t:"Bug day: run all 12 test incidents end to end through the UI and fix everything that breaks.",
+  goal:"12 clean runs in a row with no console errors."}]},
+{d:"2026-09-10",tasks:[
+ {s:"AM",c:"ai",g:"System design",t:"Design 3/5: idempotency — why a timed-out-but-succeeded request must not execute twice when money or side effects are involved.",
+  goal:"you can describe the server-side key/result store and when to expire entries."},
+ {s:"PM",c:"proj",g:"System design",t:"Add idempotency keys to /triage: store key → result and replay the stored result on a repeat, rather than re-running the agent.",
+  goal:"submitting the same request twice costs one agent run, proven in the cost dashboard."},
+ {s:"PM",c:"proj",g:"System design",t:"Design 4/5 applied — build a semantic cache: reuse a previous answer when a new question is close enough, scoped per tenant, with a tuned threshold.",
+  goal:"measured cache hit rate plus eval proof that it never serves a wrong answer for a near-miss question."}]},
+{d:"2026-09-11",tasks:[
+ {s:"AM",c:"ai",g:"System design",t:"Design 5/5: long-running work — queue plus job id plus status polling or webhook, and why held-open HTTP connections die at load balancers and deploys.",
+  goal:"you can sketch the async job lifecycle including failure and retry."},
+ {s:"PM",c:"proj",g:"System design",t:"Convert agent runs into queued jobs with a status endpoint, keeping SSE for live progress on top of the job.",
+  goal:"a 4-minute triage survives a frontend refresh and can be resumed from its job id."},
+ {s:"PM",c:"proj",t:"Draw the flagship architecture diagram: user → Cognito → frontend → API → agent/RAG → Bedrock → pgvector → audit → Langfuse → Grafana.",
+  goal:"one diagram that lets you narrate the entire system in three minutes."}]},
+{d:"2026-09-12",tasks:[
+ {s:"SAT",c:"career",m:"video",t:"H1–3: Record demo video #2 (about 5 minutes): an alert arrives, the agent investigates live with its trace streaming, the report appears, the operator approves, and the audit entry lands.",
+  goal:"a video that shows judgement, not just features — you narrate why each guardrail exists."},
+ {s:"SAT",c:"career",m:"post",t:"H4–5: LinkedIn post #2 — why trajectory evals matter more than output evals, using your own 12-incident numbers.",
+  goal:"posted with the trajectory eval table as the visual."},
+ {s:"SAT",c:"proj",g:"Security",t:"H6–8: Red-team round 2, now against the agent: injection via tool results and via runbook content. Fix what you find and note what you could not fix.",
+  goal:"a written finding list with severity and status, exactly like a real assessment."}]},
+{d:"2026-09-13",tasks:[
+ {s:"SUN",c:"proj",t:"H1–3: Final pass on both READMEs and update the case study with real measured numbers from both projects.",
+  goal:"every claim in the case study traces to a number you can reproduce."},
+ {s:"SUN",c:"rev",t:"H4–6: Half-way review. Both flagship projects are done — from here the work is positioning and interviewing, not building.",
+  goal:"a written go/no-go: if either project is unfinished, decide now what gets cut rather than letting it bleed into Week 5."}]}]}
+]},
+{name:"Weeks 5–6 · Positioning + Applications",weeks:[
+{label:"Week 5 — Career sprint + first applications · Sep 14–20",days:[
+{d:"2026-09-14",tasks:[
+ {s:"AM",c:"ai",g:"FDE craft",t:"FDE craft: how a first customer workshop actually runs — opening questions, mapping the current workflow, finding where the manual effort sits, and agreeing a success metric in the customer's own business terms.",
+  goal:"a written 8-question discovery script you would genuinely use with a Japanese insurer."},
+ {s:"PM",c:"career",t:"Resume draft 1. Lead with an FDE positioning line, put the AI projects above the TCS section, and rewrite the Japan engagement as customer-embedded delivery: requirements gathered directly from stakeholders, solutions designed and shipped to production, cross-cultural communication through interpreters.",
+  goal:"a draft where the first six lines make an FDE recruiter keep reading."},
+ {s:"PM",c:"career",t:"Quantify every bullet: hours saved, programs analysed, defects avoided, systems migrated. Your Showa100 tooling numbers (58,000+ programs, 78% accuracy, zero false positives) are unusually strong — use them.",
+  goal:"no bullet left that lacks a number or a concrete outcome."}]},
+{d:"2026-09-15",tasks:[
+ {s:"AM",c:"ai",g:"FDE craft",t:"FDE craft: scoping a first pilot (one narrow high-pain workflow, measurable, time-boxed, named owner) and handling a customer who asks for the technically wrong thing — surface the goal, quantify the tradeoff on their data, recommend, leave the decision with them.",
+  goal:"you can answer 'a customer insists on fine-tuning when RAG is right — what do you do?' without either capitulating or lecturing."},
+ {s:"PM",c:"career",t:"Resume draft 2: cut to two pages maximum, tighten every line, then send to one trusted senior engineer for blunt feedback.",
+  goal:"sent, with a specific ask ('would you interview this person for an FDE role?')."},
+ {s:"PM",c:"career",t:"GitHub presentation: pin policy-rag and incident-copilot, add a profile README with your one-sentence pitch and both demo videos, and make sure each repo README opens with a GIF and the eval numbers.",
+  goal:"a stranger landing on your profile understands what you build and how good it is within 30 seconds."}]},
+{d:"2026-09-16",tasks:[
+ {s:"AM",c:"int",t:"Study the loop formats you will face: Palantir-style decomposition, AI-native FDE take-homes, and enterprise-scenario behavioural rounds. Read two first-hand interview write-ups.",
+  goal:"a written list of the five round types with what each is actually testing."},
+ {s:"PM",c:"career",t:"LinkedIn overhaul: headline positioning you as a backend engineer shipping production LLM systems with five years of customer-embedded enterprise delivery, a rewritten About, and Featured set to both videos, both posts and the case study.",
+  goal:"profile matches the resume story with no gaps a recruiter would question."},
+ {s:"PM",c:"career",t:"Build the target tracker: 40 companies in three tiers with role links, referral contact, status and date. Flag every Tokyo-based FDE opening — your Japan experience is a genuine differentiator there.",
+  goal:"40 rows filled, sorted by tier, with at least 8 Tokyo-relevant roles identified."}]},
+{d:"2026-09-17",tasks:[
+ {s:"AM",c:"career",g:"FDE craft",t:"STAR technique: structure, length, and how to tell a failure story that increases confidence rather than draining it.",
+  goal:"a template you will fill six times tonight."},
+ {s:"PM",c:"career",m:"star6",t:"Write 6 STAR stories: the Japan stakeholder conflict, the Showa100 tooling win, the Pro*C to RHEL migration, a production incident you owned end to end, a time you were wrong, and a time you pushed back on a stakeholder.",
+  goal:"six written stories, each with a number in the Result line."},
+ {s:"PM",c:"int",t:"Rehearse all six aloud at 2 minutes each, recorded. Watch one back.",
+  goal:"you know which story runs long and which one lands flat."}]},
+{d:"2026-09-18",tasks:[
+ {s:"AM",c:"int",g:"FDE craft",t:"Decomposition drill #1, 45 minutes aloud with a whiteboard: 'A hospital chain wants to reduce emergency room wait times with software.' Structure the problem, do not jump to a solution.",
+  goal:"a photographed whiteboard showing stakeholders, data sources, metric definition, phased approach and risks."},
+ {s:"PM",c:"career",m:"star4",t:"Write STAR stories 7–10: recovering from a failed demo, handling an ambiguous requirement, a deadline conflict, and an unresolved cross-team dependency.",
+  goal:"ten stories total, covering every common FDE behavioural prompt."},
+ {s:"PM",c:"career",t:"Map referrals: every first and second-degree contact at target companies via LinkedIn and the TCS alumni network, plus a short personal request template.",
+  goal:"a named list of at least 10 people worth asking."}]},
+{d:"2026-09-19",tasks:[
+ {s:"SAT",c:"int",t:"H1–3: Timed practice build #1 — 'chat over a CSV of sales data', 3 hours, empty repo to working demo, including a small eval file. This simulates the real FDE take-home format.",
+  goal:"a working demo inside the time box, and a written note on what slowed you down."},
+ {s:"SAT",c:"proj",t:"H4–5: Post-mortem the build and fold every friction point into a reusable starter template (provider abstraction, eval harness skeleton, minimal UI).",
+  goal:"a template repo that would cut an hour off the same task next time."},
+ {s:"SAT",c:"career",m:"app5",t:"H6–8: Tailor the resume against 5 real job descriptions, then apply to the first 5 companies — Tier 2 first, so your loops open before you spend Tier 1 shots.",
+  goal:"5 applications submitted with tailored resumes and links to both demo videos."}]},
+{d:"2026-09-20",tasks:[
+ {s:"SUN",c:"int",g:"System design",t:"H1–2: Design drill, recorded: 'Design a multi-tenant RAG platform.' You have built this — practise narrating it as an interview answer rather than a tour of your repo.",
+  goal:"a 30-minute recorded answer covering isolation, retrieval, evals, cost and failure modes."},
+ {s:"SUN",c:"career",m:"app5",t:"H3–4: Apply to 5 more and send all 10 personalised referral requests.",
+  goal:"10 applications out, 10 referral asks sent."},
+ {s:"SUN",c:"rev",t:"H5–6: Weekly review.",goal:"pipeline status written down: applied, referred, waiting."}]}]},
+{label:"Week 6 — Wave 1 complete + prep intensive · Sep 21–27",days:[
+{d:"2026-09-21",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock: build a structured-extraction service from scratch in 45 minutes, cold, recorded.",
+  goal:"working code inside the box, and the recording reviewed for dead time."},
+ {s:"PM",c:"career",m:"app5",t:"Apply to 5 Tier 1 targets (the AI-native labs and their Tokyo offices). Put the case study and both video links in every free-text field that allows them.",
+  goal:"5 Tier 1 applications submitted, each genuinely tailored."},
+ {s:"PM",c:"career",t:"Research every company with an open application: product, how their FDE team is structured, recent launches.",
+  goal:"one page of notes per company, ready for a recruiter call at short notice."}]},
+{d:"2026-09-22",tasks:[
+ {s:"AM",c:"int",g:"System design",t:"Design drill: 'Design an LLM eval platform.' You have opinions here now — golden sets, judge calibration, regression gates, trajectory scoring.",
+  goal:"a recorded answer that references your own implementation choices as evidence."},
+ {s:"PM",c:"career",m:"app5",t:"Apply to 5 more across tiers.",goal:"tracker at 20 applications."},
+ {s:"PM",c:"career",t:"Referral follow-ups plus one polite nudge to everyone silent for more than 5 days.",
+  goal:"no referral request left unacknowledged without a follow-up."}]},
+{d:"2026-09-23",tasks:[
+ {s:"AM",c:"int",g:"FDE craft",t:"Decomposition drill #2: 'A shipping company loses track of containers at ports.' 45 minutes, aloud.",
+  goal:"structured approach with a measurable pilot proposed in the last five minutes."},
+ {s:"PM",c:"career",m:"app5",t:"Apply to 5 (Tier 3 plus AWS ProServe and Bedrock specialist SA roles as credible adjacent options).",
+  goal:"tracker at 25 applications."},
+ {s:"PM",c:"int",t:"Behavioural rehearsal with a partner or an AI interviewer: five stories with aggressive follow-up questioning.",
+  goal:"you have been pushed past the rehearsed part of at least three stories."}]},
+{d:"2026-09-24",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock.",goal:"a second recorded build with faster setup time than Monday's."},
+ {s:"PM",c:"int",t:"Build the prep bank: a document of likely questions per company with your written answers, including the three hardest questions about your own projects.",
+  goal:"a single file you can revise from the night before any interview."},
+ {s:"PM",c:"int",t:"Start timed practice build #2: an agent that answers questions using a REST API as its only tool.",
+  goal:"scaffold and tool wiring complete before you stop."}]},
+{d:"2026-09-25",tasks:[
+ {s:"AM",c:"int",g:"System design",t:"Design drill: 'Design an agent platform with human approval workflows for a regulated customer.'",
+  goal:"your answer covers approval gates, audit, tenant isolation and cost controls without prompting."},
+ {s:"PM",c:"int",t:"Finish practice build #2 and review honestly against the time box.",
+  goal:"working demo plus a list of what you would do differently."},
+ {s:"PM",c:"career",m:"app5",t:"Apply to 5 more.",goal:"tracker at 30 applications."}]},
+{d:"2026-09-26",tasks:[
+ {s:"SAT",c:"int",t:"H1–3: Full self-run mock loop: 45-minute build, then a 30-minute system design, then 20 minutes behavioural, back to back with no breaks. Recorded.",
+  goal:"you know how you perform when tired — which is how real onsites feel."},
+ {s:"SAT",c:"int",t:"H4–6: Review all three recordings and drill the weakest segment specifically.",
+  goal:"one named weakness with a concrete practice plan."},
+ {s:"SAT",c:"proj",t:"H7–8: Ship one delight feature — policy comparison mode across two documents. It demos beautifully in 20 seconds.",
+  goal:"working and visible in the UI."}]},
+{d:"2026-09-27",tasks:[
+ {s:"SUN",c:"career",m:"app5",t:"H1–3: Apply to 5 (wave 2 begins).",goal:"tracker at 35 applications."},
+ {s:"SUN",c:"career",t:"H4–5: Pipeline triage: who to chase, who to drop, where to add. Never let active applications fall below 10.",
+  goal:"tracker fully current with next actions per row."},
+ {s:"SUN",c:"rev",t:"H6: Weekly review.",goal:"conversion rate noted: applications sent vs responses received."}]}]}
+]},
+{name:"Weeks 7–8 · Loops + Gauntlet ramp",weeks:[
+{label:"Week 7 — Interviews begin · Sep 28–Oct 4",days:[
+{d:"2026-09-28",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock.",goal:"maintain the rep; no skipped mock days once loops start."},
+ {s:"PM",c:"int",t:"Live interview, or deep preparation for the next scheduled loop using your company notes and prep bank.",
+  goal:"either an interview completed or a company-specific prep sheet finished."},
+ {s:"PM",c:"int",t:"Post-interview retro within 24 hours: every question asked, what went well, what to fix, and a thank-you note sent.",
+  goal:"retro written and questions added to the prep bank. This compounding is your unfair advantage by week three."}]},
+{d:"2026-09-29",tasks:[
+ {s:"AM",c:"int",g:"System design",t:"Design drill, recorded — rotate to a scenario you have not tried yet.",goal:"a fresh problem handled without falling back on your own project."},
+ {s:"PM",c:"int",t:"Live interview or company-specific prep.",goal:"interview done or prep sheet complete."},
+ {s:"PM",c:"career",m:"app5",t:"Apply to the final 5 (wave 2 complete).",goal:"tracker at 40 applications."}]},
+{d:"2026-09-30",tasks:[
+ {s:"AM",c:"int",g:"FDE craft",t:"Decomposition drill #3.",goal:"under 45 minutes with a cleaner structure than drill #1."},
+ {s:"PM",c:"int",t:"Live interview, or take-home work if one has landed: use the starter template, timebox to their stated limit, spend 20% of the time on the README, and always include an eval file.",
+  goal:"submitted, or interview completed."},
+ {s:"PM",c:"int",t:"Update the prep bank with everything asked this week.",goal:"no question encountered twice without a prepared answer."}]},
+{d:"2026-10-01",tasks:[
+ {s:"AM",c:"int",t:"Behavioural drilling on your four hardest follow-up questions.",goal:"answers that stay under two minutes and end on a result."},
+ {s:"PM",c:"int",t:"Live interview or prep.",goal:"interview done or prep complete."},
+ {s:"PM",c:"career",t:"Research the companies interviewing you next week.",goal:"notes current for every scheduled loop."}]},
+{d:"2026-10-02",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock.",goal:"rep maintained."},
+ {s:"PM",c:"career",t:"Application top-ups to keep 10+ processes active, plus referral nudges.",
+  goal:"active pipeline at or above 10."},
+ {s:"PM",c:"int",t:"Weak-area drill from the prep bank.",goal:"the thing you keep fumbling, drilled deliberately."}]},
+{d:"2026-10-03",tasks:[
+ {s:"SAT",c:"int",t:"H1–3: Timed practice build #3 in whichever format your live take-homes suggest is most likely.",
+  goal:"completed in the box using the template."},
+ {s:"SAT",c:"int",t:"H4–6: Rehearse your project walkthrough until it is a crisp 5 minutes: problem, architecture, evals, security, what you would do next.",
+  goal:"delivered twice in a row without notes, under time."},
+ {s:"SAT",c:"int",t:"H7–8: Drill your weakest interview segment.",goal:"measurable improvement on the same exercise."}]},
+{d:"2026-10-04",tasks:[
+ {s:"SUN",c:"int",t:"H1–3: Full mock loop #2, recorded, compared against Sep 26.",goal:"a visible improvement you can point to."},
+ {s:"SUN",c:"career",t:"H4–5: Pipeline triage and negotiation prep: look up target companies and levels on levels.fyi so a number never surprises you on a call.",
+  goal:"a written band for each Tier 1 and Tier 2 target.",links:[["levels.fyi","https://www.levels.fyi/"]]},
+ {s:"SUN",c:"rev",t:"H6: Weekly review.",goal:"loops active, offers pending, gaps to fill."}]}]},
+{label:"Week 8 — Full interview mode + the only buffer · Oct 5–11",days:[
+{d:"2026-10-05",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock.",goal:"rep maintained."},
+ {s:"PM",c:"int",t:"Live interviews, or prep plus retros.",goal:"every completed interview has a retro within 24 hours."}]},
+{d:"2026-10-06",tasks:[
+ {s:"AM",c:"int",g:"System design",t:"Design drill.",goal:"a new scenario handled cleanly."},
+ {s:"PM",c:"int",t:"Live interviews, or prep plus retros.",goal:"prep bank current."}]},
+{d:"2026-10-07",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock.",goal:"rep maintained."},
+ {s:"PM",c:"int",t:"Live interviews or take-home work.",goal:"nothing outstanding past its deadline."}]},
+{d:"2026-10-08",tasks:[
+ {s:"AM",c:"int",g:"FDE craft",t:"Decomposition drill #4.",goal:"fluent structure, no blank-page hesitation."},
+ {s:"PM",c:"int",t:"Live interviews, or prep plus retros.",goal:"retros written."}]},
+{d:"2026-10-09",tasks:[
+ {s:"AM",c:"int",t:"Timed practical mock.",goal:"rep maintained."},
+ {s:"PM",c:"career",t:"Application top-ups and nudges. The pipeline never drops below 10 active while you have no signed offer.",
+  goal:"pipeline verified at 10+."}]},
+{d:"2026-10-10",tasks:[
+ {s:"SAT",c:"proj",t:"H1–8: THE buffer day — the only one in this plan. Absorb whatever slipped across Weeks 1–7: an unfinished feature, an eval suite you skipped, a README you rushed, a security finding you left open. If genuinely nothing slipped, do practice build #4.",
+  goal:"zero known debt carried into gauntlet mode."}]},
+{d:"2026-10-11",tasks:[
+ {s:"SUN",c:"rev",t:"H1–3: Transition review against the milestone list: 2 projects live, 40 applications out, 10 STAR stories, 2 videos, case study written, prep bank populated.",
+  goal:"every milestone either ticked or consciously abandoned with a reason."},
+ {s:"SUN",c:"rev",t:"H4–6: Confirm 3+ active interview loops. If fewer, trigger the expansion rule now: solutions engineer, AI deployment engineer and Bedrock specialist SA roles, plus 3 informational chats with working FDEs to surface unlisted openings.",
+  goal:"either 3+ loops confirmed or the expansion actions started today, then switch to the gauntlet template."}]}]}
+]}
+];
+
+const GAUNTLET={
+ title:"Gauntlet mode · from Oct 12, 2026 until signed",
+ intro:"Building is finished; this phase is pure conversion. Run the weekly template below — a real interview cancels that day's mock and nothing else moves. Because the 8-week sprint spent its buffer, keep Saturday flexible for take-homes.",
+ rows:[
+  ["Mon","Timed practical mock (45-min build)","Company research for this week's interviews"],
+  ["Tue","Weak-area drills from the prep bank","Decomposition drill (aloud, 45 min) OR real interview"],
+  ["Wed","Timed practical mock","LLM system design derive-and-compare OR real interview"],
+  ["Thu","Re-run previously failed drills from memory","Behavioural rehearsal with follow-up grilling OR real interview"],
+  ["Fri","Timed practical mock","Application top-ups (keep 10+ active) + referral nudges"],
+  ["Sat","Take-home work if one has landed; otherwise a 3h practice build","Post-interview retros: after EVERY interview, 30 min — questions, what worked, what to fix"],
+  ["Sun","Weekly review + pipeline triage","Rest earned if the pipeline is healthy"]],
+ rules:[
+  "Within 24h of every interview: thank-you note, retro logged, every question into the prep bank.",
+  "Take-home: priority over everything except live interviews. Use your starter template, timebox to their limit, and always include an eval file — with your background that is the differentiator.",
+  "Offer received: never accept on the call. 'I'm finishing other processes — I'll respond by [date +7-10 days].' Then use it to accelerate every other loop.",
+  "Two or more offers: negotiate with data (levels.fyi for company and level), one clean counter, final terms in writing.",
+  "Asked about Spark or heavy data engineering: say plainly that you have SQL and Pandas depth but not production Spark, and that you chose to go deeper on LLM systems instead. Never bluff a skill you cut deliberately.",
+  "No active loops after 4 weeks of gauntlet: expand to solutions engineer / AI deployment engineer / Bedrock SA roles and book 3 informational chats with working FDEs."]
+};
+
+const MILESTONES=[
+ {id:"ms-rag",t:"Week 1: policy-rag live on EKS — eval harness, hybrid search, groundedness scoring, streaming UI",proj:true},
+ {id:"ms-sec",t:"Week 2: security + enterprise stack — threat model, self red-team, retrieval-time RBAC, PII redaction, audit log, Bedrock, VPC endpoints"},
+ {id:"ms-case",t:"Week 2: FDE case study written + demo video #1 recorded"},
+ {id:"ms-agent",t:"Week 3–4: incident-copilot deployed — hand-built loop, budgets, trajectory evals, HITL approval gate, live-trace UI",proj:true},
+ {id:"ms-sd",t:"Week 4: system design implemented — tenant isolation, token bucket, idempotency, semantic cache, job queue"},
+ {id:"ms-brand",t:"Week 5: resume + GitHub + LinkedIn rebuilt for FDE positioning"},
+ {id:"ms-star",t:"Week 5: 10 STAR stories written and rehearsed on camera"},
+ {id:"ms-apps",t:"Week 7: 40 applications out, referral requests at 10+ contacts"},
+ {id:"ms-loops",t:"Week 8: active interview loops at 3+ companies"},
+ {id:"ms-offer",t:"Offer signed 🎉"}
+];
+
+// ---------- STATE ----------
+const LS="fdeSprint8w.v2";
+let state=JSON.parse(localStorage.getItem(LS)||"{}");
+state.tasks=state.tasks||{};state.ms=state.ms||{};state.activity=state.activity||[];
+const save=()=>localStorage.setItem(LS,JSON.stringify(state));
+
+const ALL=[];
+PLAN.forEach((mo,mi)=>mo.weeks.forEach((wk,wi)=>wk.days.forEach(day=>day.tasks.forEach((task,ti)=>{
+  task.id=day.d+"#"+ti;task.mi=mi;task.wi=wi;ALL.push(task);
+}))));
+const CATLBL={ai:"Study",proj:"Build",career:"Career",int:"Interview",rev:"Review"};
+const todayISO=new Date().toISOString().slice(0,10);
+
+// ---------- CALIBRATION TABLE ----------
+document.getElementById("calibBody").innerHTML=CALIB.map(r=>
+ `<tr><td>${r[0]}</td><td class="sc ${r[2]}">${r[1]}</td><td>${r[3]}</td></tr>`).join("");
+
+// ---------- RENDER PLAN ----------
+const tabsEl=document.getElementById("tabs"),monthsEl=document.getElementById("months");
+PLAN.forEach((mo,mi)=>{
+  const tab=document.createElement("button");
+  tab.className="tab";tab.setAttribute("role","tab");tab.textContent=mo.name;
+  tab.setAttribute("aria-selected",mi===0);tab.dataset.mi=mi;
+  tab.addEventListener("click",()=>selectMonth(mi));
+  tabsEl.appendChild(tab);
+
+  const block=document.createElement("section");
+  block.className="monthblock"+(mi===0?" active":"");block.dataset.mi=mi;
+  block.setAttribute("role","tabpanel");block.setAttribute("aria-label",mo.name);
+  const head=document.createElement("div");head.className="month-head";
+  head.innerHTML=`<h2>${mo.name}</h2><div class="mprog"><div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)"><span>Month progress</span><span class="mpct">0%</span></div><div class="bar"><div class="mbar"></div></div></div>`;
+  block.appendChild(head);
+
+  mo.weeks.forEach((wk,wi)=>{
+    const det=document.createElement("details");det.className="week";det.dataset.mi=mi;det.dataset.wi=wi;
+    det.innerHTML=`<summary><span>${wk.label}</span><span class="wprog"><span class="pct">0%</span><span class="bar" style="display:block"><span class="wbar" style="display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0"></span></span></span></summary>`;
+    wk.days.forEach(day=>{
+      const dv=document.createElement("div");dv.className="day"+(day.d===todayISO?" today":"");
+      const dt=new Date(day.d+"T00:00:00");
+      dv.innerHTML=`<h4>${dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})}</h4>`;
+      day.tasks.forEach(task=>{
+        const row=document.createElement("div");
+        row.className="task";row.dataset.c=task.c;row.dataset.id=task.id;row.dataset.gap=task.g?"1":"0";
+        const cb=document.createElement("input");cb.type="checkbox";cb.id="cb-"+task.id;cb.checked=!!state.tasks[task.id];
+        if(cb.checked)row.classList.add("done");
+        cb.addEventListener("change",()=>{
+          state.tasks[task.id]=cb.checked;
+          if(cb.checked&&!state.activity.includes(todayISO))state.activity.push(todayISO);
+          row.classList.toggle("done",cb.checked);save();refresh();
+        });
+        const tb=document.createElement("div");tb.className="tbody";
+        const lab=document.createElement("label");lab.htmlFor=cb.id;
+        lab.innerHTML=`<span class="slot">${task.s}</span><span class="pill ${task.c}">${CATLBL[task.c]}</span>`+
+          (task.g?`<span class="gapb" title="Targets a measured gap from your assessment">gap: ${task.g}</span>`:"")+
+          `<span class="ttl">${task.t}</span>`+
+          (task.goal?`<span class="goal"><b>Done when:</b> ${task.goal}</span>`:"");
+        tb.appendChild(lab);
+        if(task.links&&task.links.length){
+          const nav=document.createElement("div");nav.className="lnks";
+          nav.innerHTML=task.links.map(l=>`<a href="${l[1]}" target="_blank" rel="noopener noreferrer">${l[0]}</a>`).join("");
+          tb.appendChild(nav);
+        }
+        row.append(cb,tb);dv.appendChild(row);
+      });
+      det.appendChild(dv);
+    });
+    block.appendChild(det);
+  });
+  monthsEl.appendChild(block);
+});
+
+// Gauntlet tab
+const gTab=document.createElement("button");
+gTab.className="tab";gTab.setAttribute("role","tab");gTab.textContent="Gauntlet · Dec–Feb";
+gTab.setAttribute("aria-selected","false");gTab.dataset.mi="g";
+gTab.addEventListener("click",()=>selectMonth("g"));
+tabsEl.appendChild(gTab);
+const gBlock=document.createElement("section");
+gBlock.className="monthblock";gBlock.dataset.mi="g";gBlock.setAttribute("role","tabpanel");
+gBlock.innerHTML=`<div class="gauntlet"><h2 style="font-size:1.05rem">${GAUNTLET.title}</h2>
+<p style="color:var(--muted);font-size:.88rem;margin-top:6px">${GAUNTLET.intro}</p>
+<table><thead><tr><th>Day</th><th>AM (1h)</th><th>PM (1.5h)</th></tr></thead>
+<tbody>${GAUNTLET.rows.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody></table>
+<h3 style="font-size:.9rem;margin-top:16px">Standing rules</h3>
+<ul class="rules">${GAUNTLET.rules.map(r=>`<li>${r}</li>`).join("")}</ul></div>`;
+monthsEl.appendChild(gBlock);
+
+function selectMonth(mi){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.mi)===String(mi)));
+  document.querySelectorAll(".monthblock").forEach(b=>b.classList.toggle("active",String(b.dataset.mi)===String(mi)));
+}
+
+// Milestones
+const msList=document.getElementById("msList");
+MILESTONES.forEach(ms=>{
+  const row=document.createElement("div");row.className="ms"+(state.ms[ms.id]?" done":"");
+  const cb=document.createElement("input");cb.type="checkbox";cb.id=ms.id;cb.checked=!!state.ms[ms.id];
+  cb.addEventListener("change",()=>{state.ms[ms.id]=cb.checked;row.classList.toggle("done",cb.checked);save();refresh();});
+  const lab=document.createElement("label");lab.htmlFor=ms.id;lab.textContent=ms.t;
+  row.append(cb,lab);msList.appendChild(row);
+});
+
+// ---------- METRICS ----------
+const pct=(d,t)=>t?Math.min(100,Math.round(d/t*100)):0;
+function refresh(){
+  const done=ALL.filter(t=>state.tasks[t.id]).length;
+  document.getElementById("overallBar").style.width=pct(done,ALL.length)+"%";
+  document.getElementById("overallPct").textContent=pct(done,ALL.length)+"%";
+  document.querySelectorAll(".monthblock").forEach(b=>{
+    if(b.dataset.mi==="g")return;
+    const mi=+b.dataset.mi,mt=ALL.filter(t=>t.mi===mi),md=mt.filter(t=>state.tasks[t.id]);
+    const p=pct(md.length,mt.length);
+    b.querySelector(".mbar").style.width=p+"%";b.querySelector(".mpct").textContent=p+"%";
+    b.querySelectorAll("details.week").forEach(det=>{
+      const wi=+det.dataset.wi,wt=mt.filter(t=>t.wi===wi),wd=wt.filter(t=>state.tasks[t.id]);
+      const wp=pct(wd.length,wt.length);
+      det.querySelector(".wbar").style.width=wp+"%";det.querySelector(".pct").textContent=wp+"%";
+    });
+  });
+  const gapT=ALL.filter(t=>t.g),gapD=gapT.filter(t=>state.tasks[t.id]);
+  document.getElementById("mGap").textContent=gapD.length+"/"+gapT.length;
+  document.getElementById("mGapBar").style.width=pct(gapD.length,gapT.length)+"%";
+  const set=(k,tag,target)=>{
+    const n=tag==="app5"?ALL.filter(t=>t.m==="app5"&&state.tasks[t.id]).length*5
+      :tag==="star"?ALL.filter(t=>t.m&&t.m.startsWith("star")&&state.tasks[t.id]).reduce((a,t)=>a+ +t.m.slice(4),0)
+      :ALL.filter(t=>t.m===tag&&state.tasks[t.id]).length;
+    document.getElementById("m"+k).textContent=n+"/"+target;
+    document.getElementById("m"+k+"Bar").style.width=pct(n,target)+"%";
+  };
+  set("Vid","video",2);set("Post","post",2);set("App","app5",40);set("Star","star",10);
+  const proj=["ms-rag","ms-agent"].filter(id=>state.ms[id]).length;
+  document.getElementById("mProj").textContent=proj+"/2";
+  document.getElementById("mProjBar").style.width=pct(proj,2)+"%";
+  const days=new Set(state.activity);let streak=0,d=new Date();
+  if(!days.has(d.toISOString().slice(0,10)))d.setDate(d.getDate()-1);
+  while(days.has(d.toISOString().slice(0,10))){streak++;d.setDate(d.getDate()-1);}
+  document.getElementById("streak").textContent=streak;
+}
+
+// ---------- FILTERS ----------
+let activeFilter="all",query="";
+function applyFilters(){
+  document.querySelectorAll(".task").forEach(row=>{
+    const checked=!!state.tasks[row.dataset.id];
+    let show=true;
+    if(activeFilter==="unchecked")show=!checked;
+    else if(activeFilter==="gap")show=row.dataset.gap==="1";
+    else if(activeFilter!=="all")show=row.dataset.c===activeFilter;
+    if(show&&query)show=row.textContent.toLowerCase().includes(query);
+    row.classList.toggle("hidden",!show);
+  });
+  document.querySelectorAll(".day").forEach(dv=>
+    dv.classList.toggle("hidden",[...dv.querySelectorAll(".task")].every(t=>t.classList.contains("hidden"))));
+  if(query||activeFilter!=="all")document.querySelectorAll("details.week").forEach(d=>d.open=true);
+}
+document.querySelectorAll(".fbtn").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".fbtn").forEach(x=>x.setAttribute("aria-pressed","false"));
+  b.setAttribute("aria-pressed","true");activeFilter=b.dataset.f;applyFilters();
+}));
+document.getElementById("search").addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();applyFilters();});
+
+document.getElementById("jumpToday").addEventListener("click",()=>{
+  const el=document.querySelector(".day.today");
+  if(!el){alert("Today ("+todayISO+") is outside the Aug 17 – Oct 11, 2026 sprint. If you're past it, use the Gauntlet tab.");return;}
+  selectMonth(el.closest(".monthblock").dataset.mi);
+  el.closest("details.week").open=true;
+  el.scrollIntoView({behavior:"smooth",block:"center"});
+});
+
+(function(){
+  const el=document.querySelector(".day.today");
+  if(el){selectMonth(el.closest(".monthblock").dataset.mi);el.closest("details.week").open=true;}
+  else document.querySelector("details.week").open=true;
+})();
+refresh();
+
+
+// ---------- SOURCES PANEL ----------
+document.getElementById("srcBody").innerHTML=SOURCES.map(g=>
+ `<div class="srcgrp"><h3>${g[0]}</h3>${g[1].map(l=>`<a href="${l[1]}" target="_blank" rel="noopener noreferrer">${l[0]}</a>`).join("")}</div>`).join("");
+
+</script>
+</body>
+</html>
